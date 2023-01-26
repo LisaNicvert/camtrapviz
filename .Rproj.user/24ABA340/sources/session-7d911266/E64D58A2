@@ -1,0 +1,27 @@
+{
+    "id": "E64D58A2",
+    "path": "~/Documents/PhD/Code/camtrap-viz/tests/tests_camtraptor.R",
+    "project_path": "tests/tests_camtraptor.R",
+    "type": "r_source",
+    "hash": "968251434",
+    "contents": "",
+    "dirty": false,
+    "created": 1674723897712.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "109,0",
+        "scrollLine": "100"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1674746123,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1674746123716,
+    "read_only": false,
+    "read_only_alternatives": []
+}
