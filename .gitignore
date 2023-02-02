@@ -1,2 +1,6 @@
 rstudio
 .Rhistory
+.Rproj.user
+tests/shp/*
+tests/occ/*
+docs/*
