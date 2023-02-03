@@ -1,6 +1,14 @@
 data()
 server <- function(input, output) {
   
+  output$dyntext <- renderText({
+    if(input$example_file == "mica") {
+      "Muskrat and coypu camera trap observations in Belgium, the Netherlands and Germany (camtrapDP format)"
+    } else {
+      "Sample dataset from the camtrapR package (camtrapR format)"
+    }
+  })
+  
   output$tab <- renderDataTable({
     file <- input$input
     ext <- tools::file_ext(file$datapath)

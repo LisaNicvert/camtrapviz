@@ -40,7 +40,7 @@ ui <- function() {
                                                                        choices = c("mica", "recordTableSample"))),
                                                     column(8,
                                                            style = "margin-top: 25px;", # To align with selectInput
-                                                           "Dynamic dataset description")
+                                                           textOutput("dyntext"))
                                            )
                           ),
                           conditionalPanel(condition = "input.input_type == 2",
