@@ -7,8 +7,10 @@
 #' @return The server generating functions for Shiny
 #' @export
 server <- function(input, output) {
-  
 
+# Define roots for ShinyFiles ---------------------------------------------
+  roots <- c("home" = fs::path_home())
+  
 # Load example data -------------------------------------------------------
   utils::data(mica, package = "camtraptor")
   utils::data(recordTableSample, package = "camtrapR")
@@ -23,56 +25,75 @@ server <- function(input, output) {
   })
   
 
-# Data --------------------------------------------------------------------
+# Read files --------------------------------------------------------------
+  
+  # Shiny file listener
+  shinyFileChoose(input, 'records_input', 
+                  root = c("home" = fs::path_home()), 
+                  filetypes = c('csv', 'json'))
+  
   dat <- reactive({
-    if (input$input_type == 1) {
+    if (input$input_type == 1) { # Example dataset
       if(input$example_file == "mica") {
         res <- mica
       } else {
         res <- list(data = list(observations = recordTableSample,
                                 deployments = camtraps))
       }
-    } else if (input$input_type == 2) {
+    } else if (input$input_type == 2) { # Uploaded dataset
       # Get file
-      file <- input$records_input
-      req(file)
-      
+      file <- shinyFiles::parseFilePaths(roots,
+                                         input$records_input)
+  
+      # Ensure file is loaded
       file_path <- file$datapath
+      validate(need(file_path != '', "Please upload file"))
       
-      # Get separator value
-      sep <- input$records_sep
+      # Get file extension
+      ext <- tools::file_ext(file_path)
       
-      # Read csv
-      res_records <- read_csv(file_path = file_path, 
-                              column_separator = sep)
-
-      # Update file separator
-      updateRadioButtons(inputId = "records_sep",
-                         selected = res_records$sep)
-
-      if (input$import_cameras) {
-        # Get file
-        file <- input$cameras_input
-        req(file)
-        
-        file_path <- file$datapath
-        
+      if (ext == "csv") {
         # Get separator value
-        sep <- input$cameras_sep
+        sep <- input$records_sep
         
         # Read csv
-        res_cameras <- read_csv(file_path = file_path, 
+        res_records <- read_csv(file_path = file_path, 
                                 column_separator = sep)
         
         # Update file separator
-        updateRadioButtons(inputId = "cameras_sep",
-                           selected = res_cameras$sep)
+        updateRadioButtons(inputId = "records_sep",
+                           selected = res_records$sep)
+        
+        if (input$import_cameras) {
+          # Get file
+          file <- input$cameras_input
+          req(file)
+          
+          file_path <- file$datapath
+          
+          # Get separator value
+          sep <- input$cameras_sep
+          
+          # Read csv
+          res_cameras <- read_csv(file_path = file_path, 
+                                  column_separator = sep)
+          
+          # Update file separator
+          updateRadioButtons(inputId = "cameras_sep",
+                             selected = res_cameras$sep)
+        } else {
+          res_cameras <- NULL
+        }
+        
+        res <- list(data = list(observations = res_records$dat,
+                                deployments = res_cameras$dat))
+      } else if (ext == "json") {
+        res <- camtraptor::read_camtrap_dp(file_path)
       } else {
-        res_cameras <- NULL
+        validate(need(ext == "csv" || ext == "json", 
+                      "Please upload a csv file or a json datapackage"))
       }
       
-      res <- list(data = list(observations = res_records$dat,
-                              deployments = res_cameras$dat))
     }
     return(res)
   })

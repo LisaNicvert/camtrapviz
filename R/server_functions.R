@@ -13,10 +13,6 @@
 #' @export
 read_csv <- function(file_path, column_separator) {
   
-  ext <- tools::file_ext(file_path)
-  
-  validate(need(ext == "csv", "Please upload a csv file"))
-  
   if (is.null(column_separator)) { # Unspecified file separator
     # Default to comma separator
     fsep <- ","

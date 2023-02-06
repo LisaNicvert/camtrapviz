@@ -12,9 +12,12 @@ Imports:
     camtrapR,
     camtraptor,
     dplyr,
+    DT,
     ggplot2,
+    fs,
     magrittr,
     shiny,
     shinydashboard,
-    utils,
-    DT
+    shinyFiles,
+    utils
+    

@@ -36,5 +36,7 @@
 #' @importFrom shinydashboard sidebarMenu
 #' @importFrom shinydashboard tabItem
 #' @importFrom shinydashboard tabItems
+#' @importFrom shinyFiles shinyFileChoose
+#' @importFrom shinyFiles shinyFilesButton
 ## usethis namespace: end
 NULL
