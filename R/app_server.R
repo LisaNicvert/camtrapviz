@@ -33,48 +33,46 @@ server <- function(input, output) {
                                 deployments = camtraps))
       }
     } else if (input$input_type == 2) {
+      # Get file
       file <- input$records_input
-      ext <- tools::file_ext(file$datapath)
-      
       req(file)
-      validate(need(ext == "csv", "Please upload a csv file"))
       
-      if (is.null(input$records_sep)) { # Unspecified file separator
-        # Default to comma separator
-        fsep <- ","
-        records <- utils::read.csv(file$datapath, sep = fsep)
+      file_path <- file$datapath
+      
+      # Get separator value
+      sep <- input$records_sep
+      
+      # Read csv
+      res_records <- read_csv(file_path = file_path, 
+                              column_separator = sep)
+
+      # Update file separator
+      updateRadioButtons(inputId = "records_sep",
+                         selected = res_records$sep)
+
+      if (input$import_cameras) {
+        # Get file
+        file <- input$cameras_input
+        req(file)
         
-        # Try tab
-        if (ncol(records) == 1) {
-          fsep <- "\t"
-          records <- utils::read.csv(file$datapath, sep = fsep)
-        }
-        # Try semicolon
-        if (ncol(records) == 1) {
-          fsep <- ";"
-          records <- utils::read.csv(file$datapath, sep = fsep)
-        }
-        # Display warning
-        if (ncol(records) == 1) {
-          warning("Only one column detected: check file separator")
-        }
+        file_path <- file$datapath
+        
+        # Get separator value
+        sep <- input$cameras_sep
+        
+        # Read csv
+        res_cameras <- read_csv(file_path = file_path, 
+                                column_separator = sep)
         
         # Update file separator
-        updateRadioButtons(inputId = "records_sep",
-                           selected = fsep)
-        
-      } else { # File separator is specified
-        records <- utils::read.csv(file$datapath, sep = input$records_sep)
-      }
-      
-      if (input$import_cameras) {
-        cameras <- NA # to code
+        updateRadioButtons(inputId = "cameras_sep",
+                           selected = res_cameras$sep)
       } else {
-        cameras <- NULL
+        res_cameras <- NULL
       }
       
-      res <- list(data = list(observations = records,
-                              deployments = cameras))
+      res <- list(data = list(observations = res_records$dat,
+                              deployments = res_cameras$dat))
     }
     return(res)
   })
