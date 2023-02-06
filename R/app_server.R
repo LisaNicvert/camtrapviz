@@ -39,7 +39,42 @@ server <- function(input, output) {
       req(file)
       validate(need(ext == "csv", "Please upload a csv file"))
       
-      utils::read.csv(file$datapath)
+      if (is.null(input$records_sep)) { # Unspecified file separator
+        # Default to comma separator
+        fsep <- ","
+        records <- utils::read.csv(file$datapath, sep = fsep)
+        
+        # Try tab
+        if (ncol(records) == 1) {
+          fsep <- "\t"
+          records <- utils::read.csv(file$datapath, sep = fsep)
+        }
+        # Try semicolon
+        if (ncol(records) == 1) {
+          fsep <- ";"
+          records <- utils::read.csv(file$datapath, sep = fsep)
+        }
+        # Display warning
+        if (ncol(records) == 1) {
+          warning("Only one column detected: check file separator")
+        }
+        
+        # Update file separator
+        updateRadioButtons(inputId = "records_sep",
+                           selected = fsep)
+        
+      } else { # File separator is specified
+        records <- utils::read.csv(file$datapath, sep = input$records_sep)
+      }
+      
+      if (input$import_cameras) {
+        cameras <- NA # to code
+      } else {
+        cameras <- NULL
+      }
+      
+      res <- list(data = list(observations = records,
+                              deployments = cameras))
     }
     return(res)
   })

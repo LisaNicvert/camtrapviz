@@ -9,8 +9,11 @@
 #' 
 #' @export
 separator_widget <- function(prefix) {
-  checkboxGroupInput(paste(prefix, "sep", sep = "_"),
-                     label = "File separator",
-                     choices = c("Comma", "Tabulation", "Semicolon"),
-                     inline = TRUE)
+  radioButtons(paste(prefix, "sep", sep = "_"),
+               label = "File separator",
+               choices = c("Comma" = ",", 
+                           "Tabulation" = "\t", 
+                           "Semicolon" = ";"),
+               selected = character(0),
+               inline = TRUE)
 }
