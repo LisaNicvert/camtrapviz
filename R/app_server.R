@@ -88,7 +88,7 @@ server <- function(input, output) {
         res <- list(data = list(observations = res_records$dat,
                                 deployments = res_cameras$dat))
       } else if (ext == "json") {
-        res <- camtraptor::read_camtrap_dp(file_path)
+        res <- camtraptor::read_camtrap_dp(file_path, media = FALSE)
       } else {
         validate(need(ext == "csv" || ext == "json", 
                       "Please upload a csv file or a json datapackage"))

@@ -16,6 +16,7 @@
 #' @importFrom shiny h2
 #' @importFrom shiny h3
 #' @importFrom shiny h4
+#' @importFrom shiny h5
 #' @importFrom shiny icon
 #' @importFrom shiny need
 #' @importFrom shiny radioButtons
