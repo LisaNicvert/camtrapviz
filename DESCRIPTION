@@ -16,4 +16,5 @@ Imports:
     magrittr,
     shiny,
     shinydashboard,
-    utils
+    utils,
+    DT

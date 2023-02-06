@@ -7,6 +7,10 @@ ui <- function() {
   dashboardPage(
     dashboardHeader(title = "Camtrapviz"),
     dashboardSidebar(
+
+# Sidebar -----------------------------------------------------------------
+
+      
       sidebarMenu(
         menuItem("Data import", tabName = "dataimport", 
                  icon = icon("th-list")),
@@ -23,6 +27,10 @@ ui <- function() {
     ),
     dashboardBody(
       tabItems(
+
+# Data import -------------------------------------------------------------
+
+        
         tabItem(tabName = "dataimport",
                 fluidRow(
                   box(h2("Data import"),
@@ -81,13 +89,16 @@ ui <- function() {
                       box(width = 12,
                           h3("File preview"),
                           h4("Records table"),
-                          tableOutput("recordsipsum"),
+                          dataTableOutput("records_preview"),
                           h4("Cameras table"),
-                          tableOutput("camerasipsum")
+                          dataTableOutput("cameras_preview")
                       ), # End nested box #2
                   ) # End big box
                 )
         ),
+
+# Summary -----------------------------------------------------------------
+
         tabItem(tabName = "summary",
                 fluidRow(h2("Summary tab content"))
         ),

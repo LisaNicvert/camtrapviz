@@ -1,5 +1,18 @@
-data()
+
+#' Server
+#'
+#' @param input Shiny input
+#' @param output Shiny output
+#'
+#' @return The server generating functions for Shiny
+#' @export
 server <- function(input, output) {
+  
+
+# Load example data -------------------------------------------------------
+  utils::data(mica, package = "camtraptor")
+  utils::data(recordTableSample, package = "camtrapR")
+  utils::data(camtraps, package = "camtrapR")
   
   output$dyntext <- renderText({
     if(input$example_file == "mica") {
@@ -9,17 +22,15 @@ server <- function(input, output) {
     }
   })
   
+
+# Data --------------------------------------------------------------------
   dat <- reactive({
     if (input$input_type == 1) {
       if(input$example_file == "mica") {
-        utils::data(mica, package = "camtraptor")
-        res <- list(records = mica$data$observations,
-                    cameras = mica$data$deployments)
+        res <- mica
       } else {
-        utils::data(recordTableSample, package = "camtrapR")
-        utils::data(camtraps, package = "camtrapR")
-        res <- list(records = recordTableSample,
-                    cameras = camtraps)
+        res <- list(data = list(observations = recordTableSample,
+                                deployments = camtraps))
       }
     } else if (input$input_type == 2) {
       file <- input$records_input
@@ -33,22 +44,26 @@ server <- function(input, output) {
     return(res)
   })
   
-  output$recordsipsum <- renderTable({
-    # utils::data(recordTableSample, package = "camtrapR")
-    # df <- recordTableSample %>% select(Species,
-    #                                    Station,
-    #                                    DateTimeOriginal)
-    # utils::head(df)
-    utils::head(dat()$records)
+
+# File input preview ------------------------------------------------------
+  output$records_preview <- renderDataTable({
+    dat_head <- utils::head(dat()$data$observations, 5)
+    
+    DT::datatable(dat_head,
+                  filter = "none",
+                  selection = "none",
+                  options = list(dom = 't',
+                                 scrollX = TRUE))
   })
   
-  output$camerasipsum <- renderTable({
-    # utils::data(camtraps, package = "camtrapR")
-    # df <- camtraps %>% select(Station,
-    #                           utm_x,
-    #                           utm_y)
-    # utils::head(df)
-    utils::head(dat()$cameras)
+  output$cameras_preview <- renderDataTable({
+    cam_head <- utils::head(dat()$data$deployments, 5)
+    
+    DT::datatable(cam_head,
+                  filter = "none",
+                  selection = "none",
+                  options = list(dom = 't',
+                                 scrollX = TRUE))
   })
   
   
