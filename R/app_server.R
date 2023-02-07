@@ -6,7 +6,7 @@
 #'
 #' @return The server generating functions for Shiny
 #' @export
-server <- function(input, output) {
+server <- function(input, output, session) {
 
 # Define roots for ShinyFiles ---------------------------------------------
   roots <- c("home" = fs::path_home())
@@ -63,6 +63,7 @@ server <- function(input, output) {
   
       # Ensure file is loaded
       file_path <- file$datapath
+      
       validate(need(file_path != '', "Please upload file"))
       
       # Get file extension
@@ -114,6 +115,27 @@ server <- function(input, output) {
     return(res)
   })
   
+
+# Columns mapping ---------------------------------------------------------
+  
+  observe({
+    # Get input data columns
+    records_col <- colnames(dat()$data$observations)
+    
+    req(input$records_input)
+    
+    widget_list <- c("spp_col", "cam_col",
+                     "date_col", "time_col", "timestamp_col",
+                     "count_col", "lat_col", "long_col")
+    
+    for(w in widget_list) {
+      updateSelectInput(session = session,
+                        inputId = w,
+                        choices = records_col)
+    }
+    
+    
+  })
 
 # File input preview ------------------------------------------------------
   output$records_preview <- renderDataTable({

@@ -27,6 +27,7 @@
 #' @importFrom shiny selectInput
 #' @importFrom shiny textOutput
 #' @importFrom shiny updateRadioButtons
+#' @importFrom shiny updateSelectInput
 #' @importFrom shiny validate
 #' @importFrom shinydashboard box
 #' @importFrom shinydashboard dashboardBody
