@@ -90,8 +90,10 @@ ui <- function() {
                                                     )
                                            ),
                                            br(),
-                                           checkboxInput("import_cameras",
-                                                         "Import cameras table"),
+                                           conditionalPanel(condition = "output.records_extension !== 'json'",
+                                                            checkboxInput("import_cameras",
+                                                                          "Import cameras table")
+                                                            ),
                                            conditionalPanel(condition = "input.import_cameras",
                                                             fluidRow(column(4,
                                                                             fileInput("cameras_input", "Cameras table",
