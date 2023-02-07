@@ -59,7 +59,9 @@ ui <- function() {
                                                                             label = 'Choose records table', 
                                                                             title = 'Choose file',
                                                                             multiple = FALSE),
-                                                           separator_widget("records")),
+                                                           conditionalPanel(condition = "output.records_extension !== 'json'",
+                                                                            separator_widget("records"))
+                                                           ),
                                                     column(8,
                                                            selectInput("spp_col", 
                                                                        "Species",
@@ -94,10 +96,12 @@ ui <- function() {
                       ), # End nested box #1
                       box(width = 12,
                           h3("File preview"),
-                          h4("Records table"),
-                          dataTableOutput("records_preview"),
-                          h4("Cameras table"),
-                          dataTableOutput("cameras_preview")
+                          conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
+                                           h4("Records table"),
+                                           dataTableOutput("records_preview"),
+                                           h4("Cameras table"),
+                                           dataTableOutput("cameras_preview")
+                                           )
                       ), # End nested box #2
                   ) # End big box
                 )

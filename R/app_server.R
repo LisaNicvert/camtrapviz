@@ -32,6 +32,22 @@ server <- function(input, output) {
                   root = c("home" = fs::path_home()), 
                   filetypes = c('csv', 'json'))
   
+  output$records_extension <- reactive({
+    # Get file
+    file <- shinyFiles::parseFilePaths(roots,
+                                       input$records_input)
+    
+    # Ensure file is loaded
+    file_path <- file$datapath
+    validate(need(file_path != '', "Please upload file"))
+    
+    # Get file extension
+    ext <- tools::file_ext(file_path)
+    ext
+  })
+  outputOptions(output, 'records_extension', 
+                suspendWhenHidden = FALSE)
+  
   dat <- reactive({
     if (input$input_type == 1) { # Example dataset
       if(input$example_file == "mica") {

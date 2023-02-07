@@ -19,6 +19,7 @@
 #' @importFrom shiny h5
 #' @importFrom shiny icon
 #' @importFrom shiny need
+#' @importFrom shiny outputOptions
 #' @importFrom shiny radioButtons
 #' @importFrom shiny reactive
 #' @importFrom shiny renderText
