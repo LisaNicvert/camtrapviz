@@ -3,6 +3,7 @@
 #'
 #' @param input Shiny input
 #' @param output Shiny output
+#' @param session Shiny session
 #'
 #' @return The server generating functions for Shiny
 #' @export
@@ -122,18 +123,46 @@ server <- function(input, output, session) {
     # Get input data columns
     records_col <- colnames(dat()$data$observations)
     
+    # Ensure records table exists
     req(input$records_input)
     
+    # Create widget list
     widget_list <- c("spp_col", "cam_col",
                      "date_col", "time_col", "timestamp_col",
                      "count_col", "lat_col", "long_col")
     
-    for(w in widget_list) {
-      updateSelectInput(session = session,
-                        inputId = w,
-                        choices = records_col)
-    }
+    # Columns for which no column selection is authorized
+    empty_allowed <- c("date_col", "time_col", "timestamp_col",
+                       "count_col", "lat_col", "long_col")
     
+    # Placeholder to allow to select no column
+    nullval <- "Not present in data"
+    validate(need(!(nullval %in% records_col),
+                  paste("Please provide a dataframe with no column named",
+                        nullval)))
+    
+    # Find default names
+    default_names <- find_default_colnames(records_col,
+                                           empty_allowed,
+                                           empty_placeholder = nullval)
+    
+    for(w in widget_list) {
+      # Get default
+      default_name <- default_names[[w]]
+        
+      if(w %in% empty_allowed) {
+        updateSelectInput(session = session,
+                          inputId = w,
+                          choices = c(nullval, records_col),
+                          selected = default_name)
+      } else {
+        updateSelectInput(session = session,
+                          inputId = w,
+                          choices = records_col,
+                          selected = default_name)
+      }
+      
+    }
     
   })
 

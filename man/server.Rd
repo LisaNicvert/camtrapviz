@@ -4,12 +4,14 @@
 \alias{server}
 \title{Server}
 \usage{
-server(input, output)
+server(input, output, session)
 }
 \arguments{
 \item{input}{Shiny input}
 
 \item{output}{Shiny output}
+
+\item{session}{Shiny session}
 }
 \value{
 The server generating functions for Shiny
