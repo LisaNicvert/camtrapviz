@@ -18,6 +18,12 @@ server <- function(input, output, session) {
 # Define columns for which empty is allowed -------------------------------
   empty_allowed <- c("count_col", "obs_col")
   
+
+# Define camera columns ---------------------------------------------------
+  cameras_cols_wanted <- c("cam_col_cov",
+                           "lat_col_cov",
+                           "lon_col_cov")
+  
 # Load example data -------------------------------------------------------
   utils::data(mica, package = "camtraptor")
   utils::data(recordTableSample, package = "camtrapR")
@@ -176,9 +182,8 @@ server <- function(input, output, session) {
                      datetime_widgets,
                      "count_col", "obs_col")
     
-    if (!input$import_cameras && records_extension() != "json") { 
-      # User doesn't want to import a camera file 
-      # and it is not a json file
+    if (!input$import_cameras) { 
+      # User doesn't want to import a camera file
       widget_list <- c(widget_list,
                        "lat_col", "lon_col")
     }
@@ -206,39 +211,43 @@ server <- function(input, output, session) {
   # Update selection list and default names 
   # in selectInput for records
   observeEvent(input$records_input, {
-    for(w in records_cols_wanted()) {
-      # Get default
-      default_name <- default_records()[[w]]
-        
-      if(w %in% empty_allowed) {
-        updateSelectInput(session = session,
-                          inputId = w,
-                          choices = c(nullval, records_cols()),
-                          selected = default_name)
-      } else {
-        updateSelectInput(session = session,
-                          inputId = w,
-                          choices = records_cols(),
-                          selected = default_name)
+    if (input$input_type == 2) { # Only update widgets for manual import
+      for(w in records_cols_wanted()) {
+        # Get default
+        default_name <- default_records()[[w]]
+          
+        if(w %in% empty_allowed) {
+          updateSelectInput(session = session,
+                            inputId = w,
+                            choices = c(nullval, records_cols()),
+                            selected = default_name)
+        } else {
+          updateSelectInput(session = session,
+                            inputId = w,
+                            choices = records_cols(),
+                            selected = default_name)
+        }
       }
     }
   })
   
   # Initialize date/time/stamp upon input change
   observeEvent(input$datetime_or_timestamp, {
-    widgets <- records_cols_wanted()
-    time_widgets <- widgets[which(widgets %in% c("date_col", "time_col", "timestamp_col"))]
-    
-    for(tw in time_widgets) {
-      # Get default
-      default_name <- default_records()[[tw]]
+    if (input$input_type == 2) { # Only update widgets for manual import
+      widgets <- records_cols_wanted()
+      time_widgets <- widgets[which(widgets %in% c("date_col", "time_col", "timestamp_col"))]
       
-      # Cannot be empty since it is a datetime
-      updateSelectInput(session = session,
-                        inputId = tw,
-                        choices = records_cols(),
-                        selected = default_name)
-      
+      for(tw in time_widgets) {
+        # Get default
+        default_name <- default_records()[[tw]]
+        
+        # Cannot be empty since it is a datetime
+        updateSelectInput(session = session,
+                          inputId = tw,
+                          choices = records_cols(),
+                          selected = default_name)
+        
+      }
     }
   })
   
@@ -269,39 +278,39 @@ server <- function(input, output, session) {
   
   # Get input cameras columns
   cameras_cols <- reactive({
-    if (!is.null(dat_raw()$data$observations)) { # Camera file was provided
-      res <- colnames(dat_raw()$data$observations)
+    if (!is.null(dat_raw()$data$deployments)) { # Camera file was provided
+      res <- colnames(dat_raw()$data$deployments)
     } else { # Camera is in data
-      res <- records_cols()
+      res <- NULL
     }
   })
   
   # Default columns mapping for cameras
   default_cameras <- reactive({
     # Find default names
-    cameras_cols_wanted <- c("cam_col",
-                             "lat_col",
-                             "lon_col")
-    default_names <- find_default_colnames(cameras_cols_wanted,
-                                           cameras_cols())
+    if (!is.null(cameras_cols())) {
+      default_names <- find_default_colnames(cameras_cols_wanted,
+                                             cameras_cols())
+    } else {
+      default_names <- NULL
+    }
     default_names
   })
   
   # Update selection list and default names 
   # in selectInput for cameras
   observe({
-    if( !is.null(dat_raw()$data$observations)) { # Camera file was provided
-      cameras_cols_wanted <- c("cam_col_cov",
-                               "lat_col",
-                               "lon_col")
-      for(w in cameras_cols_wanted) {
-        # Get default
-        default_name <- default_cameras()[[w]]
-        
-        updateSelectInput(session = session,
-                          inputId = w,
-                          choices = cameras_cols(),
-                          selected = default_name)
+    if (input$input_type == 2) { # Only update widgets for manual import
+      if( !is.null(cameras_cols())) { # Camera file was provided
+        for(w in cameras_cols_wanted) {
+          # Get default
+          default_name <- default_cameras()[[w]]
+          
+          updateSelectInput(session = session,
+                            inputId = w,
+                            choices = cameras_cols(),
+                            selected = default_name)
+        }
       }
     }
   })
@@ -315,7 +324,7 @@ server <- function(input, output, session) {
       # Get the values selected by the user
       
       # Get relevant widgets
-      widgets <- cameras_cols_wanted()
+      widgets <- cameras_cols_wanted
       
       # Get selected values for widgets
       res <- vector(mode = "character", 

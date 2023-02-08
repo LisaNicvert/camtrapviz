@@ -129,7 +129,14 @@ find_default_colnames <- function(widget_list,
   regex_list_all <- c("^vernacularNames\\.en$|species", "station|deployment|camera",
                       "date", "hour|time(?!stamp)", "timestamp|datetime",
                       "count", "observationType", "lat", "lon")
+  
   names(regex_list_all) <- widget_list_all
+  # Add covariates (duplicate regex)
+  cov <- regex_list_all[grep(pattern = "^cam_col$|^lat_col$|^lon_col$", 
+                             names(regex_list_all))]
+  names(cov) <- paste(names(cov), "cov", sep = "_")
+  regex_list_all <- c(regex_list_all,
+                      cov)
   
   # Initialize results
   res <- vector(mode = "character", length = length(widget_list))
