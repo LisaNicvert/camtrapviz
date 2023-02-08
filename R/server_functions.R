@@ -6,7 +6,7 @@
 #' @param file_path a valid path to a csv file
 #' @param column_separator column separator character
 #'
-#' @return A lsit with 2 elements: 
+#' @return A list with 2 elements: 
 #' dat = the dataframe read from the file and
 #' sep = the character separator used to read the file
 #'

@@ -240,7 +240,45 @@ dat <- reactive({
     dplyr::select(any_of(unname(mapping_records())), 
                   everything())
   
-  dat
+  # Get all codes used in the table
+  col_codes <- names(mapping_records())
+
+  # Cast species
+  if ("spp_col" %in% col_codes) {
+    col_name <- mapping_records()["spp_col"]
+    dat$data$observations[[col_name]] <- as.character(dat$data$observations[[col_name]])
+  }
+  # Cast date
+  if ("date_col" %in% col_codes) {
+    col_name <- mapping_records()["date_col"]
+    dat$data$observations[[col_name]] <- as_date(dat$data$observations[[col_name]])
+  }
+  # Cast time
+  if ("time_col" %in% col_codes) {
+    col_name <- mapping_records()["time_col"]
+    dat$data$observations[[col_name]] <- chron::times(dat$data$observations[[col_name]])
+  }
+  # Cast datetime
+  if ("timestamp_col" %in% col_codes) {
+    col_name <- mapping_records()["timestamp_col"]
+    dat$data$observations[[col_name]] <-  as_datetime(dat$data$observations[[col_name]])
+  }
+  # Cast lat
+  if ("lat_col" %in% col_codes) {
+    col_name <- mapping_records()["lat_col"]
+    dat$data$observations[[col_name]] <- as.numeric(dat$data$observations[[col_name]])
+  }
+  # Cast lon
+  if ("lon_col" %in% col_codes) {
+    col_name <- mapping_records()["lon_col"]
+    dat$data$observations[[col_name]] <- as.numeric(dat$data$observations[[col_name]])
+  }
+  # Cast count
+  if ("count_col" %in% col_codes) {
+    col_name <- mapping_records()["count_col"]
+    dat$data$observations[[col_name]] <- as.numeric(dat$data$observations[[col_name]])
+  }
+  return(dat)
 })
   
 # File input preview ------------------------------------------------------

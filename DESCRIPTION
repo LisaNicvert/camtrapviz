@@ -11,6 +11,7 @@ RoxygenNote: 7.2.1
 Imports: 
     camtrapR,
     camtraptor,
+    chron,
     dplyr,
     DT,
     ggplot2,
@@ -19,5 +20,6 @@ Imports:
     shiny,
     shinydashboard,
     shinyFiles,
-    utils
-    
+    utils,
+    lubridate,
+    tidyselect
