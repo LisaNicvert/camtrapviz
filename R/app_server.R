@@ -127,13 +127,17 @@ server <- function(input, output, session) {
     req(input$records_input)
     
     # Create widget list
+    if (input$datetime_or_timestamp == 'timestamp') {
+      datetime_widgets <- "timestamp_col"
+    } else if (input$datetime_or_timestamp == 'date_time') {
+      datetime_widgets <- c("date_col", "time_col")
+    }
     widget_list <- c("spp_col", "cam_col",
-                     "date_col", "time_col", "timestamp_col",
-                     "count_col", "lat_col", "long_col")
+                     datetime_widgets,
+                     "count_col")
     
     # Columns for which no column selection is authorized
-    empty_allowed <- c("date_col", "time_col", "timestamp_col",
-                       "count_col", "lat_col", "long_col")
+    empty_allowed <- "count_col"
     
     # Placeholder to allow to select no column
     nullval <- "Not present in data"
@@ -142,7 +146,8 @@ server <- function(input, output, session) {
                         nullval)))
     
     # Find default names
-    default_names <- find_default_colnames(records_col,
+    default_names <- find_default_colnames(widget_list,
+                                           records_col,
                                            empty_allowed,
                                            empty_placeholder = nullval)
     

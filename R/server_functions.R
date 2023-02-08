@@ -93,6 +93,8 @@ find_default_colname <- function(pattern, colnames,
 #'
 #' Finds the column names to default to among colnames
 #' 
+#' @param widget_list a list of widgets to choose defaults for
+#' (see details to see which widgets are accepted)
 #' @param colnames a vector of column names
 #' @param empty_allowed_list a vector of allowed widgets that can be set
 #' to empty
@@ -102,39 +104,43 @@ find_default_colname <- function(pattern, colnames,
 #' NULL (no match and empty not allowed) 
 #' or the empty_placeholder(no match and empty allowed)
 #' 
-#' @details currently implemented for the followind widgets:
+#' @details currently implemented for the following widgets:
 #'    spp_col, cam_col, date_col, time_col, timestamp_col,
-#'    count_col, lat_col, long_col
+#'    count_col, lat_col, lon_col
 #' @export
 #'
 #' @examples
 #' library(camtraptor)
 #' data(mica)
 #' colnames <- colnames(mica$data$observations)
-#' find_default_colnames(colnames)
-find_default_colnames <- function(colnames,
+#' find_default_colnames(c("spp_col", "cam_col", "timestamp_col"), 
+#'                       colnames)
+find_default_colnames <- function(widget_list,
+                                  colnames,
                                   empty_allowed_list = list(),
                                   empty_placeholder = "Not present in data") {
   
   # Create a list with all possible columns we want
-  widget_list <- c("spp_col", "cam_col",
-                   "date_col", "time_col", "timestamp_col",
-                   "count_col", "lat_col", "long_col")
+  widget_list_all <- c("spp_col", "cam_col",
+                       "date_col", "time_col", "timestamp_col",
+                       "count_col", "lat_col", "lon_col")
+
   # Get the corresponding regex
-  regex_list <- c("^vernacularNames\\.en$|species", "station|deployment|camera",
-                  "date", "hour|time(?!stamp)", "timestamp|datetime",
-                  "count", "lat", "lon")
-  names(regex_list) <- widget_list
+  regex_list_all <- c("^vernacularNames\\.en$|species", "station|deployment|camera",
+                      "date", "hour|time(?!stamp)", "timestamp|datetime",
+                      "count", "lat", "lon")
+  names(regex_list_all) <- widget_list_all
   
   # Initialize results
-  res <- vector(mode = "character", length = length(regex_list))
-  names(res) <- names(regex_list)
-  for (i in 1:length(regex_list)) { # Iterate through regex
-    pat <- regex_list[i]
-    nam <- names(regex_list)[i]
+  res <- vector(mode = "character", length = length(regex_list_all))
+  names(res) <- names(regex_list_all)
+  
+  for (i in 1:length(widget_list)) { # Iterate through imput widgets
+    w <- widget_list[i]
+    pat <- regex_list_all[w]
     
     # Define empty_allowed boolean
-    if (nam %in% empty_allowed_list) {
+    if (w %in% empty_allowed_list) {
       empty_allowed <- TRUE
     } else {
       empty_allowed <- FALSE

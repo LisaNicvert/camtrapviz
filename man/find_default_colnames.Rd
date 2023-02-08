@@ -5,12 +5,16 @@
 \title{Find default column names}
 \usage{
 find_default_colnames(
+  widget_list,
   colnames,
   empty_allowed_list = list(),
   empty_placeholder = "Not present in data"
 )
 }
 \arguments{
+\item{widget_list}{a list of widgets to choose defaults for
+(see details to see which widgets are accepted)}
+
 \item{colnames}{a vector of column names}
 
 \item{empty_allowed_list}{a vector of allowed widgets that can be set
@@ -27,13 +31,14 @@ or the empty_placeholder(no match and empty allowed)
 Finds the column names to default to among colnames
 }
 \details{
-currently implemented for the followind widgets:
+currently implemented for the following widgets:
 spp_col, cam_col, date_col, time_col, timestamp_col,
-count_col, lat_col, long_col
+count_col, lat_col, lon_col
 }
 \examples{
 library(camtraptor)
 data(mica)
 colnames <- colnames(mica$data$observations)
-find_default_colnames(colnames)
+find_default_colnames(c("spp_col", "cam_col", "timestamp_col"), 
+                      colnames)
 }
