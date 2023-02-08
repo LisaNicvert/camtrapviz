@@ -61,9 +61,9 @@ server <- function(input, output, session) {
                 suspendWhenHidden = FALSE)
   
 
-## Get dataset -------------------------------------------------------------
+## Get raw data -------------------------------------------------------------
 
-  dat <- reactive({
+  dat_raw <- reactive({
     if (input$input_type == 1) { # Example dataset
       if(input$example_file == "mica") {
         res <- mica
@@ -136,11 +136,11 @@ server <- function(input, output, session) {
   })
   
 
-# Columns mapping ---------------------------------------------------------
+  # Columns mapping ---------------------------------------------------------
   
   # Get input data columns
   records_cols <- reactive({
-    colnames(dat()$data$observations)
+    colnames(dat_raw()$data$observations)
   })
   
   # Get the columns we want
@@ -202,30 +202,76 @@ server <- function(input, output, session) {
   
   # Mapping value for records columns
   mapping_records <- reactive({
-    # Get relevant widgets
-    widgets <- records_cols_wanted()
-    
-    # Get selected values
-    res <- vector(mode = "charactger", 
-                  length = length(widgets))
-    for(i in 1:length(widgets)) {
-      res[i] <- input[[widgets[i]]]
+    if (input$input_type == 1) { # Example files
+      if (input$example_file == "mica") {
+        res <- c("spp_col" = "vernacularNames.en",
+                 "cam_col" = "deploymentID",
+                 "timestamp_col" = "timestamp",
+                 "count_col" = "count")
+      } else if (input$example_file == "recordTableSample") {
+        res <- c("spp_col" = "Species",
+                 "cam_col" = "Station",
+                 "timestamp_col" = "DateTimeOriginal")
+      }
+    } else if (input$input_type == 2) { # Uploaded files
+      # Get the values selected by the user
+      # Get relevant widgets
+      widgets <- records_cols_wanted()
+      
+      # Get selected values
+      res <- vector(mode = "charactger", 
+                    length = length(widgets))
+      for(i in 1:length(widgets)) {
+        res[i] <- input[[widgets[i]]]
+      }
+      names(res) <- widgets
     }
-    names(res) <- widgets
-    
-    cat(res[1])
     res
   })
 
+
+# Clean data --------------------------------------------------------------
+dat <- reactive({
+  # Copy raw data
+  dat <- dat_raw()
+  
+  # Reorder columns
+  dat$data$observations <- dat$data$observations %>%
+    dplyr::select(any_of(unname(mapping_records())), 
+                  everything())
+  
+  dat
+})
+  
 # File input preview ------------------------------------------------------
-  output$records_preview <- renderDataTable({
-    DT::datatable(dat()$data$observations,
+
+## Raw data ----------------------------------------------------------------
+  output$raw_records <- renderDataTable({
+    DT::datatable(dat_raw()$data$observations,
                   filter = "none",
                   selection = "none",
                   options = list(scrollX = TRUE))
   })
   
-  output$cameras_preview <- renderDataTable({
+  output$raw_cameras <- renderDataTable({
+    DT::datatable(dat_raw()$data$deployments,
+                  filter = "none",
+                  selection = "none",
+                  options = list(scrollX = TRUE))
+  })
+  
+
+## Cleaned data ------------------------------------------------------------
+  output$records <- renderDataTable({
+    DT::datatable(dat()$data$observations,
+                  filter = "none",
+                  selection = "none",
+                  options = list(scrollX = TRUE)) %>%
+      DT::formatStyle(mapping_records(),
+                      backgroundColor = '#F5EE9E')
+  })
+  
+  output$cameras <- renderDataTable({
     DT::datatable(dat()$data$deployments,
                   filter = "none",
                   selection = "none",
