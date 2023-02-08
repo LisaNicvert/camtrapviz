@@ -25,14 +25,20 @@ server <- function(input, output, session) {
   
 
 # Define example data column mappings -------------------------------------
-  example_mapping <- list(mica = c("spp_col" = "vernacularNames.en",
-                                   "obs_col" = "observationType",
-                                   "cam_col" = "deploymentID",
-                                   "timestamp_col" = "timestamp",
-                                   "count_col" = "count"),
-                          recordTableSample = c("spp_col" = "Species",
-                                                 "cam_col" = "Station",
-                                                 "timestamp_col" = "DateTimeOriginal"))
+  example_mapping_records <- list(mica = c("spp_col" = "vernacularNames.en",
+                                           "obs_col" = "observationType",
+                                           "cam_col" = "deploymentID",
+                                           "timestamp_col" = "timestamp",
+                                           "count_col" = "count"),
+                                  recordTableSample = c("spp_col" = "Species",
+                                                        "cam_col" = "Station",
+                                                        "timestamp_col" = "DateTimeOriginal"))
+  example_mapping_cameras <- list(mica = c("cam_col_cov" = "deploymentID",
+                                           "lat_col_cov" = "latitude",
+                                           "lon_col_cov" = "longitude"),
+                                  recordTableSample = c("cam_col_cov" = "Station",
+                                                        "lat_col_cov" = "utm_y",
+                                                        "lon_col_cov" = "utm_x"))
   
 
 
@@ -152,7 +158,7 @@ server <- function(input, output, session) {
   })
   
 
-  # Columns mapping ---------------------------------------------------------
+  # Columns mapping (records) ---------------------------------------------------------
   
   # Get input data columns
   records_cols <- reactive({
@@ -241,7 +247,7 @@ server <- function(input, output, session) {
   mapping_records <- reactive({
     if (input$input_type == 1) { # Example files
       # Get known mapping
-      res <- example_mapping[[input$example_file]]
+      res <- example_mapping_records[[input$example_file]]
     } else if (input$input_type == 2) { # Uploaded files
       # Get the values selected by the user
       
@@ -258,25 +264,91 @@ server <- function(input, output, session) {
     }
     res
   })
-
-
-# Clean data --------------------------------------------------------------
-dat <- reactive({
-  # Copy raw data
-  dat <- dat_raw()
   
-  # Reorder columns
-  dat$data$observations <- dat$data$observations %>%
-    dplyr::select(any_of(unname(mapping_records())), 
-                  everything())
+  # Column mapping (cameras) ------------------------------------------------
   
-  # Get all codes used in the table
-  col_codes <- names(mapping_records())
-
-  dat$data$observations <- cast_columns(dat$data$observations,
-                                        mapping_records())
-  return(dat)
-})
+  # Get input cameras columns
+  cameras_cols <- reactive({
+    if (!is.null(dat_raw()$data$observations)) { # Camera file was provided
+      res <- colnames(dat_raw()$data$observations)
+    } else { # Camera is in data
+      res <- records_cols()
+    }
+  })
+  
+  # Default columns mapping for cameras
+  default_cameras <- reactive({
+    # Find default names
+    cameras_cols_wanted <- c("cam_col",
+                             "lat_col",
+                             "lon_col")
+    default_names <- find_default_colnames(cameras_cols_wanted,
+                                           cameras_cols())
+    default_names
+  })
+  
+  # Update selection list and default names 
+  # in selectInput for cameras
+  observe({
+    if( !is.null(dat_raw()$data$observations)) { # Camera file was provided
+      cameras_cols_wanted <- c("cam_col_cov",
+                               "lat_col",
+                               "lon_col")
+      for(w in cameras_cols_wanted) {
+        # Get default
+        default_name <- default_cameras()[[w]]
+        
+        updateSelectInput(session = session,
+                          inputId = w,
+                          choices = cameras_cols(),
+                          selected = default_name)
+      }
+    }
+  })
+  
+  # Mapping value for records columns
+  mapping_cameras <- reactive({
+    if (input$input_type == 1) { # Example files
+      # Get known mapping
+      res <- example_mapping_cameras[[input$example_file]]
+    } else if (input$input_type == 2) { # Uploaded files
+      # Get the values selected by the user
+      
+      # Get relevant widgets
+      widgets <- cameras_cols_wanted()
+      
+      # Get selected values for widgets
+      res <- vector(mode = "character", 
+                    length = length(widgets))
+      for(i in 1:length(widgets)) {
+        res[i] <- input[[widgets[i]]]
+      }
+      names(res) <- widgets
+    }
+    res
+  })
+  
+  
+  # Clean data --------------------------------------------------------------
+  dat <- reactive({
+    # Copy raw data
+    dat <- dat_raw()
+    
+    # Reorder columns
+    dat$data$observations <- dat$data$observations %>%
+      dplyr::select(any_of(unname(mapping_records())), 
+                    everything())
+    dat$data$deployments <- dat$data$deployments %>%
+      dplyr::select(any_of(unname(mapping_cameras())), 
+                    everything())
+    
+    # Get all codes used in the table
+    col_codes <- names(mapping_records())
+  
+    dat$data$observations <- cast_columns(dat$data$observations,
+                                          mapping_records())
+    return(dat)
+  })
   
 # File input preview ------------------------------------------------------
 
@@ -310,7 +382,9 @@ dat <- reactive({
     DT::datatable(dat()$data$deployments,
                   filter = "none",
                   selection = "none",
-                  options = list(scrollX = TRUE))
+                  options = list(scrollX = TRUE)) %>%
+      DT::formatStyle(mapping_cameras(),
+                      backgroundColor = '#F5EE9E')
   })
   
   

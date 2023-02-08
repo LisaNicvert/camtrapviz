@@ -130,10 +130,10 @@ ui <- function() {
                                                                         selectInput("cam_col_cov", 
                                                                                     "Camera",
                                                                                     choices = NULL),
-                                                                        selectInput("lat_col_cov", 
+                                                                        selectInput("lat_col", 
                                                                                     "Latitude",
                                                                                     choices = NULL),
-                                                                        selectInput("lon_col_cov", 
+                                                                        selectInput("lon_col", 
                                                                                     "Longitude",
                                                                                     choices = NULL),
                                                                         "Dynamic list of remaining columns"
