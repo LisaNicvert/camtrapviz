@@ -219,23 +219,17 @@ server <- function(input, output, session) {
 
 # File input preview ------------------------------------------------------
   output$records_preview <- renderDataTable({
-    dat_head <- utils::head(dat()$data$observations, 5)
-    
-    DT::datatable(dat_head,
+    DT::datatable(dat()$data$observations,
                   filter = "none",
                   selection = "none",
-                  options = list(dom = 't',
-                                 scrollX = TRUE))
+                  options = list(scrollX = TRUE))
   })
   
   output$cameras_preview <- renderDataTable({
-    cam_head <- utils::head(dat()$data$deployments, 5)
-    
-    DT::datatable(cam_head,
+    DT::datatable(dat()$data$deployments,
                   filter = "none",
                   selection = "none",
-                  options = list(dom = 't',
-                                 scrollX = TRUE))
+                  options = list(scrollX = TRUE))
   })
   
   
