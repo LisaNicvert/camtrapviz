@@ -47,7 +47,7 @@
 #' @importFrom shinydashboard tabItems
 #' @importFrom shinyFiles shinyFileChoose
 #' @importFrom shinyFiles shinyFilesButton
-#' @importFrom tidyselect all_of
+#' @importFrom tidyselect any_of
 #' @importFrom tidyselect everything
 ## usethis namespace: end
 NULL

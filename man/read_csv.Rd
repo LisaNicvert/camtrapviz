@@ -12,7 +12,7 @@ read_csv(file_path, column_separator)
 \item{column_separator}{column separator character}
 }
 \value{
-A lsit with 2 elements:
+A list with 2 elements:
 dat = the dataframe read from the file and
 sep = the character separator used to read the file
 }

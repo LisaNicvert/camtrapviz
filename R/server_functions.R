@@ -161,3 +161,62 @@ find_default_colnames <- function(widget_list,
   }  
   return(res)
 }
+
+#' Cast columns to expected types
+#'
+#' @param df A dataframe containing the columns specified in col_mapping (values)
+#' @param col_mapping A named character vector: names are toe codes and values are 
+#' the corresponding column names
+#'
+#' @return the df with casted columns
+#' @export
+#'
+#' @examples
+#' library(camtraptor)
+#' data(mica)
+#' mapping <- c("col_spp" = "vernacularNames.en",
+#'              "cam_col" = "deploymentID",
+#'              "timestamp_col" = "timestamp")
+#' cast_columns(mica$data$observations, mapping)
+cast_columns <- function(df, col_mapping) {
+  
+  col_codes <- names(col_mapping)
+  res <- df
+  
+  # Cast species
+  if ("spp_col" %in% col_codes) {
+    col_name <- col_mapping["spp_col"]
+    res[[col_name]] <- as.character(res[[col_name]])
+  }
+  # Cast date
+  if ("date_col" %in% col_codes) {
+    col_name <- col_mapping["date_col"]
+    res[[col_name]] <- as_date(res[[col_name]])
+  }
+  # Cast time
+  if ("time_col" %in% col_codes) {
+    col_name <- col_mapping["time_col"]
+    res[[col_name]] <- chron::times(res[[col_name]])
+  }
+  # Cast datetime
+  if ("timestamp_col" %in% col_codes) {
+    col_name <- col_mapping["timestamp_col"]
+    res[[col_name]] <-  as_datetime(res[[col_name]])
+  }
+  # Cast lat
+  if ("lat_col" %in% col_codes) {
+    col_name <- col_mapping["lat_col"]
+    res[[col_name]] <- as.numeric(res[[col_name]])
+  }
+  # Cast lon
+  if ("lon_col" %in% col_codes) {
+    col_name <- col_mapping["lon_col"]
+    res[[col_name]] <- as.numeric(res[[col_name]])
+  }
+  # Cast count
+  if ("count_col" %in% col_codes) {
+    col_name <- col_mapping["count_col"]
+    res[[col_name]] <- as.numeric(res[[col_name]])
+  }
+  return(res)
+}
