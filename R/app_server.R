@@ -24,6 +24,17 @@ server <- function(input, output, session) {
   utils::data(camtraps, package = "camtrapR")
   
 
+# Define example data column mappings -------------------------------------
+  example_mapping <- list(mica = c("spp_col" = "vernacularNames.en",
+                                   "cam_col" = "deploymentID",
+                                   "timestamp_col" = "timestamp",
+                                   "count_col" = "count"),
+                          recordTableSample = c("spp_col" = "Species",
+                                                 "cam_col" = "Station",
+                                                 "timestamp_col" = "DateTimeOriginal"))
+  
+
+
 # Description for example datasets ----------------------------------------
   output$dyntext <- renderText({
     if(input$example_file == "mica") {
@@ -203,23 +214,16 @@ server <- function(input, output, session) {
   # Mapping value for records columns
   mapping_records <- reactive({
     if (input$input_type == 1) { # Example files
-      if (input$example_file == "mica") {
-        res <- c("spp_col" = "vernacularNames.en",
-                 "cam_col" = "deploymentID",
-                 "timestamp_col" = "timestamp",
-                 "count_col" = "count")
-      } else if (input$example_file == "recordTableSample") {
-        res <- c("spp_col" = "Species",
-                 "cam_col" = "Station",
-                 "timestamp_col" = "DateTimeOriginal")
-      }
+      # Get known mapping
+      res <- example_mapping[[input$example_file]]
     } else if (input$input_type == 2) { # Uploaded files
       # Get the values selected by the user
+      
       # Get relevant widgets
       widgets <- records_cols_wanted()
       
-      # Get selected values
-      res <- vector(mode = "charactger", 
+      # Get selected values for widgets
+      res <- vector(mode = "character", 
                     length = length(widgets))
       for(i in 1:length(widgets)) {
         res[i] <- input[[widgets[i]]]
