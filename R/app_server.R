@@ -16,7 +16,7 @@ server <- function(input, output, session) {
   nullval <- "Not present in data"
   
 # Define columns for which empty is allowed -------------------------------
-  empty_allowed <- "count_col"
+  empty_allowed <- c("count_col", "obs_col")
   
 # Load example data -------------------------------------------------------
   utils::data(mica, package = "camtraptor")
@@ -26,6 +26,7 @@ server <- function(input, output, session) {
 
 # Define example data column mappings -------------------------------------
   example_mapping <- list(mica = c("spp_col" = "vernacularNames.en",
+                                   "obs_col" = "observationType",
                                    "cam_col" = "deploymentID",
                                    "timestamp_col" = "timestamp",
                                    "count_col" = "count"),
@@ -163,7 +164,7 @@ server <- function(input, output, session) {
     }
     widget_list <- c("spp_col", "cam_col",
                      datetime_widgets,
-                     "count_col")
+                     "count_col", "obs_col")
     
     if (!input$import_cameras) { # User doesn't want to import a camera file
       widget_list <- c(widget_list,

@@ -123,12 +123,12 @@ find_default_colnames <- function(widget_list,
   # Create a list with all possible columns we want
   widget_list_all <- c("spp_col", "cam_col",
                        "date_col", "time_col", "timestamp_col",
-                       "count_col", "lat_col", "lon_col")
+                       "count_col", "obs_col","lat_col", "lon_col")
 
   # Get the corresponding regex
   regex_list_all <- c("^vernacularNames\\.en$|species", "station|deployment|camera",
                       "date", "hour|time(?!stamp)", "timestamp|datetime",
-                      "count", "lat", "lon")
+                      "count", "observationType", "lat", "lon")
   names(regex_list_all) <- widget_list_all
   
   # Initialize results

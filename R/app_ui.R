@@ -106,6 +106,9 @@ ui <- function() {
                                                                         ),
                                                        selectInput("count_col", 
                                                                    "Count (optional)",
+                                                                   choices = NULL),
+                                                       selectInput("obs_col", 
+                                                                   "Observation type (optional)",
                                                                    choices = NULL)
                                                 )
                                        ),
