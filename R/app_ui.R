@@ -96,7 +96,7 @@ ui <- function() {
                                                                                     "Timestamp",
                                                                                     choices = NULL)
                                                                         ),
-                                                       conditionalPanel(condition = "!input.import_cameras",
+                                                       conditionalPanel(condition = "!input.import_cameras && output.records_extension !== 'json'",
                                                                         selectInput("lat_col", 
                                                                                     "Latitude",
                                                                                     choices = NULL),
@@ -117,11 +117,15 @@ ui <- function() {
                                                         checkboxInput("import_cameras",
                                                                       "Import cameras table")
                                                         ),
-                                       conditionalPanel(condition = "input.import_cameras",
+                                       conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
                                                         fluidRow(column(4,
-                                                                        fileInput("cameras_input", "Cameras table",
-                                                                                  accept = ".csv"),
+                                                                        conditionalPanel(condition = "input.import_cameras",
+                                                                                         fileInput("cameras_input", "Cameras table",
+                                                                                                   accept = ".csv"),
                                                                         separator_widget("cameras")),
+                                                                        conditionalPanel(condition = "output.records_extension === 'json'",
+                                                                                         "Display filename here")
+                                                                        ),
                                                                  column(8,
                                                                         selectInput("cam_col_cov", 
                                                                                     "Camera",

@@ -51,12 +51,12 @@ server <- function(input, output, session) {
 
 ## Shiny file listener -----------------------------------------------------
   shinyFileChoose(input, 'records_input', 
-                  root = c("home" = fs::path_home()), 
+                  root = c("home" = fs::path_home()),
                   filetypes = c('csv', 'json'))
   
 
 ## Get imported file extension ---------------------------------------------
-  output$records_extension <- reactive({
+  records_extension <- reactive({
     # Get file
     file <- shinyFiles::parseFilePaths(roots,
                                        input$records_input)
@@ -68,6 +68,10 @@ server <- function(input, output, session) {
     # Get file extension
     ext <- tools::file_ext(file_path)
     ext
+  })
+  
+  output$records_extension <- reactive({
+    records_extension()
   })
   outputOptions(output, 'records_extension', 
                 suspendWhenHidden = FALSE)
@@ -166,7 +170,9 @@ server <- function(input, output, session) {
                      datetime_widgets,
                      "count_col", "obs_col")
     
-    if (!input$import_cameras) { # User doesn't want to import a camera file
+    if (!input$import_cameras && records_extension() != "json") { 
+      # User doesn't want to import a camera file 
+      # and it is not a json file
       widget_list <- c(widget_list,
                        "lat_col", "lon_col")
     }
@@ -211,6 +217,25 @@ server <- function(input, output, session) {
       }
     }
   })
+  
+  # Initialize date/time/stamp upon input change
+  observeEvent(input$datetime_or_timestamp, {
+    widgets <- records_cols_wanted()
+    time_widgets <- widgets[which(widgets %in% c("date_col", "time_col", "timestamp_col"))]
+    
+    for(tw in time_widgets) {
+      # Get default
+      default_name <- default_records()[[tw]]
+      
+      # Cannot be empty since it is a datetime
+      updateSelectInput(session = session,
+                        inputId = tw,
+                        choices = records_cols(),
+                        selected = default_name)
+      
+    }
+  })
+  
   
   # Mapping value for records columns
   mapping_records <- reactive({

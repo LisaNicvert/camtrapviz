@@ -132,10 +132,9 @@ find_default_colnames <- function(widget_list,
   names(regex_list_all) <- widget_list_all
   
   # Initialize results
-  res <- vector(mode = "character", length = length(regex_list_all))
-  names(res) <- names(regex_list_all)
+  res <- vector(mode = "character", length = length(widget_list))
   
-  for (i in 1:length(widget_list)) { # Iterate through imput widgets
+  for (i in 1:length(widget_list)) { # Iterate through input widgets
     w <- widget_list[i]
     pat <- regex_list_all[w]
     
@@ -158,6 +157,8 @@ find_default_colnames <- function(widget_list,
     }
     # Add result
     res[i] <- res_i 
+    # Name result
+    names(res)[i] <- w
   }  
   return(res)
 }
