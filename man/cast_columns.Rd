@@ -25,4 +25,8 @@ mapping <- c("col_spp" = "vernacularNames.en",
              "cam_col" = "deploymentID",
              "timestamp_col" = "timestamp")
 cast_columns(mica$data$observations, mapping)
+mapping <- c("cam_col_cov" = "deploymentID", 
+             "lat_col_cov" = "latitude", 
+             "lon_col_cov" = "longitude")
+cast_columns(mica$data$deployments, mapping)
 }

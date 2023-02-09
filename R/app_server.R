@@ -271,12 +271,6 @@ server <- function(input, output, session) {
       }
       names(res) <- widgets
     }
-    # cat("Names records mapping:\n")
-    # cat(paste(names(res)))
-    # cat("\n")
-    # cat("Values records mapping:\n")
-    # cat(paste(res))
-    # cat("\n")
     res
   })
   
@@ -328,7 +322,7 @@ server <- function(input, output, session) {
       res <- example_mapping_cameras[[input$example_file]]
     } else if (input$input_type == 2) { # Uploaded files
       # Get the values selected by the user
-      if( !is.null(cameras_cols())) { # Camera file was provided
+      if (!is.null(cameras_cols())) { # Camera file was provided
         # Get relevant widgets
         widgets <- cameras_cols_wanted
       } else { # Camera file was not provided
@@ -342,12 +336,6 @@ server <- function(input, output, session) {
       }
       names(res) <- widgets
     }
-    # cat("Names camera mapping:\n")
-    # cat(paste(names(res)))
-    # cat("\n")
-    # cat("Values camera mapping:\n")
-    # cat(paste(res))
-    # cat("\n")
     res
   })
   
@@ -365,11 +353,17 @@ server <- function(input, output, session) {
     # Copy raw data
     dat <- dat_raw()
     
+    # Records ---
     # Reorder columns
     dat$data$observations <- dat$data$observations %>%
       dplyr::select(any_of(unname(records_select())), 
                     everything())
     
+    # Cast columns
+    dat$data$observations <- cast_columns(dat$data$observations,
+                                          records_select())
+    
+    # Cameras ---
     if ("cam_col" %in% names(mapping_cameras())) { # Covariates are in data
       cameras <- dat$data$observations %>%
         dplyr::select(any_of(unname(mapping_cameras())), 
@@ -379,15 +373,13 @@ server <- function(input, output, session) {
       dat$data$deployments <- cameras
     }
     
-    if (!is.null(dat$data$deployments)) { # If deployments is created
-      dat$data$deployments <- dat$data$deployments %>%
-        dplyr::select(any_of(unname(mapping_cameras())), 
-                      everything())
-    }
-    
+    # Reorder columns
+    dat$data$deployments <- dat$data$deployments %>%
+      dplyr::select(any_of(unname(mapping_cameras())), 
+                    everything())
     # Cast columns
-    dat$data$observations <- cast_columns(dat$data$observations,
-                                          records_select)
+    dat$data$deployments <- cast_columns(dat$data$deployments,
+                                         mapping_cameras())
     return(dat)
   })
   

@@ -186,44 +186,67 @@ find_default_colnames <- function(widget_list,
 #'              "cam_col" = "deploymentID",
 #'              "timestamp_col" = "timestamp")
 #' cast_columns(mica$data$observations, mapping)
+#' mapping <- c("cam_col_cov" = "deploymentID", 
+#'              "lat_col_cov" = "latitude", 
+#'              "lon_col_cov" = "longitude")
+#' cast_columns(mica$data$deployments, mapping)
 cast_columns <- function(df, col_mapping) {
   
+  # Get column codes
   col_codes <- names(col_mapping)
+  # If _cov present in column names, remove it
+  col_codes <- gsub("_cov$", "", col_codes)
+  
+  # Rename col_mapping
+  col_mapping_nocov <- col_mapping
+  names(col_mapping_nocov) <- col_codes
+  
+  # Initialize res
   res <- df
   
   # Cast species
   if ("spp_col" %in% col_codes) {
-    col_name <- col_mapping["spp_col"]
+    col_name <- col_mapping_nocov["spp_col"]
+    res[[col_name]] <- as.character(res[[col_name]])
+  }
+  # Cast camera
+  if ("cam_col" %in% col_codes) {
+    col_name <- col_mapping_nocov["cam_col"]
+    res[[col_name]] <- as.character(res[[col_name]])
+  }
+  # Cast observation type
+  if ("obs_col" %in% col_codes) {
+    col_name <- col_mapping_nocov["obs_col"]
     res[[col_name]] <- as.character(res[[col_name]])
   }
   # Cast date
   if ("date_col" %in% col_codes) {
-    col_name <- col_mapping["date_col"]
+    col_name <- col_mapping_nocov["date_col"]
     res[[col_name]] <- as_date(res[[col_name]])
   }
   # Cast time
   if ("time_col" %in% col_codes) {
-    col_name <- col_mapping["time_col"]
+    col_name <- col_mapping_nocov["time_col"]
     res[[col_name]] <- chron::times(res[[col_name]])
   }
   # Cast datetime
   if ("timestamp_col" %in% col_codes) {
-    col_name <- col_mapping["timestamp_col"]
+    col_name <- col_mapping_nocov["timestamp_col"]
     res[[col_name]] <-  as_datetime(res[[col_name]])
   }
   # Cast lat
   if ("lat_col" %in% col_codes) {
-    col_name <- col_mapping["lat_col"]
+    col_name <- col_mapping_nocov["lat_col"]
     res[[col_name]] <- as.numeric(res[[col_name]])
   }
   # Cast lon
   if ("lon_col" %in% col_codes) {
-    col_name <- col_mapping["lon_col"]
+    col_name <- col_mapping_nocov["lon_col"]
     res[[col_name]] <- as.numeric(res[[col_name]])
   }
   # Cast count
   if ("count_col" %in% col_codes) {
-    col_name <- col_mapping["count_col"]
+    col_name <- col_mapping_nocov["count_col"]
     res[[col_name]] <- as.numeric(res[[col_name]])
   }
   return(res)
