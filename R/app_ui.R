@@ -155,10 +155,12 @@ ui <- function() {
                                  )
                                  ),
                         tabPanel("Cleaned data preview",
-                                 h4("Records table"),
-                                 dataTableOutput("records"),
-                                 h4("Cameras table"),
-                                 dataTableOutput("cameras")
+                                 conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
+                                                  h4("Records table"),
+                                                  dataTableOutput("records"),
+                                                  h4("Cameras table"),
+                                                  dataTableOutput("cameras")
+                                 )
                                  )
                       ) # End tabsetPanel
                       # ), 

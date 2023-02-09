@@ -2,6 +2,7 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom dplyr distinct
 #' @importFrom dplyr select
 #' @importFrom DT dataTableOutput
 #' @importFrom DT renderDataTable

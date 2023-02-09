@@ -271,6 +271,12 @@ server <- function(input, output, session) {
       }
       names(res) <- widgets
     }
+    # cat("Names records mapping:\n")
+    # cat(paste(names(res)))
+    # cat("\n")
+    # cat("Values records mapping:\n")
+    # cat(paste(res))
+    # cat("\n")
     res
   })
   
@@ -301,7 +307,7 @@ server <- function(input, output, session) {
   # in selectInput for cameras
   observe({
     if (input$input_type == 2) { # Only update widgets for manual import
-      if( !is.null(cameras_cols())) { # Camera file was provided
+      if (!is.null(dat_raw()$data$deployments)) { # Camera file was provided
         for(w in cameras_cols_wanted) {
           # Get default
           default_name <- default_cameras()[[w]]
@@ -322,10 +328,12 @@ server <- function(input, output, session) {
       res <- example_mapping_cameras[[input$example_file]]
     } else if (input$input_type == 2) { # Uploaded files
       # Get the values selected by the user
-      
-      # Get relevant widgets
-      widgets <- cameras_cols_wanted
-      
+      if( !is.null(cameras_cols())) { # Camera file was provided
+        # Get relevant widgets
+        widgets <- cameras_cols_wanted
+      } else { # Camera file was not provided
+        widgets <- gsub("_cov$", "", cameras_cols_wanted)
+      }
       # Get selected values for widgets
       res <- vector(mode = "character", 
                     length = length(widgets))
@@ -334,28 +342,52 @@ server <- function(input, output, session) {
       }
       names(res) <- widgets
     }
+    # cat("Names camera mapping:\n")
+    # cat(paste(names(res)))
+    # cat("\n")
+    # cat("Values camera mapping:\n")
+    # cat(paste(res))
+    # cat("\n")
     res
   })
   
   
   # Clean data --------------------------------------------------------------
+  records_select <- reactive({
+    # Get relevant columns (all except "Not in data")
+    records_select <- mapping_records()[mapping_records() != nullval]
+    records_select <- records_select[which(!names(records_select) %in% c("lat_col", "lon_col"))]
+    
+    records_select
+  })
+  
   dat <- reactive({
     # Copy raw data
     dat <- dat_raw()
     
     # Reorder columns
     dat$data$observations <- dat$data$observations %>%
-      dplyr::select(any_of(unname(mapping_records())), 
-                    everything())
-    dat$data$deployments <- dat$data$deployments %>%
-      dplyr::select(any_of(unname(mapping_cameras())), 
+      dplyr::select(any_of(unname(records_select())), 
                     everything())
     
-    # Get all codes used in the table
-    col_codes <- names(mapping_records())
-  
+    if ("cam_col" %in% names(mapping_cameras())) { # Covariates are in data
+      cameras <- dat$data$observations %>%
+        dplyr::select(any_of(unname(mapping_cameras())), 
+                      everything())
+      
+      cameras <- cameras %>% distinct()
+      dat$data$deployments <- cameras
+    }
+    
+    if (!is.null(dat$data$deployments)) { # If deployments is created
+      dat$data$deployments <- dat$data$deployments %>%
+        dplyr::select(any_of(unname(mapping_cameras())), 
+                      everything())
+    }
+    
+    # Cast columns
     dat$data$observations <- cast_columns(dat$data$observations,
-                                          mapping_records())
+                                          records_select)
     return(dat)
   })
   
@@ -383,7 +415,7 @@ server <- function(input, output, session) {
                   filter = "none",
                   selection = "none",
                   options = list(scrollX = TRUE)) %>%
-      DT::formatStyle(mapping_records(),
+      DT::formatStyle(records_select(),
                       backgroundColor = '#F5EE9E')
   })
   
