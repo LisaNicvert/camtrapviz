@@ -39,7 +39,7 @@ ui <- function() {
 ## Import file -------------------------------------------------------------
 
                       radioButtons("input_type",
-                                   label = h3("Input file"),
+                                   label = h3("Input type"),
                                    choices = list("Load example file" = 1,
                                                   "Upload file" = 2),
                                    inline = TRUE,
@@ -62,8 +62,8 @@ ui <- function() {
 
 
                       conditionalPanel(condition = "input.input_type == 2",
+                                       h4("Records table"),
                                        fluidRow(column(4,
-                                                       h5("Records table"),
                                                        shinyFilesButton('records_input', 
                                                                         style = "margin-bottom: 25px",
                                                                         label = 'Choose records table', 
@@ -113,6 +113,7 @@ ui <- function() {
                                                 )
                                        ),
                                        br(),
+                                       h4("Cameras table"),
                                        conditionalPanel(condition = "output.records_extension !== 'json'",
                                                         checkboxInput("import_cameras",
                                                                       "Import cameras table")
@@ -124,10 +125,7 @@ ui <- function() {
                                                                                          # Display only if not json file
                                                                                          fileInput("cameras_input", "Cameras table",
                                                                                                    accept = ".csv"),
-                                                                                         separator_widget("cameras")),
-                                                                        conditionalPanel(condition = "output.records_extension === 'json'",
-                                                                                         # Display only if json file
-                                                                                         "Display filename here")
+                                                                                         separator_widget("cameras"))
                                                                         ),
                                                                  column(8,
                                                                         selectInput("cam_col_cov", 

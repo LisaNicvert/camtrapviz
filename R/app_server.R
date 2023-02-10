@@ -168,7 +168,7 @@ server <- function(input, output, session) {
     colnames(dat_raw()$data$observations)
   })
   
-  # Get the columns we want
+  # Get the columns we want to update for the records
   records_cols_wanted <- reactive({
     if (input$datetime_or_timestamp == 'timestamp') {
       datetime_widgets <- "timestamp_col"
@@ -205,8 +205,7 @@ server <- function(input, output, session) {
     default_names
   })
   
-  # Update selection list and default names 
-  # in selectInput for records
+  # Update selection list and default names in selectInput for records
   observeEvent(input$records_input, {
     if (input$input_type == 2) { # Only update widgets for manual import
       for(w in records_cols_wanted()) {
@@ -228,7 +227,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Initialize date/time/stamp upon input change
+  # Update date/time/stamp upon input change
   observeEvent(input$datetime_or_timestamp, {
     if (input$input_type == 2) { # Only update widgets for manual import
       widgets <- records_cols_wanted()
@@ -248,9 +247,8 @@ server <- function(input, output, session) {
     }
   })
   
-  
   # Mapping value for records columns
-  mapping_records <- reactive({
+  mapping_records_all <- reactive({
     if (input$input_type == 1) { # Example files
       # Get known mapping
       res <- example_mapping_records[[input$example_file]]
@@ -268,6 +266,15 @@ server <- function(input, output, session) {
       }
       names(res) <- widgets
     }
+    res
+  })
+  
+  mapping_records <- reactive({
+    # Get relevant columns (all except "Not in data")
+    res <- mapping_records_all()[mapping_records_all() != nullval]
+    # Discard lon/lat that are mapped by cameras
+    res <- res[which(!names(res) %in% c("lat_col", "lon_col"))]
+    
     res
   })
   
@@ -338,13 +345,6 @@ server <- function(input, output, session) {
   
   
   # Clean data --------------------------------------------------------------
-  records_select <- reactive({
-    # Get relevant columns (all except "Not in data")
-    records_select <- mapping_records()[mapping_records() != nullval]
-    records_select <- records_select[which(!names(records_select) %in% c("lat_col", "lon_col"))]
-    
-    records_select
-  })
   
   dat <- reactive({
     # Copy raw data
@@ -352,7 +352,7 @@ server <- function(input, output, session) {
     
     # Records ---
     dat$data$observations <- format_table(dat$data$observations,
-                                         records_select())
+                                         mapping_records())
     
     # Cameras ---
     if ("cam_col" %in% names(mapping_cameras())) { 
@@ -395,7 +395,7 @@ server <- function(input, output, session) {
                   filter = "none",
                   selection = "none",
                   options = list(scrollX = TRUE)) %>%
-      DT::formatStyle(records_select(),
+      DT::formatStyle(mapping_records(),
                       backgroundColor = '#F5EE9E')
   })
   
