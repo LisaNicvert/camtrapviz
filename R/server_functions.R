@@ -80,7 +80,7 @@ read_data <- function(records_path,
     
     if (!is.null(cameras_path)) { # User wants to import a camera file
       # Read csv
-      res_cameras <- read_csv(file_path = records_path, 
+      res_cameras <- read_csv(file_path = cameras_path, 
                               column_separator = sep_cameras)
     } else { # User doesn't want to import a camera file
       res_cameras <- list(dat = NULL,
@@ -334,11 +334,68 @@ cast_columns <- function(df, col_mapping) {
 format_table <- function(df, mapping) {
   
   res <- df %>%
-    dplyr::select(any_of(unname(mapping)), 
+    dplyr::select(all_of(unname(mapping)), 
                   everything())
   
   # Cast columns
   res <- cast_columns(res,
                       mapping)
+  
+  # Drop NA
+  res <- remove_rows_with_NA(res, mapping)
+  
+  return(res)
+}
+
+#' Remove rows with NAs
+#'
+#' @param df The dataframe to clean
+#' @param mapping The mapping for columns in the dataframe.
+#'
+#' @return The dataframe where rows in mapping contain no NA values
+#' (except spp_col which is allowed to have NA values if obs_col is in mapping,
+#' when obs_col != 'animal')
+#' 
+#' @export
+#'
+#' @examples
+#' library(camtraptor)
+#' data(mica)
+#' df <- mica$data$observations
+#' mapping <- c("spp_col" = "vernacularNames.en",
+#'              "cam_col" = "deploymentID",
+#'              "timestamp_col" = "timestamp",
+#'              "obs_col" = "observationType")
+#' # Purposedly add NAs to chack rows are removed
+#' df$vernacularNames.en[9] <- NA
+#' df$timestamp[1] <- NA
+#' remove_rows_with_NA(df, mapping)
+remove_rows_with_NA <- function(df, mapping) {
+  
+  if ("obs_col" %in% names(mapping)) {
+    # Authorize NA values in spp_col where obs_col is not "species"
+    spp_col_name <- mapping["spp_col"]
+    obs_col_name <- mapping["obs_col"]
+    
+    na_check <- mapping[mapping != spp_col_name]
+    
+    # Drop NA in all columns except spp_col
+    res <- df %>%
+      drop_na(all_of(unname(na_check)))
+    
+    obs_col <- res[[obs_col_name]]
+    spp_col <- res[[spp_col_name]]
+    # Get the NA values of spp_col name where obs_col is 'animal'
+    spp_NA <- which(is.na(spp_col) & obs_col == "animal")
+    
+    if (length(spp_NA) != 0) {
+      res <- res[-spp_NA,]
+    }
+    
+  } else {
+    # No NAs authorized in the mapping columns
+    res <- df %>%
+      drop_na(all_of(unname(mapping)))
+  }
   return(res)
 }
