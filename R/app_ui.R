@@ -33,152 +33,25 @@ ui <- function() {
         
         tabItem(tabName = "dataimport",
                 fluidRow(
-                  box(h2("Data import"),
-                      width = 12,
-
-## Import file -------------------------------------------------------------
-
-                      radioButtons("input_type",
-                                   label = h3("Input type"),
-                                   choices = list("Load example file" = 1,
-                                                  "Upload file" = 2),
-                                   inline = TRUE,
-                                   selected = 1),
-
-### Example files widgets ---------------------------------------------------
-
-                      
-                      conditionalPanel(condition = "input.input_type == 1",
-                                       fluidRow(column(4,
-                                                       selectInput("example_file", "Dataset",
-                                                                   choices = c("mica", "recordTableSample"))),
-                                                column(8,
-                                                       style = "margin-top: 25px;", # To align with selectInput
-                                                       textOutput("dyntext"))
-                                       )
-                      ),
-
-### Upload files widgets ----------------------------------------------------
-
-
-                      conditionalPanel(condition = "input.input_type == 2",
-                                       h4("Records table"),
-                                       fluidRow(column(4,
-                                                       shinyFilesButton('records_input', 
-                                                                        style = "margin-bottom: 25px",
-                                                                        label = 'Choose records table', 
-                                                                        title = 'Choose file',
-                                                                        multiple = FALSE),
-                                                       conditionalPanel(condition = "output.records_extension !== 'json'",
-                                                                        separator_widget("records"))
-                                                       ),
-                                                column(8,
-                                                       selectInput("spp_col", 
-                                                                   "Species",
-                                                                   choices = NULL),
-                                                       selectInput("cam_col", 
-                                                                   "Camera",
-                                                                   choices = NULL),
-                                                       radioButtons("datetime_or_timestamp",
-                                                                    "Date / time column(s)",
-                                                                    choices = c("Date and time" = "date_time",
-                                                                                "Timestamp" = "timestamp"), 
-                                                                    inline = TRUE),
-                                                       conditionalPanel(condition = "input.datetime_or_timestamp == 'date_time'",
-                                                                        selectInput("date_col", 
-                                                                                    "Date",
-                                                                                    choices = NULL),
-                                                                        selectInput("time_col", 
-                                                                                    "Time",
-                                                                                    choices = NULL)),
-                                                       conditionalPanel(condition = "input.datetime_or_timestamp == 'timestamp'",
-                                                                        selectInput("timestamp_col", 
-                                                                                    "Timestamp",
-                                                                                    choices = NULL)
-                                                                        ),
-                                                       conditionalPanel(condition = "!input.import_cameras && output.records_extension !== 'json'",
-                                                                        selectInput("lat_col", 
-                                                                                    "Latitude",
-                                                                                    choices = NULL),
-                                                                        selectInput("lon_col", 
-                                                                                    "Longitude",
-                                                                                    choices = NULL)
-                                                                        ),
-                                                       selectInput("count_col", 
-                                                                   "Count (optional)",
-                                                                   choices = NULL),
-                                                       selectInput("obs_col", 
-                                                                   "Observation type (optional)",
-                                                                   choices = NULL)
-                                                )
-                                       ),
-                                       br(),
-                                       h4("Cameras table"),
-                                       conditionalPanel(condition = "output.records_extension !== 'json'",
-                                                        checkboxInput("import_cameras",
-                                                                      "Import cameras table")
-                                                        ),
-                                       conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
-                                                        # Display if user wants to import a camera or if it is a json file
-                                                        fluidRow(column(4,
-                                                                        conditionalPanel(condition = "output.records_extension !== 'json'",
-                                                                                         # Display only if not json file
-                                                                                         fileInput("cameras_input", "Cameras table",
-                                                                                                   accept = ".csv"),
-                                                                                         separator_widget("cameras"))
-                                                                        ),
-                                                                 column(8,
-                                                                        selectInput("cam_col_cov", 
-                                                                                    "Camera",
-                                                                                    choices = NULL),
-                                                                        selectInput("lat_col_cov", 
-                                                                                    "Latitude",
-                                                                                    choices = NULL),
-                                                                        selectInput("lon_col_cov", 
-                                                                                    "Longitude",
-                                                                                    choices = NULL),
-                                                                        "Dynamic list of remaining columns"
-                                                                 ))
-                                       ) # conditional cameras table panel
-                      ),
-
-# File previews -----------------------------------------------------------
-
-
-                      tabsetPanel(
-                        tabPanel("Raw data preview",
-                                 conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
-                                                  h4("Records table"),
-                                                  dataTableOutput("raw_records"),
-                                                  h4("Cameras table"),
-                                                  dataTableOutput("raw_cameras")
-                                 )
-                                 ),
-                        tabPanel("Cleaned data preview",
-                                 conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
-                                                  h4("Records table"),
-                                                  dataTableOutput("records"),
-                                                  h4("Cameras table"),
-                                                  dataTableOutput("cameras"),
-                                                  downloadButton("downolad_cleaned_data",
-                                                                 label = "Downolad cleaned data")
-                                 )
-                                 )
-                      ) # End tabsetPanel
-                  ) # End big box
+                  importUI("import")
                 )
         ),
 
 # Summary -----------------------------------------------------------------
 
         tabItem(tabName = "summary",
-                fluidRow(h2("Summary tab content"))
+                box(width = 12,
+                    h2("Summary tab content"),
+                    dataTableOutput("test"),
+                    textOutput("test2"))
         ),
         tabItem(tabName = "activity",
-                fluidRow(h2("Activity tab content"))
+                box(width = 12, 
+                    h2("Activity tab content"))
         ),
         tabItem(tabName = "map",
-                fluidRow(h2("Map tab content"))
+                box(width = 12,
+                    h2("Map tab content"))
         )
       ) # End tabItems
     ) # End dashboardBody
