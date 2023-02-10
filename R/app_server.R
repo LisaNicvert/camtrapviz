@@ -93,7 +93,6 @@ server <- function(input, output, session) {
 ## Get raw data -------------------------------------------------------------
 
   dat_raw <- reactive({
-    
     if (input$input_type == 1) { # Example dataset
       if(input$example_file == "mica") {
         res <- mica
@@ -151,6 +150,16 @@ server <- function(input, output, session) {
     return(res)
   })
   
+
+# UI settings -------------------------------------------------------------
+  observe({
+    # Set camera import to false if we have a json file
+    if (records_extension() == "json") {
+      updateCheckboxInput(session = session,
+                          "import_cameras", 
+                          value = FALSE)
+    }
+  })
 
   # Columns mapping (records) ---------------------------------------------------------
   

@@ -118,12 +118,15 @@ ui <- function() {
                                                                       "Import cameras table")
                                                         ),
                                        conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
+                                                        # Display if user wants to import a camera or if it is a json file
                                                         fluidRow(column(4,
-                                                                        conditionalPanel(condition = "input.import_cameras && output.records_extension !== 'json'",
+                                                                        conditionalPanel(condition = "output.records_extension !== 'json'",
+                                                                                         # Display only if not json file
                                                                                          fileInput("cameras_input", "Cameras table",
                                                                                                    accept = ".csv"),
-                                                                        separator_widget("cameras")),
+                                                                                         separator_widget("cameras")),
                                                                         conditionalPanel(condition = "output.records_extension === 'json'",
+                                                                                         # Display only if json file
                                                                                          "Display filename here")
                                                                         ),
                                                                  column(8,
@@ -144,7 +147,6 @@ ui <- function() {
 # File previews -----------------------------------------------------------
 
 
-                      # box(width = 12,
                       tabsetPanel(
                         tabPanel("Raw data preview",
                                  conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
@@ -163,7 +165,6 @@ ui <- function() {
                                  )
                                  )
                       ) # End tabsetPanel
-                      # ), 
                   ) # End big box
                 )
         ),
@@ -179,9 +180,9 @@ ui <- function() {
         tabItem(tabName = "map",
                 fluidRow(h2("Map tab content"))
         )
-      )
-    )
-  )
+      ) # End tabItems
+    ) # End dashboardBody
+  ) # End dashboardPage
 }
   
  
