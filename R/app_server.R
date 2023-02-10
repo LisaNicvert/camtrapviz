@@ -426,5 +426,41 @@ server <- function(input, output, session) {
                       backgroundColor = '#F5EE9E')
   })
   
+
+# Downolad handler --------------------------------------------------------
+  
+  output$downolad_cleaned_data <- downloadHandler(
+    filename = function(){
+      paste0("camtrap_data_", Sys.Date(), ".zip")
+      
+    },
+    content = function(file) {
+      # definition of content to download
+      to_dl <- list(
+        # names to use in file names
+        names = list(records = "records",
+                     cameras = "cameras"),
+        # data
+        data = list(records = dat()$data$observations,
+                    cameras = dat()$data$deployments)
+      )
+      
+      # temp dir for the csv's as we can only create
+      # an archive from existent files and not data from R
+      twd <- setwd(tempdir())
+      on.exit(setwd(twd))
+      files <- NULL
+      
+      # loop on data to download and write individual csv's
+      for (nam in c("records", "cameras")) {
+        fileName <- paste0(to_dl[["names"]][[nam]], ".csv") # csv file name
+        utils::write.csv(to_dl[["data"]][[nam]], fileName) # write csv in temp dir
+        files <- c(files, fileName) # store written file name
+      }
+      
+      # create archive from written files
+      utils::zip(file, files)
+    }
+  )
   
 }

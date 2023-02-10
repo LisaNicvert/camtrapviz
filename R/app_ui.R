@@ -159,7 +159,9 @@ ui <- function() {
                                                   h4("Records table"),
                                                   dataTableOutput("records"),
                                                   h4("Cameras table"),
-                                                  dataTableOutput("cameras")
+                                                  dataTableOutput("cameras"),
+                                                  downloadButton("downolad_cleaned_data",
+                                                                 label = "Downolad cleaned data")
                                  )
                                  )
                       ) # End tabsetPanel
