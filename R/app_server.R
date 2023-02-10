@@ -9,28 +9,25 @@
 #' @export
 server <- function(input, output, session) {
 
-# Define roots for ShinyFiles ---------------------------------------------
+
+# Setup variables ---------------------------------------------------------
+
+  # Define roots for ShinyFiles 
   roots <- c("home" = fs::path_home())
   
-# Define placeholder for optional columns ---------------------------------
+  # Define placeholder for optional columns
   nullval <- "Not present in data"
   
-# Define columns for which empty is allowed -------------------------------
+  # Define columns for which empty is allowed
   empty_allowed <- c("count_col", "obs_col")
   
 
-# Define camera columns ---------------------------------------------------
+  # Define camera columns
   cameras_cols_wanted <- c("cam_col_cov",
                            "lat_col_cov",
                            "lon_col_cov")
   
-# Load example data -------------------------------------------------------
-  utils::data(mica, package = "camtraptor")
-  utils::data(recordTableSample, package = "camtrapR")
-  utils::data(camtraps, package = "camtrapR")
-  
-
-# Define example data column mappings -------------------------------------
+  # Define example data column mappings
   example_mapping_records <- list(mica = c("spp_col" = "vernacularNames.en",
                                            "obs_col" = "observationType",
                                            "cam_col" = "deploymentID",
@@ -46,7 +43,11 @@ server <- function(input, output, session) {
                                                         "lat_col_cov" = "utm_y",
                                                         "lon_col_cov" = "utm_x"))
   
-
+# Load example data -------------------------------------------------------
+  utils::data(mica, package = "camtraptor")
+  utils::data(recordTableSample, package = "camtrapR")
+  utils::data(camtraps, package = "camtrapR")
+  
 
 # Description for example datasets ----------------------------------------
   output$dyntext <- renderText({
@@ -92,6 +93,7 @@ server <- function(input, output, session) {
 ## Get raw data -------------------------------------------------------------
 
   dat_raw <- reactive({
+    
     if (input$input_type == 1) { # Example dataset
       if(input$example_file == "mica") {
         res <- mica
@@ -103,62 +105,48 @@ server <- function(input, output, session) {
       # Get file
       file <- shinyFiles::parseFilePaths(roots,
                                          input$records_input)
-  
-      # Ensure file is loaded
+      # Ensure file is loaded before continuing
+      req(file)
+      
+      # Get file_path
       file_path <- file$datapath
+      validate(need(file_path != '', "Please upload a records file"))
       
-      validate(need(file_path != '', "Please upload file"))
+      # Get separator values
+      sep_records <- input$records_sep
+      sep_cameras <- input$cameras_sep
       
-      # Get file extension
-      ext <- tools::file_ext(file_path)
-      
-      if (ext == "csv") { # User uploaded a csv file
-        # Get separator value
-        sep <- input$records_sep
+      # User wants to import a camera file?
+      if (input$import_cameras) {
+        # Get file
+        camera_file <- input$cameras_input
         
-        # Read csv
-        res_records <- read_csv(file_path = file_path, 
-                                column_separator = sep)
+        # Ensure file is loaded before continuing
+        req(camera_file)
         
-        # Update file separator
-        updateRadioButtons(inputId = "records_sep",
-                           selected = res_records$sep)
-        
-        if (input$import_cameras) { # User wants to import a camera file
-          # Get file
-          file <- input$cameras_input
-          req(file)
-          
-          file_path <- file$datapath
-          
-          # Get separator value
-          sep <- input$cameras_sep
-          
-          # Read csv
-          res_cameras <- read_csv(file_path = file_path, 
-                                  column_separator = sep)
-          
-          # Update file separator
-          updateRadioButtons(inputId = "cameras_sep",
-                             selected = res_cameras$sep)
-        } else { # User doesn't want to import a camera file
-          res_cameras <- NULL
-        }
-        
-        # Final result is a list with one component $data
-        #   This is done to match the structure of a camtrapDP file in R
-        #   The list has 2 sub-components:
-        #   $observations (records) and $deployments (cameraS)
-        res <- list(data = list(observations = res_records$dat,
-                                deployments = res_cameras$dat))
-        
-      } else if (ext == "json") { #   CamtrapDP format
-        res <- camtraptor::read_camtrap_dp(file_path, media = FALSE)
-      } else { # Unknown extension
-        validate(need(ext == "csv" || ext == "json", 
-                      "Please upload a csv file or a json datapackage"))
+        # Get camera_path
+        cameras_path <- camera_file$datapath
+        validate(need(cameras_path != '', "Please upload camera file"))
+      } else {
+        cameras_path <- NULL
       }
       
+      # Read data
+      res_all <- read_data(file_path, 
+                           sep_records,
+                           cameras_path,
+                           sep_cameras)
+      
+      # Update records separator
+      updateRadioButtons(inputId = "records_sep",
+                         selected = res_all$sep$sep_records)
+      
+      # Update camera separator
+      updateRadioButtons(inputId = "cameras_sep",
+                         selected = res_all$sep$sep_cameras)
+      
+      # Get data
+      res <- res_all$camtrap_data
     }
     return(res)
   })
@@ -354,17 +342,12 @@ server <- function(input, output, session) {
     dat <- dat_raw()
     
     # Records ---
-    # Reorder columns
-    dat$data$observations <- dat$data$observations %>%
-      dplyr::select(any_of(unname(records_select())), 
-                    everything())
-    
-    # Cast columns
-    dat$data$observations <- cast_columns(dat$data$observations,
-                                          records_select())
+    dat$data$observations <- format_table(dat$data$observations,
+                                         records_select())
     
     # Cameras ---
-    if ("cam_col" %in% names(mapping_cameras())) { # Covariates are in data
+    if ("cam_col" %in% names(mapping_cameras())) { 
+      # Split data if camera covariates are in records
       cameras <- dat$data$observations %>%
         dplyr::select(any_of(unname(mapping_cameras())), 
                       everything())
@@ -373,13 +356,9 @@ server <- function(input, output, session) {
       dat$data$deployments <- cameras
     }
     
-    # Reorder columns
-    dat$data$deployments <- dat$data$deployments %>%
-      dplyr::select(any_of(unname(mapping_cameras())), 
-                    everything())
-    # Cast columns
-    dat$data$deployments <- cast_columns(dat$data$deployments,
+    dat$data$deployments <- format_table(dat$data$deployments,
                                          mapping_cameras())
+    
     return(dat)
   })
   

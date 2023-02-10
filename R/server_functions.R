@@ -43,6 +43,66 @@ read_csv <- function(file_path, column_separator) {
               sep = fsep))
 }
 
+#' Read data
+#'
+#' Reads data from a file path (either csv of json file), and 
+#' optionnally another csv file with camera data.
+#'
+#' @param records_path A valid file path for records.
+#' @param sep_records separator used for the records.
+#' @param sep_cameras separator used for the cameras (defaults to NULL).
+#' @param cameras_path A valid file path for cameras (defaults to NULL).
+#'
+#' @return A list with 1 or 2 components.
+#' If records_path is a json file, returns a list with one component
+#' $camtrap_data which contains a captrapDP list.
+#' If records_path is a csv file, returns a list with 2 components:
+#'  $camtrap_data: a list with one component: 
+#'    $data: a list with 2 components: 
+#'      $observations (records)
+#'       $deployments (cameras: if no camera file, is NULL)
+#'  $sep: a list with 2 components (separators used to read files):
+#'       $sep_records (for records)
+#'       $sep_cameras (for cameras: if no cameras_path is NULL, it is NULL)
+#' @export
+read_data <- function(records_path,
+                      sep_records, 
+                      cameras_path = NULL,
+                      sep_cameras = NULL) {
+  
+  # Get file extension
+  ext <- tools::file_ext(records_path)
+  
+  if (ext == "csv") { # User uploaded a csv file
+    # Read csv
+    res_records <- read_csv(file_path = records_path, 
+                            column_separator = sep_records)
+    
+    if (!is.null(cameras_path)) { # User wants to import a camera file
+      # Read csv
+      res_cameras <- read_csv(file_path = records_path, 
+                              column_separator = sep_cameras)
+    } else { # User doesn't want to import a camera file
+      res_cameras <- list(dat = NULL,
+                          sep = NULL)
+    }
+    
+    res <- list(camtrap_data = list(data = list(observations = res_records$dat,
+                                                deployments = res_cameras$dat)),
+                sep = list(sep_records = res_records$sep,
+                           sep_cameras = res_cameras$sep))
+    
+  } else if (ext == "json") { #   CamtrapDP format
+    dat <- camtraptor::read_camtrap_dp(records_path, media = FALSE)
+    res <- list(camtrap_data = dat)
+  } else { # Unknown extension
+    validate(need(ext == "csv" || ext == "json", 
+                  "Please upload a csv file or a json datapackage"))
+  }
+  return(res)
+}
+
+
 #' Find default colname
 #'
 #' Finds the column name to default to among colnames
@@ -249,5 +309,36 @@ cast_columns <- function(df, col_mapping) {
     col_name <- col_mapping_nocov["count_col"]
     res[[col_name]] <- as.numeric(res[[col_name]])
   }
+  return(res)
+}
+
+#' Cleans a dataframe
+#' 
+#' Moves columns indicated in mapping to the beginning,
+#' and casts those columns.
+#'
+#' @param df The dataframe to clean
+#' @param mapping The mapping for columns in the dataframe.
+#'
+#' @return The dataframe df with cleaned columns.
+#' 
+#' @export
+#'
+#' @examples
+#' library(camtraptor)
+#' data(mica)
+#' mapping <- c("col_spp" = "vernacularNames.en",
+#'              "cam_col" = "deploymentID",
+#'              "timestamp_col" = "timestamp")
+#' format_table(mica$data$observations, mapping)
+format_table <- function(df, mapping) {
+  
+  res <- df %>%
+    dplyr::select(any_of(unname(mapping)), 
+                  everything())
+  
+  # Cast columns
+  res <- cast_columns(res,
+                      mapping)
   return(res)
 }
