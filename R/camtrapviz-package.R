@@ -2,7 +2,9 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom dplyr across
 #' @importFrom dplyr distinct
+#' @importFrom dplyr filter
 #' @importFrom dplyr select
 #' @importFrom DT dataTableOutput
 #' @importFrom DT renderDataTable
@@ -33,6 +35,7 @@
 #' @importFrom shiny tabPanel
 #' @importFrom shiny tabsetPanel
 #' @importFrom shiny textOutput
+#' @importFrom shiny updateCheckboxInput
 #' @importFrom shiny updateRadioButtons
 #' @importFrom shiny updateSelectInput
 #' @importFrom shiny validate
@@ -48,7 +51,8 @@
 #' @importFrom shinydashboard tabItems
 #' @importFrom shinyFiles shinyFileChoose
 #' @importFrom shinyFiles shinyFilesButton
-#' @importFrom tidyselect any_of
+#' @importFrom tidyr drop_na
+#' @importFrom tidyselect all_of
 #' @importFrom tidyselect everything
 ## usethis namespace: end
 NULL

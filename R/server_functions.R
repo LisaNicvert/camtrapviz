@@ -315,7 +315,8 @@ cast_columns <- function(df, col_mapping) {
 #' Cleans a dataframe
 #' 
 #' Moves columns indicated in mapping to the beginning,
-#' and casts those columns.
+#' casts those columns and removes rows where mapping columns
+#' have NA values.
 #'
 #' @param df The dataframe to clean
 #' @param mapping The mapping for columns in the dataframe.
@@ -332,10 +333,10 @@ cast_columns <- function(df, col_mapping) {
 #'              "timestamp_col" = "timestamp")
 #' format_table(mica$data$observations, mapping)
 format_table <- function(df, mapping) {
-  
+
   res <- df %>%
-    dplyr::select(all_of(unname(mapping)), 
-                  everything())
+    select(all_of(unname(mapping)),
+           everything())
   
   # Cast columns
   res <- cast_columns(res,
@@ -397,5 +398,42 @@ remove_rows_with_NA <- function(df, mapping) {
     res <- df %>%
       drop_na(all_of(unname(mapping)))
   }
+  return(res)
+}
+
+#' Filter data to keep only cameras in both tables
+#'
+#' Selects rows where cameras are in both tables
+#' 
+#' @param records Records dataframe
+#' @param cameras Cameras dataframe
+#' @param cam_col_records Name of the columns with camera values in records
+#' @param cam_col_cameras Name of the columns with camera values in cameras
+#'
+#' @return A list of 2 dataframes with filtered values.
+#' 
+#' @export
+filter_cameras_in_both_tables <- function(records, cameras, 
+                                          cam_col_records, 
+                                          cam_col_cameras) {
+  
+  # Get unique camera names
+  ucam_records <- unique(records[[cam_col_records]])
+  ucam_cameras <- unique(cameras[[cam_col_cameras]])
+  
+  # Get intersection
+  cam_both <- intersect(ucam_records, 
+                        ucam_cameras)
+  
+  # Restrict data to shared cameras
+  records <- records %>%
+    filter(.data[[cam_col_records]] %in% cam_both)
+  
+  cameras <- cameras %>%
+    filter(.data[[cam_col_cameras]] %in% cam_both)
+  
+  res <- list(records = records,
+              cameras = cameras)
+  
   return(res)
 }

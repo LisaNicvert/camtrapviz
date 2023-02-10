@@ -22,4 +22,5 @@ Imports:
     shinyFiles,
     utils,
     lubridate,
-    tidyselect
+    tidyselect,
+    tidyr

@@ -16,7 +16,8 @@ The dataframe df with cleaned columns.
 }
 \description{
 Moves columns indicated in mapping to the beginning,
-and casts those columns.
+casts those columns and removes rows where mapping columns
+have NA values.
 }
 \examples{
 library(camtraptor)

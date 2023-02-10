@@ -29,5 +29,6 @@ $sep_records (for records)
 $sep_cameras (for cameras: if no cameras_path is NULL, it is NULL)
 }
 \description{
-Reads data from a file path.
+Reads data from a file path (either csv of json file), and
+optionnally another csv file with camera data.
 }

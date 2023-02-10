@@ -319,7 +319,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Mapping value for records columns
+  # Mapping value for cameras columns
   mapping_cameras <- reactive({
     if (input$input_type == 1) { # Example files
       # Get known mapping
@@ -340,9 +340,10 @@ server <- function(input, output, session) {
       }
       names(res) <- widgets
     }
+    # Remove the 'cov' if it was in the names
+    names(res) <- gsub("_cov$", "", names(res))
     res
   })
-  
   
   # Clean data --------------------------------------------------------------
   
@@ -355,11 +356,11 @@ server <- function(input, output, session) {
                                          mapping_records())
     
     # Cameras ---
-    if ("cam_col" %in% names(mapping_cameras())) { 
-      # Split data if camera covariates are in records
+    if (is.null(cameras_cols())) { # Camera file was not provided
+      # Split data
       cameras <- dat$data$observations %>%
-        dplyr::select(any_of(unname(mapping_cameras())), 
-                      everything())
+        select(all_of(unname(mapping_cameras())), 
+               everything())
       
       cameras <- cameras %>% distinct()
       dat$data$deployments <- cameras
@@ -367,6 +368,23 @@ server <- function(input, output, session) {
     
     dat$data$deployments <- format_table(dat$data$deployments,
                                          mapping_cameras())
+    
+    # Select unique rows for camera table
+    # We want rows to be unique across the used camera columns defined in mapping_cameras()
+    dat$data$deployments <- dat$data$deployments %>%
+      distinct(across(all_of(unname(mapping_cameras()))))
+    
+    # Both data ---
+    # Restrict data to shared cameras
+    cam_col_records <- mapping_records()["cam_col"]
+    cam_col_cameras <- mapping_cameras()["cam_col"]
+    bothcam <- filter_cameras_in_both_tables(dat$data$observations,
+                                             dat$data$deployments, 
+                                             cam_col_records,
+                                             cam_col_cameras)
+    
+    dat$data$observations <- bothcam$records
+    dat$data$deployments <- bothcam$cameras
     
     return(dat)
   })
