@@ -46,28 +46,45 @@ summaryServer <- function(id,
   moduleServer(id, function(input, output, session) {
     
 # Test reactive input -----------------------------------------------------
-    # stopifnot(is.reactive(camtrap_data))
-    # stopifnot(is.reactive(mapping_records))
-    # stopifnot(is.reactive(mapping_cameras))
+    stopifnot(is.reactive(camtrap_data))
+    stopifnot(is.reactive(mapping_records))
+    stopifnot(is.reactive(mapping_cameras))
     
     
     output$plot_occurrences <- renderGirafe({
       df <- camtrap_data()$data$observations
 
-      gg <- ggplot(df, aes(x = timestamp, y = deploymentID,
-                           col = vernacularNames.en)) +
-        geom_point(show.legend = FALSE) +
-        ggtitle("Occurrences over time")
+      gg <- plot_points(df,
+                        camera_col = mapping_records()["cam_col"],
+                        timestamp_col = mapping_records()["timestamp_col"],
+                        spp_col = mapping_records()["spp_col"])
       
-      girafe(code = print(gg))
+      x <- girafe(code = print(gg))
+      x <- girafe_options(x,
+                          opts_zoom(min = 1, max = 10))
+      x
     })
     
     output$plot_species <- renderGirafe({
       df <- camtrap_data()$data$observations
       
-      gg <- ggplot(df, aes(x = vernacularNames.en)) +
-        geom_bar() +
-        ggtitle("Species count")
+      if ("obs_col" %in% names(mapping_records())) {
+        obs_col <- mapping_records()["obs_col"]
+      } else {
+        obs_col <- NULL
+      }
+      
+      if ("count_col" %in% names(mapping_records())) {
+        count_col <- mapping_records()["count_col"]
+      } else {
+        count_col <- NULL
+      }
+      
+      gg <- plot_species_bars(df, 
+                              spp_col = mapping_records()["spp_col"],
+                              obs_col = obs_col,
+                              count_col = count_col)
+      
       
       girafe(code = print(gg))
     })

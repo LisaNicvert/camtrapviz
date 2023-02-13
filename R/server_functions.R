@@ -1,3 +1,5 @@
+# Import ------------------------------------------------------------------
+
 #' Read csv
 #'
 #' Reads a csv file from a fileInput widget with the column separator specified in a 
@@ -436,4 +438,119 @@ filter_cameras_in_both_tables <- function(records, cameras,
               cameras = cameras)
   
   return(res)
+}
+
+
+# Summary -----------------------------------------------------------------
+
+#' Plot points
+#' 
+#' Plot occurrences points from a dataframe
+#'
+#' @param df The dataframe
+#' @param camera_col Name of the camera column
+#' @param timestamp_col Name of the timestamp column
+#' @param spp_col Name of the species column
+#' @param interactive  Make the plot interactive?
+#'
+#' @return A ggplot
+#'
+#' @export
+#'
+#' @examples
+#' library(camtrapR)
+#' data("recordTableSample")
+#' plot_points(recordTableSample, 
+#'             camera_col = "Station", 
+#'             timestamp_col = "DateTimeOriginal", 
+#'             spp_col = "Species")
+plot_points <- function(df, 
+                        camera_col,
+                        timestamp_col,
+                        spp_col,
+                        interactive = TRUE) {
+  
+  if (interactive) {
+    gg <- ggplot(df, aes(x = .data[[timestamp_col]], 
+                         y = .data[[camera_col]],
+                         col = .data[[spp_col]],
+                         tooltip = .data[[spp_col]])) +
+      geom_point_interactive(show.legend = FALSE)
+  } else {
+    gg <- ggplot(df, aes(x = .data[[timestamp_col]], 
+                         y = .data[[camera_col]],
+                         col = .data[[spp_col]])) +
+      geom_point(show.legend = FALSE)
+  }
+  
+  gg <- gg +
+    theme_linedraw() + 
+    xlab("Date") +
+    ylab("Camera")
+  
+  return(gg)
+}
+
+#' Plot species bars
+#'
+#' Plot the barplot of species abundance from a dataframe
+#'
+#' @param df The dataframe
+#' @param spp_col Name of the species column
+#' @param count_col Name of the count column
+#' @param obs_col Name of the observation type column
+#' @param interactive Make the plot interactive?
+#'
+#' @return A ggplot
+#' @export
+#'
+#' @examples
+#' library(camtrapR)
+#' data("recordTableSample")
+#' plot_species_bars(recordTableSample,
+#'                   spp_col = "Species")
+plot_species_bars <- function(df, 
+                              spp_col, 
+                              count_col = NULL,
+                              obs_col = NULL,
+                              interactive = TRUE) {
+  
+  # Initialize df plot
+  dfp <- df
+  
+  if (!is.null(obs_col)) {
+    # Get only the observations of type animal
+    dfp <- dfp %>% filter(.data[[obs_col]] == "animal")
+  }
+  
+  # Group by species
+  dfp <- dfp %>% group_by(.data[[spp_col]])
+  
+  if (is.null(count_col)) { # no count column
+    dfp <- dfp %>%
+      summarise(count = n())
+  } else { # count column
+    dfp <- dfp %>%
+      summarise(count = sum(.data[[count_col]]))
+  }
+   
+  if (interactive) {
+    gg <- ggplot(dfp, aes(x = reorder(.data[[spp_col]], count),
+                          y = count,
+                          tooltip = paste(.data[[spp_col]], count, 
+                                          sep = ": ")
+                          )) +
+      geom_col_interactive()
+  } else {
+    gg <- ggplot(dfp, aes(x = reorder(.data[[spp_col]], count),
+                          y = count)) +
+      geom_col()
+  }
+  gg <- gg +
+    coord_flip() +
+    theme_linedraw() +
+    ylab("Count") +
+    theme(axis.title.y = element_blank())
+  
+  return(gg)
 }
