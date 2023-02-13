@@ -9,30 +9,40 @@ summaryUI <- function(id) {
         fluidRow(infoBox("Cameras", 
                          icon = icon("camera"),
                          color = 'aqua',
-                         value = 11),
+                         value = textOutput(NS(id, "ncameras"))
+                         ),
                  infoBox("Species", 
                          icon = icon("paw"),
                          color = 'teal',
-                         value = 33)
+                         value = textOutput(NS(id, "nspecies"))
+                         )
                  ),
         fluidRow(infoBox("Trapping nights", 
                          icon = icon("clock"),
                          color = 'fuchsia',
-                         value = 150),
+                         value = textOutput(NS(id, "sampling_length"))),
                  infoBox("Active", 
                          icon = icon("calendar"),
                          color = 'purple',
-                         value = paste(Sys.Date(), Sys.Date() + 100, sep = " to "))
+                         value = textOutput(NS(id, "daterange")))
                  ),
         br(),
         h3("Camera activity"),
         fluidRow(
-          girafeOutput(NS(id, "plot_occurrences"))
+          column(width = 12,
+                 div(style = 'overflow-y:auto; height:600px; width:100%;',
+                     girafeOutput(NS(id, "plot_occurrences"), height = "100%")
+                     )
+                 )
         ),
         br(),
         h3("Species count"),
         fluidRow(
-          girafeOutput(NS(id, "plot_species"))
+          column(width = 12,
+                 div(style = 'overflow-y:auto; height:600px; width:100%;',
+                     girafeOutput(NS(id, "plot_species"), height = "100%")
+                     )
+                 )
         ),
         )
     )
@@ -50,16 +60,96 @@ summaryServer <- function(id,
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     
+
+# Reactive general values -------------------------------------------------
+    ncameras <- reactive({
+      nrow(camtrap_data()$data$deployments)
+    })
     
+    nspecies <- reactive({
+      # Get species column
+      species_col <- mapping_records()["spp_col"]
+      species <- camtrap_data()$data$observations[[species_col]]
+      
+      if ("obs_col" %in% names(mapping_records())) {
+        # Filter to get only animal species
+        obs_col <- mapping_records()["obs_col"]
+        species <- species[camtrap_data()$data$observations[[obs_col]] == "animal"]
+      }
+      
+      length(unique(species))
+    })
+    
+    daterange <- reactive({
+      if ("timestamp_col" %in% names(mapping_records())) {
+        # We only have timestamp
+        timestamp_col <- mapping_records()["timestamp_col"]
+        date <- camtrap_data()$data$observations[[timestamp_col]]
+        date <- as_date(date)
+      } else if ("date_col" %in% names(mapping_records())) {
+        # We only have date
+        date_col <- mapping_records()["date_col"]
+        date <- camtrap_data()$data$observations[[date_col]]
+      } else {
+        # No date or timestamp
+        stop("Date or time must be present in data")
+      }
+      c(min(date), max(date))
+    })
+    
+    sampling_length <- reactive({
+      #### TO IMPROVE
+      daterange()[2] - daterange()[1]
+    })
+
+# Infobox values ----------------------------------------------------------
+    output$ncameras <- renderText({
+      ncameras()
+    })
+    
+    output$nspecies <- renderText({
+      nspecies()
+    })
+    
+    output$sampling_length <- renderText({
+      as.numeric(sampling_length(), "days")
+    })
+    
+    output$daterange <- renderText({
+      minmax_date <- daterange()
+      minmax_date <- format(minmax_date, "%d %b %Y")
+      paste(minmax_date[1], "to", minmax_date[2])
+    })
+    
+# Plots -------------------------------------------------------------------
     output$plot_occurrences <- renderGirafe({
       df <- camtrap_data()$data$observations
+      
+      if ("timestamp_col" %in% names(mapping_records())) {
+        timestamp_col <- mapping_records()["timestamp_col"]
+        time_col <- NULL
+        date_col <- NULL
+      } else if ("time_col" %in% names(mapping_records()) &
+                 "date_col" %in% names(mapping_records())) {
+        timestamp_col <- NULL
+        time_col <- mapping_records()["time_col"]
+        date_col <- mapping_records()["date_col"]
+      } else {
+        stop("timestapl_col or time_col and date_col should be available")
+      }
 
       gg <- plot_points(df,
                         camera_col = mapping_records()["cam_col"],
-                        timestamp_col = mapping_records()["timestamp_col"],
+                        timestamp_col = timestamp_col,
+                        time_col = time_col,
+                        date_col = date_col,
                         spp_col = mapping_records()["spp_col"])
       
-      x <- girafe(code = print(gg))
+      height <- ifelse(ncameras() < 10,
+                       ncameras(), ncameras()/2)
+      x <- girafe(ggobj = gg,
+                  width_svg = 8,
+                  height_svg = height)
       x <- girafe_options(x,
                           opts_zoom(min = 1, max = 10))
       x
@@ -85,8 +175,12 @@ summaryServer <- function(id,
                               obs_col = obs_col,
                               count_col = count_col)
       
+      height <- ifelse(nspecies() < 10,
+                       nspecies()/2, nspecies()/4)
       
-      girafe(code = print(gg))
+      girafe(ggobj = gg,
+             width_svg = 8,
+             height_svg = height)
     })
     
   })

@@ -14,15 +14,12 @@ ui <- function() {
       sidebarMenu(
         menuItem("Data import", tabName = "dataimport", 
                  icon = icon("th-list")),
-        menuItem("Visualization", tabName = "visualization", 
-                 icon = icon("eye-open", lib = "glyphicon"),
-                 menuSubItem("Data summary", tabName = "summary",
-                             icon = icon("dashboard")),
-                 menuSubItem("Activity plot", tabName = "activity",
-                             icon = icon("sun")),
-                 menuSubItem("Map", tabName = "map",
-                             icon = icon("map")) 
-        )
+        menuItem("Data summary", tabName = "summary",
+                 icon = icon("dashboard")),
+        menuItem("Activity plot", tabName = "activity",
+                 icon = icon("sun")),
+        menuItem("Map", tabName = "map",
+                 icon = icon("map"))
       )
     ),
     dashboardBody(
@@ -40,10 +37,9 @@ ui <- function() {
 # Summary -----------------------------------------------------------------
 
         tabItem(tabName = "summary",
-                box(width = 12,
-                    h2("Summary tab content"),
-                    dataTableOutput("test"),
-                    textOutput("test2"))
+                fluidRow(
+                  summaryUI("summary")
+                )
         ),
         tabItem(tabName = "activity",
                 box(width = 12, 

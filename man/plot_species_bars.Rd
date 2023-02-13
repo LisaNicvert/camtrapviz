@@ -4,12 +4,24 @@
 \alias{plot_species_bars}
 \title{Plot species bars}
 \usage{
-plot_species_bars(df, spp_col)
+plot_species_bars(
+  df,
+  spp_col,
+  count_col = NULL,
+  obs_col = NULL,
+  interactive = TRUE
+)
 }
 \arguments{
 \item{df}{The dataframe}
 
 \item{spp_col}{Name of the species column}
+
+\item{count_col}{Name of the count column}
+
+\item{obs_col}{Name of the observation type column}
+
+\item{interactive}{Make the plot interactive?}
 }
 \value{
 A ggplot

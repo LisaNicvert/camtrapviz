@@ -14,8 +14,7 @@ separator_widget <- function(prefix) {
                choices = c("Comma" = ",", 
                            "Tabulation" = "\t", 
                            "Semicolon" = ";"),
-               selected = character(0),
-               inline = TRUE)
+               selected = character(0))
 }
 
 #' Create a dashboard

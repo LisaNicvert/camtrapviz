@@ -9,14 +9,12 @@
 #' @export
 server <- function(input, output, session) {
   
+  # Import reactives
   import_val <- importServer("import")
   
-  # Test for output values
-  output$test <- renderDataTable({
-    DT::datatable(import_val$camtrap_data()$data$deployments)
-  })
-  
-  output$test2 <- renderText({
-    paste(import_val$mapping_records())
-  })
+  # Summary reactives
+  summaryServer("summary",
+                camtrap_data = import_val$camtrap_data, 
+                mapping_records = import_val$mapping_records,
+                mapping_cameras = import_val$mapping_cameras)
 }

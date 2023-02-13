@@ -449,10 +449,16 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #'
 #' @param df The dataframe
 #' @param camera_col Name of the camera column
-#' @param timestamp_col Name of the timestamp column
+#' @param timestamp_col Name of the timestamp column 
+#' (can be null if date_col and time_col are provided)
+#' @param date_col Name of the date column (can be null if timestamp_col is provided)
+#' @param time_col Name of the time column (can be null if timestamp_col is provided)
 #' @param spp_col Name of the species column
 #' @param interactive  Make the plot interactive?
 #'
+#' @details If date_col and time_col are provided along timestamp_col,
+#' they will be ignored.
+#' 
 #' @return A ggplot
 #'
 #' @export
@@ -467,19 +473,48 @@ filter_cameras_in_both_tables <- function(records, cameras,
 plot_points <- function(df, 
                         camera_col,
                         timestamp_col,
+                        date_col = NULL,
+                        time_col = NULL,
                         spp_col,
                         interactive = TRUE) {
   
+  # Initialize plotting data
+  dfp <- df
+  
+  if (is.null(timestamp_col)) { # no timestamp
+    if (is.null(date_col) | is.null(time_col)) {
+      stop("If timestamp_col is not provided, date_col and time_col must be provided.")
+    }
+  }
+  
+  
+  if (is.null(timestamp_col)) { # no timestamp
+    if("timestamp_col" %in% colnames(dfp)) {
+      warning("timestamp_col already exists and this might interfer with plotting")
+    }
+    # Create a composite timestamp
+    dfp$timestamp_col <- paste(as.character(dfp[[date_col]]), 
+                               as.character(dfp[[time_col]]))
+    
+    dfp$timestamp_col <- as.POSIXct(dfp$timestamp_col)
+    
+    # Change timestamp_col value
+    timestamp_col <- "timestamp_col"
+  }
+  
   if (interactive) {
-    gg <- ggplot(df, aes(x = .data[[timestamp_col]], 
-                         y = .data[[camera_col]],
-                         col = .data[[spp_col]],
-                         tooltip = .data[[spp_col]])) +
+    gg <- ggplot(dfp, aes(x = .data[[timestamp_col]], 
+                          y = .data[[camera_col]],
+                          col = .data[[spp_col]],
+                          tooltip = paste(.data[[spp_col]], 
+                                          .data[[timestamp_col]],
+                                          sep = ": ")
+                          )) +
       geom_point_interactive(show.legend = FALSE)
   } else {
-    gg <- ggplot(df, aes(x = .data[[timestamp_col]], 
-                         y = .data[[camera_col]],
-                         col = .data[[spp_col]])) +
+    gg <- ggplot(dfp, aes(x = .data[[timestamp_col]], 
+                          y = .data[[camera_col]],
+                          col = .data[[spp_col]])) +
       geom_point(show.legend = FALSE)
   }
   
@@ -535,14 +570,14 @@ plot_species_bars <- function(df,
   }
    
   if (interactive) {
-    gg <- ggplot(dfp, aes(x = reorder(.data[[spp_col]], count),
+    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], count),
                           y = count,
                           tooltip = paste(.data[[spp_col]], count, 
                                           sep = ": ")
                           )) +
       geom_col_interactive()
   } else {
-    gg <- ggplot(dfp, aes(x = reorder(.data[[spp_col]], count),
+    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], count),
                           y = count)) +
       geom_col()
   }

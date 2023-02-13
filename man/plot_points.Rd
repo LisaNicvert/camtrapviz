@@ -4,22 +4,41 @@
 \alias{plot_points}
 \title{Plot points}
 \usage{
-plot_points(df, camera_col, timestamp_col, spp_col)
+plot_points(
+  df,
+  camera_col,
+  timestamp_col,
+  date_col = NULL,
+  time_col = NULL,
+  spp_col,
+  interactive = TRUE
+)
 }
 \arguments{
 \item{df}{The dataframe}
 
 \item{camera_col}{Name of the camera column}
 
-\item{timestamp_col}{Name of the timestamp column}
+\item{timestamp_col}{Name of the timestamp column
+(can be null if date_col and time_col are provided)}
+
+\item{date_col}{Name of the date column (can be null if timestamp_col is provided)}
+
+\item{time_col}{Name of the time column (can be null if timestamp_col is provided)}
 
 \item{spp_col}{Name of the species column}
+
+\item{interactive}{Make the plot interactive?}
 }
 \value{
 A ggplot
 }
 \description{
 Plot occurrences points from a dataframe
+}
+\details{
+If date_col and time_col are provided along timestamp_col,
+they will be ignored.
 }
 \examples{
 library(camtrapR)
