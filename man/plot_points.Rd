@@ -7,10 +7,10 @@
 plot_points(
   df,
   camera_col,
-  timestamp_col,
-  date_col = NULL,
-  time_col = NULL,
   spp_col,
+  timestamp_col,
+  date_col = NA,
+  time_col = NA,
   interactive = TRUE
 )
 }
@@ -19,14 +19,14 @@ plot_points(
 
 \item{camera_col}{Name of the camera column}
 
+\item{spp_col}{Name of the species column}
+
 \item{timestamp_col}{Name of the timestamp column
 (can be null if date_col and time_col are provided)}
 
 \item{date_col}{Name of the date column (can be null if timestamp_col is provided)}
 
 \item{time_col}{Name of the time column (can be null if timestamp_col is provided)}
-
-\item{spp_col}{Name of the species column}
 
 \item{interactive}{Make the plot interactive?}
 }

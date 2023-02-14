@@ -24,4 +24,6 @@ Imports:
     lubridate,
     tidyselect,
     tidyr,
-    ggiraph
+    ggiraph,
+    shinymeta,
+    styler

@@ -35,6 +35,9 @@ summaryUI <- function(id) {
                    girafeOutput(NS(id, "plot_occurrences"), 
                                 height = "600px")
                  )
+                 ),
+          column(width = 12,
+                 verbatimTextOutput(NS(id, "code_occurrences"))
                  )
         ),
         br(),
@@ -43,7 +46,10 @@ summaryUI <- function(id) {
           column(width = 12,
                  style = "height:600px; width:100%;",
                  girafeOutput(NS(id, "plot_species"), height = "600px")
-                 )
+                 ),
+          column(width = 12,
+                 verbatimTextOutput(NS(id, "code_species"))
+          )
         ),
         )
     )
@@ -61,6 +67,33 @@ summaryServer <- function(id,
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     
+
+# Create complete mapping -------------------------------------------------
+    
+    mapping_records_complete <- reactive({
+      res <- mapping_records()
+      if (!("timestamp_col" %in% names(res))) {
+        res["timestamp_col"] <- NA
+      }
+      
+      if (!("time_col" %in% names(res))) {
+        res["time_col"] <- NA
+      }
+      
+      if (!("date_col" %in% names(res))) {
+        res["date_col"] <- NA
+      }
+      
+      if (!("obs_col" %in% names(res))) {
+        res["obs_col"] <- NA
+      }
+      
+      if (!("count_col" %in% names(res))) {
+        res["count_col"] <- NA
+      }
+      
+      res
+    })
 
 # Reactive general values -------------------------------------------------
     ncameras <- reactive({
@@ -123,40 +156,29 @@ summaryServer <- function(id,
     })
     
 # Plots -------------------------------------------------------------------
-    output$plot_occurrences <- renderGirafe({
+    
+    gg_occurrences <- metaReactive({
       df <- camtrap_data()$data$observations
       
-      if ("timestamp_col" %in% names(mapping_records())) {
-        timestamp_col <- mapping_records()["timestamp_col"]
-        time_col <- NULL
-        date_col <- NULL
-      } else if ("time_col" %in% names(mapping_records()) &
-                 "date_col" %in% names(mapping_records())) {
-        timestamp_col <- NULL
-        time_col <- mapping_records()["time_col"]
-        date_col <- mapping_records()["date_col"]
-      } else {
-        stop("timestapl_col or time_col and date_col should be available")
-      }
-
-      gg <- plot_points(df,
-                        camera_col = mapping_records()["cam_col"],
-                        timestamp_col = timestamp_col,
-                        time_col = time_col,
-                        date_col = date_col,
-                        spp_col = mapping_records()["spp_col"])
-      
+      plot_points(df,
+                  camera_col = ..(unname(mapping_records_complete()["cam_col"])),
+                  spp_col = ..(unname(mapping_records_complete()["spp_col"])),
+                  timestamp_col = ..(unname(mapping_records_complete()["timestamp_col"])),
+                  time_col = ..(unname(mapping_records_complete()["time_col"])),
+                  date_col = ..(unname(mapping_records_complete()["date_col"])))
+    })
+    
+    output$plot_occurrences <- renderGirafe({
       # Define height
       unith <- ncameras()/4
       height <- max(5, 
                     unith/(1 + exp(-12*unith)))
-      
       # Define width
       unitw <- as.numeric(daterange()[2] - daterange()[1], "days")/60 # One inch per 2 months
       width <- max(8,
                    unitw/(1 + exp(-24*unitw)))
       
-      x <- girafe(ggobj = gg,
+      x <- girafe(ggobj = gg_occurrences(),
                   width_svg = width,
                   height_svg = height)
       x <- girafe_options(x,
@@ -164,36 +186,44 @@ summaryServer <- function(id,
       x
     })
     
-    output$plot_species <- renderGirafe({
+    
+    gg_species <- metaReactive({
       df <- camtrap_data()$data$observations
       
-      if ("obs_col" %in% names(mapping_records())) {
-        obs_col <- mapping_records()["obs_col"]
-      } else {
-        obs_col <- NULL
-      }
-      
-      if ("count_col" %in% names(mapping_records())) {
-        count_col <- mapping_records()["count_col"]
-      } else {
-        count_col <- NULL
-      }
-      
-      gg <- plot_species_bars(df, 
-                              spp_col = mapping_records()["spp_col"],
-                              obs_col = obs_col,
-                              count_col = count_col)
-      
-
+      plot_species_bars(df, 
+                        spp_col = ..(unname(mapping_records_complete()["spp_col"])),
+                        obs_col = ..(unname(mapping_records_complete()["obs_col"])),
+                        count_col = ..(unname(mapping_records_complete()["count_col"])))
+    })
+    
+    output$plot_species <- renderGirafe({
+      # Set height
       unit <- nspecies()/6
       height <- max(5, 
                     unit/(1 + exp(-12*unit)))
-      x <- girafe(ggobj = gg,
+      
+      x <- girafe(ggobj = gg_species(),
                   width_svg = 8,
                   height_svg = height)
       x <- girafe_options(x,
                           opts_zoom(min = 0.5, max = 10))
       x
+    })
+    
+
+# Plots code --------------------------------------------------------------
+    output$code_occurrences <- renderPrint({
+      code <- withMetaMode(gg_occurrences())
+      formatCode(code, 
+                 width = 60L, # ignored for some reason
+                 formatter = styler::style_text)
+    })
+    
+    output$code_species <- renderPrint({
+      code <- withMetaMode(gg_species())
+      formatCode(code, 
+                 width = 60L, # ignored for some reason
+                 formatter = styler::style_text)
     })
     
   })
