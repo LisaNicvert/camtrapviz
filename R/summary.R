@@ -30,8 +30,11 @@ summaryUI <- function(id) {
         h3("Camera activity"),
         fluidRow(
           column(width = 12,
-                 style = "height:600px; width:100%;",
-                 girafeOutput(NS(id, "plot_occurrences"), height = "600px")
+                 div(
+                   style = "height:600px; width:100%;",
+                   girafeOutput(NS(id, "plot_occurrences"), 
+                                height = "600px")
+                 )
                  )
         ),
         br(),
@@ -143,11 +146,18 @@ summaryServer <- function(id,
                         date_col = date_col,
                         spp_col = mapping_records()["spp_col"])
       
-      unit <- ncameras()/4
+      # Define height
+      unith <- ncameras()/4
       height <- max(5, 
-                    unit/(1 + exp(-12*unit)))
+                    unith/(1 + exp(-12*unith)))
+      
+      # Define width
+      unitw <- as.numeric(daterange()[2] - daterange()[1], "days")/60 # One inch per 2 months
+      width <- max(8,
+                   unitw/(1 + exp(-24*unitw)))
+      
       x <- girafe(ggobj = gg,
-                  width_svg = 8,
+                  width_svg = width,
                   height_svg = height)
       x <- girafe_options(x,
                           opts_zoom(min = 0.5, max = 10))
