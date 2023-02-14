@@ -30,18 +30,16 @@ summaryUI <- function(id) {
         h3("Camera activity"),
         fluidRow(
           column(width = 12,
-                 div(style = 'overflow-y:auto; height:600px; width:100%;',
-                     girafeOutput(NS(id, "plot_occurrences"), height = "100%")
-                     )
+                 style = "height:600px; width:100%;",
+                 girafeOutput(NS(id, "plot_occurrences"), height = "600px")
                  )
         ),
         br(),
         h3("Species count"),
         fluidRow(
           column(width = 12,
-                 div(style = 'overflow-y:auto; height:600px; width:100%;',
-                     girafeOutput(NS(id, "plot_species"), height = "100%")
-                     )
+                 style = "height:600px; width:100%;",
+                 girafeOutput(NS(id, "plot_species"), height = "600px")
                  )
         ),
         )
@@ -145,13 +143,14 @@ summaryServer <- function(id,
                         date_col = date_col,
                         spp_col = mapping_records()["spp_col"])
       
-      height <- ifelse(ncameras() < 10,
-                       ncameras(), ncameras()/2)
+      unit <- ncameras()/4
+      height <- max(5, 
+                    unit/(1 + exp(-12*unit)))
       x <- girafe(ggobj = gg,
                   width_svg = 8,
                   height_svg = height)
       x <- girafe_options(x,
-                          opts_zoom(min = 1, max = 10))
+                          opts_zoom(min = 0.5, max = 10))
       x
     })
     
@@ -175,12 +174,16 @@ summaryServer <- function(id,
                               obs_col = obs_col,
                               count_col = count_col)
       
-      height <- ifelse(nspecies() < 10,
-                       nspecies()/2, nspecies()/4)
-      
-      girafe(ggobj = gg,
-             width_svg = 8,
-             height_svg = height)
+
+      unit <- nspecies()/6
+      height <- max(5, 
+                    unit/(1 + exp(-12*unit)))
+      x <- girafe(ggobj = gg,
+                  width_svg = 8,
+                  height_svg = height)
+      x <- girafe_options(x,
+                          opts_zoom(min = 0.5, max = 10))
+      x
     })
     
   })
