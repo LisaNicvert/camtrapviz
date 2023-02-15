@@ -39,44 +39,23 @@ importUI <- function(id) {
                                                       separator_widget(NS(id, "records")))
                                      ),
                               column(8,
-                                     selectInput(NS(id, "spp_col"), 
-                                                 "Species",
-                                                 choices = NULL),
-                                     selectInput(NS(id, "cam_col"), 
-                                                 "Camera",
-                                                 choices = NULL),
+                                     uiOutput(NS(id, "mandatory_records_col")),
                                      radioButtons(NS(id, "datetime_or_timestamp"),
                                                   "Date / time column(s)",
                                                   choices = c("Date and time" = "date_time",
                                                               "Timestamp" = "timestamp"), 
                                                   inline = TRUE),
                                      conditionalPanel(condition = "input.datetime_or_timestamp == 'date_time'", ns = ns,
-                                                      selectInput(NS(id, "date_col"), 
-                                                                  "Date",
-                                                                  choices = NULL),
-                                                      selectInput(NS(id, "time_col"), 
-                                                                  "Time",
-                                                                  choices = NULL)),
+                                                      uiOutput(NS(id, "datetime_records_col"))
+                                                      ),
                                      conditionalPanel(condition = "input.datetime_or_timestamp == 'timestamp'", ns = ns,
-                                                      selectInput(NS(id, "timestamp_col"), 
-                                                                  "Timestamp",
-                                                                  choices = NULL)
+                                                      uiOutput(NS(id, "timestamp_records_col"))
                                      ),
                                      conditionalPanel(condition = "!input.import_cameras && output.records_extension !== 'json'",
                                                       ns = ns,
-                                                      selectInput(NS(id, "lat_col"), 
-                                                                  "Latitude",
-                                                                  choices = NULL),
-                                                      selectInput(NS(id, "lon_col"), 
-                                                                  "Longitude",
-                                                                  choices = NULL)
+                                                      uiOutput(NS(id, "cameras_records_col"))
                                                       ),
-                                     selectInput(NS(id, "count_col"), 
-                                                 "Count (optional)",
-                                                 choices = NULL),
-                                     selectInput(NS(id, "obs_col"), 
-                                                 "Observation type (optional)",
-                                                 choices = NULL)
+                                     uiOutput(NS(id, "optional_records_col"))
                                      ) # End column for records selectInput
                               ), # End fluidRow
                      br(),
@@ -99,15 +78,7 @@ importUI <- function(id) {
                                                                        separator_widget(NS(id, "cameras")))
                                                       ),
                                                       column(8,
-                                                             selectInput(NS(id, "cam_col_cov"), 
-                                                             "Camera",
-                                                             choices = NULL),
-                                                             selectInput(NS(id, "lat_col_cov"), 
-                                                                         "Latitude",
-                                                                         choices = NULL),
-                                                             selectInput(NS(id, "lon_col_cov"), 
-                                                                         "Longitude",
-                                                                         choices = NULL)
+                                                             uiOutput(NS(id, "cameras_col"))
                                                              ))
                                       ) # conditional cameras table panel
                      ), # conditionalPanel upload file widgets
@@ -184,6 +155,81 @@ importServer <- function(id) {
       }
     }
     
+    # Create a list of widgets
+    # 
+    # @param df A dataframe with columns
+    #   widget, label, empty_allowed, type
+    # 
+    # @return A list of selectInput
+    create_widget_list <- function(df) {
+      
+      res <- list()
+      for (i in 1:nrow(df)){
+        wid <- df$widget[i]
+        label <- df$label[i]
+        if (df$empty_allowed[i]) {
+          # Add "optional" in label
+          label <- paste(label, "(optional)")
+        }
+        res[[i]] <- selectInput(NS(id, wid),
+                                label, choices = NULL)
+      }
+      return(res)
+    }
+
+# Widgets dataframes --------------------------------------------------------
+    records_widgets <- data.frame(
+      widget = c("spp_col",
+                 "cam_col",
+                 "date_col",
+                 "time_col",
+                 "timestamp_col",
+                 "lat_col",
+                 "lon_col",
+                 "count_col",
+                 "obs_col"),
+      label = c("Species",
+                "Camera",
+                "Date",
+                "Time",
+                "Timestamp",
+                "Latitude",
+                "Longitude",
+                "Count",
+                "Observation type"),
+      empty_allowed = c(FALSE,
+                        FALSE,
+                        FALSE,
+                        FALSE,
+                        FALSE,
+                        FALSE,
+                        FALSE,
+                        TRUE,
+                        TRUE),
+      type = c("records",
+               "records",
+               "datetime",
+               "datetime",
+               "datetime",
+               "cameras",
+               "cameras",
+               "records",
+               "records"))
+    
+    cameras_widgets <- data.frame(
+      widget = c("cam_col_cov",
+                  "lat_col_cov",
+                  "lon_col_cov"),
+      label = c("Camera",
+                "Latitude",
+                "Longitude"),
+      empty_allowed = c(FALSE,
+                        FALSE,
+                        FALSE),
+      type = c("cameras",
+               "cameras",
+               "cameras"))
+    
 # Setup variables ---------------------------------------------------------
     # Define roots for ShinyFiles 
     roots <- c("home" = fs::path_home())
@@ -193,7 +239,6 @@ importServer <- function(id) {
     
     # Define columns for which empty is allowed
     empty_allowed <- c("count_col", "obs_col")
-    
     
     # Define camera columns
     cameras_cols_wanted <- c("cam_col_cov",
@@ -235,6 +280,49 @@ importServer <- function(id) {
     })
     
 
+# Create records widgets ----------------------------------------------------------
+    # Create mandatory selecters
+    mandatory <- records_widgets %>%
+      dplyr::filter(type == "records") %>%
+      dplyr::filter(empty_allowed == FALSE)
+    mandatory_widgets <- create_widget_list(mandatory)
+    
+    # Create date/time selecters
+    datetime_all <- records_widgets %>%
+      dplyr::filter(type == "datetime")
+    
+    timestamp <- datetime_all %>%
+      dplyr::filter(widget == "timestamp_col")
+    timestamp_widgets <- create_widget_list(timestamp)
+    
+    datetime <- datetime_all %>%
+      dplyr::filter(widget != "timestamp_col")
+    datetime_widgets <- create_widget_list(datetime)
+    
+    
+    # Crete camera selecters
+    cov <- records_widgets %>%
+      dplyr::filter(type == "cameras")
+    cov_widgets <- create_widget_list(cov)
+    
+    # Create optional selecters
+    optional <- records_widgets %>%
+      dplyr::filter(type == "records") %>%
+      dplyr::filter(empty_allowed == TRUE)
+    optional_widgets <- create_widget_list(optional)
+    
+    # Render UI
+    output$mandatory_records_col <- renderUI(mandatory_widgets)
+    output$datetime_records_col <- renderUI(datetime_widgets)
+    output$timestamp_records_col <- renderUI(timestamp_widgets)
+    output$cameras_records_col <- renderUI(cov_widgets)
+    output$optional_records_col <- renderUI(optional_widgets)
+
+
+# Create cameras widgets --------------------------------------------------
+    cameras_widgets_col <- create_widget_list(cameras_widgets)
+    output$cameras_col <- renderUI(cameras_widgets_col)
+    
 # Read files --------------------------------------------------------------
 
 
@@ -382,8 +470,22 @@ importServer <- function(id) {
       default_names
     })
     
+
+## Update selectInput ------------------------------------------------------
+
     # Update selection list and default names in selectInput for records
     observeEvent(input$records_input, {
+      if (input$input_type == 2) { # Only update widgets for manual import
+        update_selected_columns(widget_list = records_cols_wanted(), 
+                                default = default_records(),
+                                choices = records_cols(),
+                                empty_allowed = empty_allowed,
+                                nullval = nullval)
+      }
+    })
+    
+    # Update choices upon separator change
+    observeEvent(input$records_sep, {
       if (input$input_type == 2) { # Only update widgets for manual import
         update_selected_columns(widget_list = records_cols_wanted(), 
                                 default = default_records(),
@@ -407,16 +509,8 @@ importServer <- function(id) {
       }
     })
     
-    # Update choices upon separator change
-    observeEvent(input$records_sep, {
-      if (input$input_type == 2) { # Only update widgets for manual import
-        update_selected_columns(widget_list = records_cols_wanted(), 
-                                default = default_records(),
-                                choices = records_cols(),
-                                empty_allowed = empty_allowed,
-                                nullval = nullval)
-      }
-    })
+
+## Mapping -----------------------------------------------------------------
     
     # Mapping value for records columns
     mapping_records_all <- reactive({
@@ -472,6 +566,9 @@ importServer <- function(id) {
       default_names
     })
     
+
+## Update selectInput ------------------------------------------------------
+
     # Update selection list and default names 
     # in selectInput for cameras
     observe({
@@ -496,6 +593,9 @@ importServer <- function(id) {
                                 nullval = nullval)
       }
     })
+    
+
+## Mapping -----------------------------------------------------------------
     
     # Mapping value for cameras columns
     mapping_cameras <- reactive({
