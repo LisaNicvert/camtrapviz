@@ -241,7 +241,7 @@ importServer <- function(id) {
     empty_allowed <- c("count_col", "obs_col")
     
     # Define camera columns
-    cameras_cols_wanted <- c("cam_col_cov",
+    cameras_to_update <- c("cam_col_cov",
                              "lat_col_cov",
                              "lon_col_cov")
     
@@ -431,7 +431,7 @@ importServer <- function(id) {
     })
     
     # Get the columns we want to update for the records
-    records_cols_wanted <- reactive({
+    records_to_update <- reactive({
       # Initialize widgets with only records-related values
       widget_df <- records_widgets %>%
         filter(type %in% c("records"))
@@ -463,7 +463,7 @@ importServer <- function(id) {
                           nullval)))
       
       # Find default names
-      default_names <- find_default_colnames(records_cols_wanted(),
+      default_names <- find_default_colnames(records_to_update(),
                                              records_cols(),
                                              empty_allowed,
                                              empty_placeholder = nullval)
@@ -476,7 +476,7 @@ importServer <- function(id) {
     # Update selection list and default names in selectInput for records
     observeEvent(input$records_input, {
       if (input$input_type == 2) { # Only update widgets for manual import
-        update_selected_columns(widget_list = records_cols_wanted(), 
+        update_selected_columns(widget_list = records_to_update(), 
                                 default = default_records(),
                                 choices = records_cols(),
                                 empty_allowed = empty_allowed,
@@ -487,7 +487,7 @@ importServer <- function(id) {
     # Update choices upon separator change
     observeEvent(input$records_sep, {
       if (input$input_type == 2) { # Only update widgets for manual import
-        update_selected_columns(widget_list = records_cols_wanted(), 
+        update_selected_columns(widget_list = records_to_update(), 
                                 default = default_records(),
                                 choices = records_cols(),
                                 empty_allowed = empty_allowed,
@@ -498,7 +498,7 @@ importServer <- function(id) {
     # Update date/time/stamp upon input change
     observeEvent(input$datetime_or_timestamp, {
       if (input$input_type == 2) { # Only update widgets for manual import
-        widgets <- records_cols_wanted()
+        widgets <- records_to_update()
         time_widgets <- widgets[which(widgets %in% c("date_col", "time_col", "timestamp_col"))]
         
         update_selected_columns(widget_list = time_widgets, 
@@ -521,7 +521,7 @@ importServer <- function(id) {
         # Get the values selected by the user
         
         # Get relevant widgets
-        widgets <- records_cols_wanted()
+        widgets <- records_to_update()
         
         # Get selected values for widgets
         res <- vector(mode = "character", 
@@ -558,7 +558,7 @@ importServer <- function(id) {
     default_cameras <- reactive({
       # Find default names
       if (!is.null(cameras_cols())) {
-        default_names <- find_default_colnames(cameras_cols_wanted,
+        default_names <- find_default_colnames(cameras_to_update,
                                                cameras_cols())
       } else {
         default_names <- NULL
@@ -574,7 +574,7 @@ importServer <- function(id) {
     observe({
       if (input$input_type == 2) { # Only update widgets for manual import
         if (!is.null(dat_raw()$data$deployments)) { # Camera file was provided
-          update_selected_columns(widget_list = cameras_cols_wanted, 
+          update_selected_columns(widget_list = cameras_to_update, 
                                   default = default_cameras(),
                                   choices = cameras_cols(),
                                   empty_allowed = empty_allowed,
@@ -586,7 +586,7 @@ importServer <- function(id) {
     # Update choices upon separator change
     observeEvent(input$cameras_sep, {
       if (input$input_type == 2) { # Only update widgets for manual import
-        update_selected_columns(widget_list = cameras_cols_wanted, 
+        update_selected_columns(widget_list = cameras_to_update, 
                                 default = default_cameras(),
                                 choices = cameras_cols(),
                                 empty_allowed = empty_allowed,
@@ -606,9 +606,9 @@ importServer <- function(id) {
         # Get the values selected by the user
         if (!is.null(cameras_cols())) { # Camera file was provided
           # Get relevant widgets
-          widgets <- cameras_cols_wanted
+          widgets <- cameras_to_update
         } else { # Camera file was not provided
-          widgets <- gsub("_cov$", "", cameras_cols_wanted)
+          widgets <- gsub("_cov$", "", cameras_to_update)
         }
         # Get selected values for widgets
         res <- vector(mode = "character", 
