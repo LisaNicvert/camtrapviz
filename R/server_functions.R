@@ -1,5 +1,22 @@
 # Import ------------------------------------------------------------------
 
+#' Get example mapping
+#' 
+#' Return the mapping for example datasets in a vector form
+#'
+#' @param df a dataframe with columns col and widget
+#' @param col the name of the column to extract example mapping from
+#'
+#' @return A named character vector, excluding NA values in col
+get_example_mapping <- function(df, col) {
+  
+  res_df <- df %>% 
+    dplyr::filter(!is.na(.data[[col]]))
+  res <- res_df[[col]]
+  names(res) <- res_df$widget
+  return(res)
+}
+
 #' Read csv
 #'
 #' Reads a csv file from a fileInput widget with the column separator specified in a 

@@ -222,13 +222,43 @@ importServer <- function(id) {
                 "timestamp|datetime",
                 "lat|y", 
                 "lon|x",
-                "count", 
-                "observationType")
+                "count",
+                "observationType"),
+      mica = c("vernacularNames.en",
+               "deploymentID",
+               NA,
+               NA,
+               "timestamp",
+               NA,
+               NA,
+               "count",
+               "observationType"),
+      recordTableSample = c("Species",
+                            "Station",
+                            NA,
+                            NA,
+                            "DateTimeOriginal",
+                            NA,
+                            NA,
+                            NA,
+                            NA)
       )
     
     cameras_widgets <- records_widgets %>% 
       dplyr::filter(widget %in% c("cam_col", "lat_col", "lon_col")) %>%
       mutate(widget = paste(widget, "cov", sep = "_"))
+    # Set default for lon/lat for mica
+    cameras_widgets <- cameras_widgets %>%
+      mutate(mica = ifelse(widget == "lat_col_cov", 
+                           "latitude", mica)) %>%
+      mutate(mica = ifelse(widget == "lon_col_cov", 
+                           "longitude", mica))
+    # Set default for lon/lat for recordTableSample
+    cameras_widgets <- cameras_widgets %>%
+      mutate(recordTableSample = ifelse(widget == "lat_col_cov", 
+                                        "utm_y", recordTableSample)) %>%
+      mutate(recordTableSample = ifelse(widget == "lon_col_cov", 
+                                        "utm_x", recordTableSample))
     
 # Setup variables ---------------------------------------------------------
     # Define roots for ShinyFiles 
@@ -236,6 +266,13 @@ importServer <- function(id) {
     
     # Define placeholder for optional columns
     nullval <- "Not present in data"
+    
+# Useful variables from widgets df ----------------------------------------
+    
+    # Get time widgets
+    time_widgets <- records_widgets %>% 
+      dplyr::filter(type %in% c("date_time", "timestamp")) %>%
+      extract2("widget")
     
     # Define columns for which empty is allowed
     allowed_records <- records_widgets %>%
@@ -251,23 +288,16 @@ importServer <- function(id) {
     cameras_to_update <- cameras_widgets %>%
       extract2("widget")
     
-    # Define example data column mappings
-    example_mapping_records <- list(mica = c("spp_col" = "vernacularNames.en",
-                                             "obs_col" = "observationType",
-                                             "cam_col" = "deploymentID",
-                                             "timestamp_col" = "timestamp",
-                                             "count_col" = "count"),
-                                    recordTableSample = c("spp_col" = "Species",
-                                                          "cam_col" = "Station",
-                                                          "timestamp_col" = "DateTimeOriginal"))
-    example_mapping_cameras <- list(mica = c("cam_col_cov" = "deploymentID",
-                                             "lat_col_cov" = "latitude",
-                                             "lon_col_cov" = "longitude"),
-                                    recordTableSample = c("cam_col_cov" = "Station",
-                                                          "lat_col_cov" = "utm_y",
-                                                          "lon_col_cov" = "utm_x"))
+    # Define example mappings
+    example_mapping_records <- list(mica = get_example_mapping(records_widgets, 
+                                                               "mica"),
+                                    recordTableSample = get_example_mapping(records_widgets, 
+                                                                            "recordTableSample"))
+    example_mapping_cameras <- list(mica = get_example_mapping(cameras_widgets, 
+                                                               "mica"),
+                                    recordTableSample = get_example_mapping(cameras_widgets, 
+                                                                            "recordTableSample"))
     
-
 # Load example data -------------------------------------------------------
 
     utils::data(mica, package = "camtraptor")
@@ -513,8 +543,9 @@ importServer <- function(id) {
     # Update date/time/stamp upon input change
     observeEvent(input$datetime_or_timestamp, {
       if (input$input_type == 2) { # Only update widgets for manual import
-        widgets <- records_to_update()
-        time_widgets <- widgets[which(widgets %in% c("date_col", "time_col", "timestamp_col"))]
+        
+        # Subset time widgets which are in records to update
+        time_widgets <- time_widgets[time_widgets %in% records_to_update()]
         
         update_selected_columns(widget_list = time_widgets, 
                                 default = default_records(),
