@@ -390,22 +390,6 @@ importServer <- function(id) {
                                 choices = records_cols(),
                                 empty_allowed = empty_allowed,
                                 nullval = nullval)
-        # for(w in records_cols_wanted()) {
-        #   # Get default
-        #   default_name <- default_records()[[w]]
-        #   
-        #   if(w %in% empty_allowed) {
-        #     updateSelectInput(session = session,
-        #                       inputId = w,
-        #                       choices = c(nullval, records_cols()),
-        #                       selected = default_name)
-        #   } else {
-        #     updateSelectInput(session = session,
-        #                       inputId = w,
-        #                       choices = records_cols(),
-        #                       selected = default_name)
-        #   }
-        # }
       }
     })
     
@@ -415,17 +399,22 @@ importServer <- function(id) {
         widgets <- records_cols_wanted()
         time_widgets <- widgets[which(widgets %in% c("date_col", "time_col", "timestamp_col"))]
         
-        for(tw in time_widgets) {
-          # Get default
-          default_name <- default_records()[[tw]]
-          
-          # Cannot be empty since it is a datetime
-          updateSelectInput(session = session,
-                            inputId = tw,
-                            choices = records_cols(),
-                            selected = default_name)
-          
-        }
+        update_selected_columns(widget_list = time_widgets, 
+                                default = default_records(),
+                                choices = records_cols(),
+                                empty_allowed = empty_allowed,
+                                nullval = nullval)
+      }
+    })
+    
+    # Update choices upon separator change
+    observeEvent(input$records_sep, {
+      if (input$input_type == 2) { # Only update widgets for manual import
+        update_selected_columns(widget_list = records_cols_wanted(), 
+                                default = default_records(),
+                                choices = records_cols(),
+                                empty_allowed = empty_allowed,
+                                nullval = nullval)
       }
     })
     
@@ -488,16 +477,23 @@ importServer <- function(id) {
     observe({
       if (input$input_type == 2) { # Only update widgets for manual import
         if (!is.null(dat_raw()$data$deployments)) { # Camera file was provided
-          for(w in cameras_cols_wanted) {
-            # Get default
-            default_name <- default_cameras()[[w]]
-            
-            updateSelectInput(session = session,
-                              inputId = w,
-                              choices = cameras_cols(),
-                              selected = default_name)
-          }
+          update_selected_columns(widget_list = cameras_cols_wanted, 
+                                  default = default_cameras(),
+                                  choices = cameras_cols(),
+                                  empty_allowed = empty_allowed,
+                                  nullval = nullval)
         }
+      }
+    })
+    
+    # Update choices upon separator change
+    observeEvent(input$cameras_sep, {
+      if (input$input_type == 2) { # Only update widgets for manual import
+        update_selected_columns(widget_list = cameras_cols_wanted, 
+                                default = default_cameras(),
+                                choices = cameras_cols(),
+                                empty_allowed = empty_allowed,
+                                nullval = nullval)
       }
     })
     
