@@ -208,9 +208,9 @@ importServer <- function(id) {
                         TRUE),
       type = c("records",
                "records",
-               "datetime",
-               "datetime",
-               "datetime",
+               "date_time",
+               "date_time",
+               "timestamp",
                "cameras",
                "cameras",
                "records",
@@ -287,18 +287,15 @@ importServer <- function(id) {
       dplyr::filter(empty_allowed == FALSE)
     mandatory_widgets <- create_widget_list(mandatory)
     
-    # Create date/time selecters
-    datetime_all <- records_widgets %>%
-      dplyr::filter(type == "datetime")
-    
-    timestamp <- datetime_all %>%
-      dplyr::filter(widget == "timestamp_col")
+    # Create timestamp selecter
+    timestamp <- records_widgets %>%
+      dplyr::filter(type == "timestamp")
     timestamp_widgets <- create_widget_list(timestamp)
     
-    datetime <- datetime_all %>%
-      dplyr::filter(widget != "timestamp_col")
+    # Create date/time selecters
+    datetime <- records_widgets %>%
+      dplyr::filter(type == "date_time")
     datetime_widgets <- create_widget_list(datetime)
-    
     
     # Crete camera selecters
     cov <- records_widgets %>%
@@ -435,21 +432,24 @@ importServer <- function(id) {
     
     # Get the columns we want to update for the records
     records_cols_wanted <- reactive({
+      # Initialize widgets with only records-related values
+      widget_df <- records_widgets %>%
+        filter(type %in% c("records"))
+      
+      widgets <- widget_df$widget
+      
       if (input$datetime_or_timestamp == 'timestamp') {
-        datetime_widgets <- "timestamp_col"
+        to_add <- records_widgets$widget[records_widgets$type == "timestamp"]
       } else if (input$datetime_or_timestamp == 'date_time') {
-        datetime_widgets <- c("date_col", "time_col")
+        to_add <- records_widgets$widget[records_widgets$type == "date_time"]
       }
-      widget_list <- c("spp_col", "cam_col",
-                       datetime_widgets,
-                       "count_col", "obs_col")
       
       if (!input$import_cameras) { 
         # User doesn't want to import a camera file
-        widget_list <- c(widget_list,
-                         "lat_col", "lon_col")
+        to_add <- c(to_add,
+                    records_widgets$widget[records_widgets$type == "cameras"])
       }
-      widget_list
+      widgets <- c(widgets, to_add)
     })
     
     # Default columns mapping for records
