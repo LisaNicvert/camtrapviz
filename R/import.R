@@ -144,6 +144,46 @@ importUI <- function(id) {
 importServer <- function(id) {
   moduleServer(id, function(input, output, session) {
 
+
+# Server functions --------------------------------------------------------
+    
+    
+    # Update selected columns
+    #
+    # @param widget_list A vector of widget names you want to update
+    # @param default A named vector, names are the widget names
+    # and values are the default for this widget selected among "choices"
+    # @param choices The available choices to display in the selectInput
+    # (if empty_allowed, nullval will also be added.)
+    # @param empty_allowed A vector of widget names that are allowed to be empty
+    # @param nullval Character, the placeholder to use in the choices in case 
+    # empty_allowed.
+    #
+    # @return Updates the widgets defined with widget_list
+    update_selected_columns <- function(widget_list, 
+                                        default,
+                                        choices,
+                                        empty_allowed,
+                                        nullval) {
+
+      for(w in widget_list) {
+        # Get default
+        default_name <- default[[w]]
+        
+        if(w %in% empty_allowed) {
+          updateSelectInput(session = session,
+                            inputId = w,
+                            choices = c(nullval, choices),
+                            selected = default_name)
+        } else {
+          updateSelectInput(session = session,
+                            inputId = w,
+                            choices = choices,
+                            selected = default_name)
+        }
+      }
+    }
+    
 # Setup variables ---------------------------------------------------------
     # Define roots for ShinyFiles 
     roots <- c("home" = fs::path_home())
@@ -345,22 +385,27 @@ importServer <- function(id) {
     # Update selection list and default names in selectInput for records
     observeEvent(input$records_input, {
       if (input$input_type == 2) { # Only update widgets for manual import
-        for(w in records_cols_wanted()) {
-          # Get default
-          default_name <- default_records()[[w]]
-          
-          if(w %in% empty_allowed) {
-            updateSelectInput(session = session,
-                              inputId = w,
-                              choices = c(nullval, records_cols()),
-                              selected = default_name)
-          } else {
-            updateSelectInput(session = session,
-                              inputId = w,
-                              choices = records_cols(),
-                              selected = default_name)
-          }
-        }
+        update_selected_columns(widget_list = records_cols_wanted(), 
+                                default = default_records(),
+                                choices = records_cols(),
+                                empty_allowed = empty_allowed,
+                                nullval = nullval)
+        # for(w in records_cols_wanted()) {
+        #   # Get default
+        #   default_name <- default_records()[[w]]
+        #   
+        #   if(w %in% empty_allowed) {
+        #     updateSelectInput(session = session,
+        #                       inputId = w,
+        #                       choices = c(nullval, records_cols()),
+        #                       selected = default_name)
+        #   } else {
+        #     updateSelectInput(session = session,
+        #                       inputId = w,
+        #                       choices = records_cols(),
+        #                       selected = default_name)
+        #   }
+        # }
       }
     })
     

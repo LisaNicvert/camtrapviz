@@ -24,9 +24,9 @@ plot_points(
 \item{timestamp_col}{Name of the timestamp column
 (can be null if date_col and time_col are provided)}
 
-\item{date_col}{Name of the date column (can be null if timestamp_col is provided)}
+\item{date_col}{Name of the date column (can be NA if timestamp_col is provided)}
 
-\item{time_col}{Name of the time column (can be null if timestamp_col is provided)}
+\item{time_col}{Name of the time column (can be NA if timestamp_col is provided)}
 
 \item{interactive}{Make the plot interactive?}
 }
