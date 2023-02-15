@@ -26,4 +26,5 @@ Imports:
     tidyr,
     ggiraph,
     shinymeta,
-    styler
+    styler,
+    tibble

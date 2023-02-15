@@ -155,8 +155,9 @@ find_default_colname <- function(pattern, colnames,
 #'
 #' Finds the column names to default to among colnames
 #' 
-#' @param widget_list a list of widgets to choose defaults for
-#' (see details to see which widgets are accepted)
+#' @param regex_list a named list with names corresponding to those of 
+#' widgets and values are regular expressions used to find those widgets
+#' in colnames
 #' @param colnames a vector of column names
 #' @param empty_allowed_list a vector of allowed widgets that can be set
 #' to empty
@@ -164,48 +165,34 @@ find_default_colname <- function(pattern, colnames,
 #'
 #' @return A named list containing either (the first) matched colname,
 #' NULL (no match and empty not allowed) 
-#' or the empty_placeholder(no match and empty allowed)
+#' or the empty_placeholder (no match and empty allowed)
 #' 
-#' @details currently implemented for the following widgets:
-#'    spp_col, cam_col, date_col, time_col, timestamp_col,
-#'    count_col, lat_col, lon_col
 #' @export
 #'
 #' @examples
 #' library(camtraptor)
 #' data(mica)
 #' colnames <- colnames(mica$data$observations)
-#' find_default_colnames(c("spp_col", "cam_col", "timestamp_col"), 
-#'                       colnames)
-find_default_colnames <- function(widget_list,
+#' regex <- c("^vernacularNames\\.en$|species", "station|deployment|camera",
+#'            "timestamp|datetime")
+#' names(regex) <-  c("spp_col", "cam_col", "timestamp_col")
+#' find_default_colnames(regex_list = regex,
+#'                       colnames = colnames)
+find_default_colnames <- function(regex_list,
                                   colnames,
                                   empty_allowed_list = list(),
                                   empty_placeholder = "Not present in data") {
   
-  # Create a list with all possible columns we want
-  widget_list_all <- c("spp_col", "cam_col",
-                       "date_col", "time_col", "timestamp_col",
-                       "count_col", "obs_col","lat_col", "lon_col")
-
-  # Get the corresponding regex
-  regex_list_all <- c("^vernacularNames\\.en$|species", "station|deployment|camera",
-                      "date", "hour|time(?!stamp)", "timestamp|datetime",
-                      "count", "observationType", "lat", "lon")
-  
-  names(regex_list_all) <- widget_list_all
-  # Add covariates (duplicate regex)
-  cov <- regex_list_all[grep(pattern = "^cam_col$|^lat_col$|^lon_col$", 
-                             names(regex_list_all))]
-  names(cov) <- paste(names(cov), "cov", sep = "_")
-  regex_list_all <- c(regex_list_all,
-                      cov)
+  if ( all(is.null(names(regex_list))) ) {
+    stop("regex_list must be named")
+  }
   
   # Initialize results
-  res <- vector(mode = "character", length = length(widget_list))
+  res <- vector(mode = "list", length = length(regex_list))
   
-  for (i in 1:length(widget_list)) { # Iterate through input widgets
-    w <- widget_list[i]
-    pat <- regex_list_all[w]
+  for (i in 1:length(regex_list)) { # Iterate through input widgets
+    w <- names(regex_list)[i]
+    pat <- regex_list[w]
     
     # Define empty_allowed boolean
     if (w %in% empty_allowed_list) {
@@ -221,13 +208,12 @@ find_default_colnames <- function(widget_list,
     if(!is.null(res_i)) {
       # select first occurrence in case multiple matches
       res_i <- res_i[1]
-    } else {
-      res_i <- list(res_i)
     }
+    
     # Add result
-    res[i] <- res_i 
+    res[[i]] <- res_i 
     # Name result
-    names(res)[i] <- w
+    names(res)[[i]] <- w
   }  
   return(res)
 }

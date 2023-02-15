@@ -122,7 +122,7 @@ importServer <- function(id) {
     # Update selected columns
     #
     # @param widget_list A vector of widget names you want to update
-    # @param default A named vector, names are the widget names
+    # @param default A named list, names are the widget names
     # and values are the default for this widget selected among "choices"
     # @param choices The available choices to display in the selectInput
     # (if empty_allowed, nullval will also be added.)
@@ -214,21 +214,21 @@ importServer <- function(id) {
                "cameras",
                "cameras",
                "records",
-               "records"))
+               "records"),
+      regex = c("^vernacularNames\\.en$|species", 
+                "station|deployment|camera",
+                "date", 
+                "hour|time(?!stamp)", 
+                "timestamp|datetime",
+                "lat|y", 
+                "lon|x",
+                "count", 
+                "observationType")
+      )
     
-    cameras_widgets <- data.frame(
-      widget = c("cam_col_cov",
-                  "lat_col_cov",
-                  "lon_col_cov"),
-      label = c("Camera",
-                "Latitude",
-                "Longitude"),
-      empty_allowed = c(FALSE,
-                        FALSE,
-                        FALSE),
-      type = c("cameras",
-               "cameras",
-               "cameras"))
+    cameras_widgets <- records_widgets %>% 
+      dplyr::filter(widget %in% c("cam_col", "lat_col", "lon_col")) %>%
+      mutate(widget = paste(widget, "cov", sep = "_"))
     
 # Setup variables ---------------------------------------------------------
     # Define roots for ShinyFiles 
@@ -238,12 +238,18 @@ importServer <- function(id) {
     nullval <- "Not present in data"
     
     # Define columns for which empty is allowed
-    empty_allowed <- c("count_col", "obs_col")
+    allowed_records <- records_widgets %>%
+      filter(empty_allowed == TRUE) %>% 
+      extract2("widget")
+    allowed_cameras <- cameras_widgets %>%
+      filter(empty_allowed == TRUE) %>% 
+      extract2("widget")
+    empty_allowed <- c(allowed_records, 
+                       allowed_cameras)
     
     # Define camera columns
-    cameras_to_update <- c("cam_col_cov",
-                             "lat_col_cov",
-                             "lon_col_cov")
+    cameras_to_update <- cameras_widgets %>%
+      extract2("widget")
     
     # Define example data column mappings
     example_mapping_records <- list(mica = c("spp_col" = "vernacularNames.en",
@@ -464,10 +470,17 @@ importServer <- function(id) {
                     paste("Please provide a dataframe with no column named",
                           nullval)))
       
+      # Prepare regex vector
+      regex_df <- records_widgets %>%
+        filter(widget %in% records_to_update()) 
+      regex <- regex_df %>%
+        extract2("regex")
+      names(regex) <- regex_df$widget
+      
       # Find default names
-      default_names <- find_default_colnames(records_to_update(),
-                                             records_cols(),
-                                             empty_allowed,
+      default_names <- find_default_colnames(regex_list = regex,
+                                             colnames = records_cols(),
+                                             empty_allowed_list = empty_allowed,
                                              empty_placeholder = nullval)
       default_names
     })
@@ -560,8 +573,19 @@ importServer <- function(id) {
     default_cameras <- reactive({
       # Find default names
       if (!is.null(cameras_cols())) {
-        default_names <- find_default_colnames(cameras_to_update,
-                                               cameras_cols())
+        
+        # Prepare regex vector
+        regex_df <- cameras_widgets %>%
+          filter(widget %in% cameras_to_update) 
+        regex <- regex_df %>%
+          extract2("regex")
+        names(regex) <- regex_df$widget
+        
+        # Find default names
+        default_names <- find_default_colnames(regex_list = regex,
+                                               colnames = cameras_cols(),
+                                               empty_allowed_list = empty_allowed,
+                                               empty_placeholder = nullval)
       } else {
         default_names <- NULL
       }

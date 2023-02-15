@@ -5,15 +5,16 @@
 \title{Find default column names}
 \usage{
 find_default_colnames(
-  widget_list,
+  regex_list,
   colnames,
   empty_allowed_list = list(),
   empty_placeholder = "Not present in data"
 )
 }
 \arguments{
-\item{widget_list}{a list of widgets to choose defaults for
-(see details to see which widgets are accepted)}
+\item{regex_list}{a named list with names corresponding to those of
+widgets and values are regular expressions used to find those widgets
+in colnames}
 
 \item{colnames}{a vector of column names}
 
@@ -25,20 +26,18 @@ to empty}
 \value{
 A named list containing either (the first) matched colname,
 NULL (no match and empty not allowed)
-or the empty_placeholder(no match and empty allowed)
+or the empty_placeholder (no match and empty allowed)
 }
 \description{
 Finds the column names to default to among colnames
-}
-\details{
-currently implemented for the following widgets:
-spp_col, cam_col, date_col, time_col, timestamp_col,
-count_col, lat_col, lon_col
 }
 \examples{
 library(camtraptor)
 data(mica)
 colnames <- colnames(mica$data$observations)
-find_default_colnames(c("spp_col", "cam_col", "timestamp_col"), 
-                      colnames)
+regex <- c("^vernacularNames\\\\.en$|species", "station|deployment|camera",
+           "timestamp|datetime")
+names(regex) <-  c("spp_col", "cam_col", "timestamp_col")
+find_default_colnames(regex_list = regex,
+                      colnames = colnames)
 }
