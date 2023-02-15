@@ -22,8 +22,8 @@ have NA values.
 \examples{
 library(camtraptor)
 data(mica)
-mapping <- c("col_spp" = "vernacularNames.en",
-             "cam_col" = "deploymentID",
-             "timestamp_col" = "timestamp")
+mapping <- list("col_spp" = "vernacularNames.en",
+                "cam_col" = "deploymentID",
+                "timestamp_col" = "timestamp")
 format_table(mica$data$observations, mapping)
 }

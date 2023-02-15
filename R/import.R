@@ -505,11 +505,9 @@ importServer <- function(id) {
                           nullval)))
       
       # Prepare regex vector
-      regex_df <- records_widgets %>%
-        filter(widget %in% records_to_update()) 
-      regex <- regex_df %>%
-        extract2("regex")
-      names(regex) <- regex_df$widget
+      # Prepare regex vector
+      regex <- get_regex_vector(records_widgets, 
+                                widget_values = records_to_update())
       
       # Find default names
       default_names <- find_default_colnames(regex_list = regex,
@@ -593,25 +591,8 @@ importServer <- function(id) {
         }
       }
       
-      cat("Mapping names:")
-      cat(paste(names(res)))
-      cat("\n")
-      
-      cat("Mapping values:")
-      cat(paste(res))
-      cat("\n")
-      
       res
     })
-    
-    # mapping_records <- reactive({
-    #   # Get relevant columns (all except "Not in data")
-    #   res <- mapping_records_all()[mapping_records_all() != nullval]
-    #   # Discard lon/lat that are mapped by cameras
-    #   res <- res[which(!names(res) %in% c("lat_col", "lon_col"))]
-    #   
-    #   res
-    # })
     
 # Column mapping (cameras) ------------------------------------------------
     
@@ -622,6 +603,7 @@ importServer <- function(id) {
       } else { # Camera is in data
         res <- NULL
       }
+      res
     })
     
     # Default columns mapping for cameras
@@ -630,11 +612,8 @@ importServer <- function(id) {
       if (!is.null(cameras_cols())) {
         
         # Prepare regex vector
-        regex_df <- cameras_widgets %>%
-          filter(widget %in% cameras_to_update) 
-        regex <- regex_df %>%
-          extract2("regex")
-        names(regex) <- regex_df$widget
+        regex <- get_regex_vector(cameras_widgets, 
+                                  widget_values = cameras_to_update)
         
         # Find default names
         default_names <- find_default_colnames(regex_list = regex,

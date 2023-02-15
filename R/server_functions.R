@@ -17,6 +17,24 @@ get_example_mapping <- function(df, col) {
   return(res)
 }
 
+#' Get regex vector
+#'
+#' Get the regex vector from a dataframe
+#'
+#' @param df The dataframe
+#' @param widget_values The widgets to get the regex for
+#'
+#' @return A named vector containing regex, names are the widget names
+get_regex_vector <- function(df, widget_values) {
+  
+  regex_df <- df %>%
+    filter(widget %in% widget_values) 
+  regex <- regex_df %>%
+    extract2("regex")
+  names(regex) <- regex_df$widget
+  return(regex)
+}
+
 #' Read csv
 #'
 #' Reads a csv file from a fileInput widget with the column separator specified in a 
