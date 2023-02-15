@@ -333,22 +333,25 @@ cast_columns <- function(df, col_mapping) {
 #' @examples
 #' library(camtraptor)
 #' data(mica)
-#' mapping <- c("col_spp" = "vernacularNames.en",
-#'              "cam_col" = "deploymentID",
-#'              "timestamp_col" = "timestamp")
+#' mapping <- list("col_spp" = "vernacularNames.en",
+#'                 "cam_col" = "deploymentID",
+#'                 "timestamp_col" = "timestamp")
 #' format_table(mica$data$observations, mapping)
 format_table <- function(df, mapping) {
+  
+  # Vector from list (NULL will be discarded)
+  vec <- unlist(mapping)
 
   res <- df %>%
-    select(all_of(unname(mapping)),
+    select(all_of(unname(vec)),
            everything())
   
   # Cast columns
   res <- cast_columns(res,
-                      mapping)
+                      vec)
   
   # Drop NA
-  res <- remove_rows_with_NA(res, mapping)
+  res <- remove_rows_with_NA(res, vec)
   
   return(res)
 }

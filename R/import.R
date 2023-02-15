@@ -274,6 +274,10 @@ importServer <- function(id) {
       dplyr::filter(type %in% c("date_time", "timestamp")) %>%
       extract2("widget")
     
+    # All widgets
+    all_records_widgets <- records_widgets$widget
+    all_cameras_widgets <- cameras_widgets$widget
+    
     # Define columns for which empty is allowed
     allowed_records <- records_widgets %>%
       filter(empty_allowed == TRUE) %>% 
@@ -559,35 +563,55 @@ importServer <- function(id) {
 ## Mapping -----------------------------------------------------------------
     
     # Mapping value for records columns
-    mapping_records_all <- reactive({
+    mapping_records <- reactive({
+      # Initialize NULL list
+      res <- vector(mode = "list",
+                    length = length(all_records_widgets))
+      names(res) <- all_records_widgets
+      
       if (input$input_type == 1) { # Example files
         # Get known mapping
-        res <- example_mapping_records[[input$example_file]]
+        ex <- example_mapping_records[[input$example_file]]
+        res[names(ex)] <- ex
       } else if (input$input_type == 2) { # Uploaded files
         # Get the values selected by the user
         
         # Get relevant widgets
         widgets <- records_to_update()
         
-        # Get selected values for widgets
-        res <- vector(mode = "character", 
-                      length = length(widgets))
-        for(i in 1:length(widgets)) {
-          res[i] <- input[[widgets[i]]]
+        # Update res values for those widgets
+        for (i in 1:length(widgets)) {
+          wname <- widgets[i]
+          wval <- input[[wname]]
+          
+          # Replace placeholder with NULL
+          if (wval != nullval) {
+            res[wname] <- wval
+          } else {
+            res[wname] <- NULL
+          }
         }
-        names(res) <- widgets
       }
-      res
-    })
-    
-    mapping_records <- reactive({
-      # Get relevant columns (all except "Not in data")
-      res <- mapping_records_all()[mapping_records_all() != nullval]
-      # Discard lon/lat that are mapped by cameras
-      res <- res[which(!names(res) %in% c("lat_col", "lon_col"))]
+      
+      cat("Mapping names:")
+      cat(paste(names(res)))
+      cat("\n")
+      
+      cat("Mapping values:")
+      cat(paste(res))
+      cat("\n")
       
       res
     })
+    
+    # mapping_records <- reactive({
+    #   # Get relevant columns (all except "Not in data")
+    #   res <- mapping_records_all()[mapping_records_all() != nullval]
+    #   # Discard lon/lat that are mapped by cameras
+    #   res <- res[which(!names(res) %in% c("lat_col", "lon_col"))]
+    #   
+    #   res
+    # })
     
 # Column mapping (cameras) ------------------------------------------------
     
@@ -711,8 +735,8 @@ importServer <- function(id) {
       
       # Both data ---
       # Restrict data to shared cameras
-      cam_col_records <- mapping_records()["cam_col"]
-      cam_col_cameras <- mapping_cameras()["cam_col"]
+      cam_col_records <- mapping_records()[["cam_col"]]
+      cam_col_cameras <- mapping_cameras()[["cam_col"]]
       bothcam <- filter_cameras_in_both_tables(dat$data$observations,
                                                dat$data$deployments, 
                                                cam_col_records,
@@ -748,7 +772,7 @@ importServer <- function(id) {
                     filter = "none",
                     selection = "none",
                     options = list(scrollX = TRUE)) %>%
-        DT::formatStyle(mapping_records(),
+        DT::formatStyle(unname(unlist(mapping_records())),
                         backgroundColor = '#F5EE9E')
     })
     
