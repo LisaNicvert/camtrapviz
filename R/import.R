@@ -432,24 +432,26 @@ importServer <- function(id) {
     
     # Get the columns we want to update for the records
     records_to_update <- reactive({
-      # Initialize widgets with only records-related values
-      widget_df <- records_widgets %>%
-        filter(type %in% c("records"))
-      
-      widgets <- widget_df$widget
+      # Initialize widgets all data
+      widget_df <- records_widgets
       
       if (input$datetime_or_timestamp == 'timestamp') {
-        to_add <- records_widgets$widget[records_widgets$type == "timestamp"]
+        # Filter out date/time
+        widget_df <- widget_df %>% 
+          dplyr::filter(type != "date_time")
       } else if (input$datetime_or_timestamp == 'date_time') {
-        to_add <- records_widgets$widget[records_widgets$type == "date_time"]
+        # Filter out timestamp
+        widget_df <- widget_df %>% 
+          dplyr::filter(type != "timestamp")
       }
       
-      if (!input$import_cameras) { 
-        # User doesn't want to import a camera file
-        to_add <- c(to_add,
-                    records_widgets$widget[records_widgets$type == "cameras"])
+      if (input$import_cameras) { 
+        # User wants to import a camera file
+        widget_df <- widget_df %>% 
+          dplyr::filter(type != "cameras")
       }
-      widgets <- c(widgets, to_add)
+      widgets <- widget_df$widget
+      widgets
     })
     
     # Default columns mapping for records
