@@ -638,13 +638,6 @@ importServer <- function(id) {
         extract2("widget")
       
       res <- res[-which(names(res) %in% widget_cam)]
-      cat("Records --------------------------\n")
-      cat("Mapping names: ")
-      cat(paste(names(res)))
-      cat("\n")
-      cat("Mapping values: ")
-      cat(paste(res))
-      cat("\n")
       
       res  
     })
@@ -753,17 +746,6 @@ importServer <- function(id) {
       # Remove _cov for consistency
       names(res) <- gsub("_cov$", "", names(res))
       
-      cat("Cameras --------------------------\n")
-      cat("Mapping names: ")
-      cat(paste(names(res)))
-      cat("\n")
-      cat("Mapping values: ")
-      cat(paste(res))
-      cat("\n")
-      cat("Source: ")
-      cat(source)
-      cat("\n")
-      
       list(mapping = res,
            source = source)
     })
@@ -778,18 +760,18 @@ importServer <- function(id) {
       req(mapping_records())
       req(mapping_cameras()$mapping)
       validate(need(all(unname(unlist(mapping_records())) %in% colnames(dat$data$observations)),
-                    "Wait a minute :)"))
+                    "Wait a minute for the records :)"))
+      if( mapping_cameras()$source != "records") {
+        # If a file was imported
+        validate(need(all(unname(unlist(mapping_cameras()$mapping)) %in% colnames(dat$data$deployments)),
+                      "Wait a minute for the cameras :)"))
+      }
       
       # Records ---
       # Get casting values
       castval <- get_named_vector(records_widgets,
                                   col = "cast",
                                   widget_values = names(mapping_records()))
-      cat("Castval records: ")
-      cat(paste(names(castval)))
-      cat("\n")
-      cat(paste(names(mapping_records())))
-      cat("\n")
       
       dat$data$observations <- format_table(dat$data$observations,
                                             mapping = mapping_records(),
@@ -817,11 +799,6 @@ importServer <- function(id) {
       castval <- get_named_vector(records_widgets,
                                   col = "cast",
                                   widget_values = names(mapping_cameras))
-      cat("Castval cameras: ")
-      cat(paste(names(castval)))
-      cat("\n")
-      cat(paste(names(mapping_cameras)))
-      cat("\n")
       
       dat$data$deployments <- format_table(dat$data$deployments,
                                            mapping = mapping_cameras()$mapping,
