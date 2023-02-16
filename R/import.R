@@ -495,13 +495,6 @@ importServer <- function(id) {
         res <- res_all$camtrap_data
       }
       
-      cat("observations: ")
-      cat(paste(nrow(res$data$observations)))
-      cat("\n")
-      cat("deployments: ")
-      cat(paste(nrow(res$data$deployments)))
-      cat("\n")
-      
       return(res)
     })
 
@@ -558,18 +551,14 @@ importServer <- function(id) {
                           nullval)))
       
       # Prepare regex vector
-      cat("Before\n")
       regex <- get_regex_vector(records_widgets, 
                                 widget_values = records_to_update())
-      cat(paste(names(regex)))
-      cat(paste(regex))
-      cat("\n")
+
       # Find default names
       default_names <- find_default_colnames(regex_list = regex,
                                              colnames = records_cols(),
                                              empty_allowed_list = empty_allowed,
                                              empty_placeholder = nullval)
-      cat("After\n")
       default_names
     })
     
@@ -778,8 +767,11 @@ importServer <- function(id) {
       # Copy raw data
       dat <- dat_raw()
       
-      # req(mapping_records())
-      # req(mapping_cameras()$mapping)
+      # Ensure data is available
+      req(mapping_records())
+      req(mapping_cameras()$mapping)
+      validate(need(all(unname(unlist(mapping_records())) %in% colnames(dat$data$observations)),
+                    "Wait a minute :)"))
       
       # Records ---
       dat$data$observations <- format_table(dat$data$observations,
