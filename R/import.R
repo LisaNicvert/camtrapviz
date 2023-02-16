@@ -177,6 +177,51 @@ importServer <- function(id) {
       return(res)
     }
 
+    
+    # Get mapping
+    # 
+    # Get the mapping to apply for columns from currently selected values
+    # 
+    # @param mapping_list A list (initialized to NULL)
+    # for which we want to update the values
+    # @param relevant_widgets The widgets to look at in the app to update values
+    # @param nullval The placeholder when the column is not present in the data
+    # @param example_mapping List for the example mapping (names of the list must correspond to 
+    # possible values of input$example_file)
+    #
+    # @return A list named as the widgets containing their current value
+    # if this value is nullval then it is set to NULL.
+    get_mapping <- function(mapping_list, 
+                            relevant_widgets, 
+                            nullval,
+                            example_mapping) {
+      res <- mapping_list
+      if (input$input_type == 1) { # Example files
+        # Get known mapping
+        ex <- example_mapping[[input$example_file]]
+        res[names(ex)] <- ex
+        
+      } else if (input$input_type == 2) { # Uploaded files
+        # Get the values selected by the user
+        
+        # Update mapping values for those widgets
+        for (i in 1:length(res)) {
+          wname <- relevant_widgets[i]
+          wval <- input[[wname]]
+          
+          if (!is.null(wval)) {
+            # Replace placeholder with NULL
+            if (wval != nullval) {
+              res[wname] <- wval
+            } else {
+              res[wname] <- NULL
+            }
+          }
+        }
+      }
+      return(res)
+    }
+    
 # Widgets dataframes --------------------------------------------------------
     records_widgets <- data.frame(
       widget = c("spp_col",
@@ -220,8 +265,8 @@ importServer <- function(id) {
                 "date", 
                 "hour|time(?!stamp)", 
                 "timestamp|datetime",
-                "lat|y", 
-                "lon|x",
+                "lat|((^|[^[:alpha:]]+)y([^[:alpha:]]+|$))",
+                "lon|((^|[^[:alpha:]]+)x([^[:alpha:]]+|$))",
                 "count",
                 "observationType"),
       mica = c("vernacularNames.en",
@@ -449,6 +494,14 @@ importServer <- function(id) {
         # Get data
         res <- res_all$camtrap_data
       }
+      
+      cat("observations: ")
+      cat(paste(nrow(res$data$observations)))
+      cat("\n")
+      cat("deployments: ")
+      cat(paste(nrow(res$data$deployments)))
+      cat("\n")
+      
       return(res)
     })
 
@@ -463,7 +516,7 @@ importServer <- function(id) {
       }
     })
   
-# Columns mapping (records) ---------------------------------------------------------
+# Records columns ---------------------------------------------------------
   
     # Get input data columns
     records_cols <- reactive({
@@ -505,15 +558,18 @@ importServer <- function(id) {
                           nullval)))
       
       # Prepare regex vector
-      # Prepare regex vector
+      cat("Before\n")
       regex <- get_regex_vector(records_widgets, 
                                 widget_values = records_to_update())
-      
+      cat(paste(names(regex)))
+      cat(paste(regex))
+      cat("\n")
       # Find default names
       default_names <- find_default_colnames(regex_list = regex,
                                              colnames = records_cols(),
                                              empty_allowed_list = empty_allowed,
                                              empty_placeholder = nullval)
+      cat("After\n")
       default_names
     })
     
@@ -534,6 +590,7 @@ importServer <- function(id) {
     # Update choices upon separator change
     observeEvent(input$records_sep, {
       if (input$input_type == 2) { # Only update widgets for manual import
+        
         update_selected_columns(widget_list = records_to_update(), 
                                 default = default_records(),
                                 choices = records_cols(),
@@ -562,39 +619,30 @@ importServer <- function(id) {
     
     # Mapping value for records columns
     mapping_records <- reactive({
+      # Ensure column list is available
+      # req(records_cols())
+      
       # Initialize NULL list
       res <- vector(mode = "list",
                     length = length(all_records_widgets))
       names(res) <- all_records_widgets
       
-      if (input$input_type == 1) { # Example files
-        # Get known mapping
-        ex <- example_mapping_records[[input$example_file]]
-        res[names(ex)] <- ex
-      } else if (input$input_type == 2) { # Uploaded files
-        # Get the values selected by the user
-        
-        # Get relevant widgets
-        widgets <- records_to_update()
-        
-        # Update res values for those widgets
-        for (i in 1:length(widgets)) {
-          wname <- widgets[i]
-          wval <- input[[wname]]
-          
-          # Replace placeholder with NULL
-          if (wval != nullval) {
-            res[wname] <- wval
-          } else {
-            res[wname] <- NULL
-          }
-        }
-      }
+      res <- get_mapping(mapping_list = res, 
+                         relevant_widgets = records_to_update(), 
+                         nullval = nullval,
+                         example_mapping = example_mapping_records)
+      cat("Records --------------------------\n")
+      cat("Mapping names: ")
+      cat(paste(names(res)))
+      cat("\n")
+      cat("Mapping values: ")
+      cat(paste(res))
+      cat("\n")
       
-      res
+      res  
     })
     
-# Column mapping (cameras) ------------------------------------------------
+# Cameras columns ------------------------------------------------
     
     # Get input cameras columns
     cameras_cols <- reactive({
@@ -610,11 +658,9 @@ importServer <- function(id) {
     default_cameras <- reactive({
       # Find default names
       if (!is.null(cameras_cols())) {
-        
         # Prepare regex vector
         regex <- get_regex_vector(cameras_widgets, 
                                   widget_values = cameras_to_update)
-        
         # Find default names
         default_names <- find_default_colnames(regex_list = regex,
                                                colnames = cameras_cols(),
@@ -657,30 +703,73 @@ importServer <- function(id) {
 
 ## Mapping -----------------------------------------------------------------
     
-    # Mapping value for cameras columns
+    # Mapping value for cameras columns extracted from the camera file
     mapping_cameras <- reactive({
-      if (input$input_type == 1) { # Example files
-        # Get known mapping
-        res <- example_mapping_cameras[[input$example_file]]
-      } else if (input$input_type == 2) { # Uploaded files
-        # Get the values selected by the user
-        if (!is.null(cameras_cols())) { # Camera file was provided
-          # Get relevant widgets
-          widgets <- cameras_to_update
-        } else { # Camera file was not provided
-          widgets <- gsub("_cov$", "", cameras_to_update)
+      # Initialize NULL list
+      res <- vector(mode = "list",
+                    length = length(all_cameras_widgets))
+      
+      if(!is.null(cameras_cols())) { # user imported a camera file
+        
+        # if (input$input_type == 2) { # Manual file upload
+        #   # Wait for camera cols to be available
+        #   req(cameras_cols())
+        # }
+        names(res) <- all_cameras_widgets
+        
+        # Look for values in cameras
+        res <- get_mapping(mapping_list = res, 
+                           relevant_widgets = cameras_to_update, 
+                           nullval = nullval,
+                           example_mapping = example_mapping_cameras)
+        if (input$input_type != 1) {
+          source <- "cameras"
+        } else {
+          source <- "example (cameras loop)"
         }
-        # Get selected values for widgets
-        res <- vector(mode = "character", 
-                      length = length(widgets))
-        for(i in 1:length(widgets)) {
-          res[i] <- input[[widgets[i]]]
+        
+      } else {
+        # if (input$input_type == 2) { # Manual file upload
+        #   # Wait for camera cols to be available
+        #   req(records_cols())
+        # }
+        
+        # Get the mapping corresponding to cameras in records
+        widget_cam <- records_widgets %>%
+          dplyr::filter(type == "cameras") %>%
+          extract2("widget")
+        # Update cam_columns
+        cam_columns <- mapping_records()[c(widget_cam, "cam_col")]
+        # names(res) <- all_cameras_widgets
+        
+        # Look for values in records
+        res <- get_mapping(mapping_list = res, 
+                           relevant_widgets = records_to_update(), 
+                           nullval = nullval,
+                           example_mapping = example_mapping_cameras)
+        if (input$input_type != 1) {
+          source <- "records"
+        } else {
+          source <- "example (records loop)"
         }
-        names(res) <- widgets
       }
-      # Remove the 'cov' if it was in the names
+      
+      # Rename list for consistency
       names(res) <- gsub("_cov$", "", names(res))
-      res
+      
+      cat("Cameras --------------------------\n")
+      cat("Mapping names: ")
+      cat(paste(names(res)))
+      cat("\n")
+      cat("Mapping values: ")
+      cat(paste(res))
+      cat("\n")
+      cat("Source: ")
+      cat(source)
+      cat("\n")
+      
+      list(mapping = res,
+           source = source)
     })
     
 # Clean data --------------------------------------------------------------
@@ -689,33 +778,39 @@ importServer <- function(id) {
       # Copy raw data
       dat <- dat_raw()
       
+      # req(mapping_records())
+      # req(mapping_cameras()$mapping)
+      
       # Records ---
       dat$data$observations <- format_table(dat$data$observations,
                                             mapping_records())
       
       # Cameras ---
-      if (is.null(cameras_cols())) { # Camera file was not provided
+      # Initialize columns to use for formatting to cameras mapping
+      source <- mapping_cameras()$source
+      mapping_cameras <- mapping_cameras()$mapping
+      if (source == "records") { # Manual file input
         # Split data
         cameras <- dat$data$observations %>%
-          select(all_of(unname(mapping_cameras())), 
-                 everything())
+          dplyr::select(all_of(unname(unlist(mapping_cameras))))
         
         cameras <- cameras %>% distinct()
+        
         dat$data$deployments <- cameras
       }
       
       dat$data$deployments <- format_table(dat$data$deployments,
-                                           mapping_cameras())
+                                           mapping_cameras)
       
       # Select unique rows for camera table
-      # We want rows to be unique across the used camera columns defined in mapping_cameras()
+      # We want rows to be unique across the used camera columns defined in mapping_cameras()$mapping
       dat$data$deployments <- dat$data$deployments %>%
-        distinct(across(all_of(unname(mapping_cameras()))))
+        distinct(across(all_of(unname(unlist(mapping_cameras)))))
       
       # Both data ---
       # Restrict data to shared cameras
       cam_col_records <- mapping_records()[["cam_col"]]
-      cam_col_cameras <- mapping_cameras()[["cam_col"]]
+      cam_col_cameras <- mapping_cameras[["cam_col"]]
       bothcam <- filter_cameras_in_both_tables(dat$data$observations,
                                                dat$data$deployments, 
                                                cam_col_records,
@@ -747,6 +842,7 @@ importServer <- function(id) {
     
 ## Cleaned data ------------------------------------------------------------
     output$records <- renderDataTable({
+      # req(dat()$data$observations)
       DT::datatable(dat()$data$observations,
                     filter = "none",
                     selection = "none",
@@ -756,11 +852,12 @@ importServer <- function(id) {
     })
     
     output$cameras <- renderDataTable({
+      # req(dat()$data$deployments)
       DT::datatable(dat()$data$deployments,
                     filter = "none",
                     selection = "none",
                     options = list(scrollX = TRUE)) %>%
-        DT::formatStyle(mapping_cameras(),
+        DT::formatStyle(unname(unlist(mapping_cameras()$mapping)),
                         backgroundColor = '#F5EE9E')
     })
     
@@ -805,7 +902,7 @@ importServer <- function(id) {
 # Return values -----------------------------------------------------------
     list(camtrap_data = reactive(dat()),
          mapping_records = reactive(mapping_records()),
-         mapping_cameras = reactive(mapping_cameras())
+         mapping_cameras = reactive(mapping_cameras()$mapping)
          )
     
   })

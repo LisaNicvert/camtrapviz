@@ -224,6 +224,7 @@ find_default_colnames <- function(regex_list,
   
   # Initialize results
   res <- vector(mode = "list", length = length(regex_list))
+  names(res) <- names(regex_list)
   
   for (i in 1:length(regex_list)) { # Iterate through input widgets
     w <- names(regex_list)[i]
@@ -243,12 +244,10 @@ find_default_colnames <- function(regex_list,
     if(!is.null(res_i)) {
       # select first occurrence in case multiple matches
       res_i <- res_i[1]
+      # Add result
+      res[[i]] <- res_i 
     }
-    
-    # Add result
-    res[[i]] <- res_i 
-    # Name result
-    names(res)[[i]] <- w
+    # If result is NULL do nothing
   }  
   return(res)
 }
@@ -365,8 +364,8 @@ format_table <- function(df, mapping) {
            everything())
   
   # Cast columns
-  res <- cast_columns(res,
-                      vec)
+  # res <- cast_columns(res,
+  #                     vec)
   
   # Drop NA
   res <- remove_rows_with_NA(res, vec)
