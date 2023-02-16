@@ -2,6 +2,7 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom chron times
 #' @importFrom dplyr .data
 #' @importFrom dplyr across
 #' @importFrom dplyr distinct

@@ -214,9 +214,10 @@ importServer <- function(id) {
             if (wval != nullval) {
               res[wname] <- wval
             } else {
-              res[wname] <- NULL
+              res[wname] <- list(NULL)
             }
           }
+          # Else do nothing and just leave the value to NULL
         }
       }
       return(res)
@@ -286,7 +287,16 @@ importServer <- function(id) {
                             NA,
                             NA,
                             NA,
-                            NA)
+                            NA),
+      cast =  c("as.character",
+                "as.character",
+                "as_date",
+                "times",
+                "as_datetime",
+                "as.numeric",
+                "as.numeric",
+                "as.numeric",
+                "as.character")
       )
     
     cameras_widgets <- records_widgets %>% 
@@ -551,7 +561,8 @@ importServer <- function(id) {
                           nullval)))
       
       # Prepare regex vector
-      regex <- get_regex_vector(records_widgets, 
+      regex <- get_named_vector(records_widgets, 
+                                col = "regex",
                                 widget_values = records_to_update())
 
       # Find default names
@@ -620,6 +631,13 @@ importServer <- function(id) {
                          relevant_widgets = records_to_update(), 
                          nullval = nullval,
                          example_mapping = example_mapping_records)
+      
+      # Get the mapping corresponding to cameras in records
+      widget_cam <- records_widgets %>%
+        dplyr::filter(type == "cameras") %>%
+        extract2("widget")
+      
+      res <- res[-which(names(res) %in% widget_cam)]
       cat("Records --------------------------\n")
       cat("Mapping names: ")
       cat(paste(names(res)))
@@ -648,7 +666,8 @@ importServer <- function(id) {
       # Find default names
       if (!is.null(cameras_cols())) {
         # Prepare regex vector
-        regex <- get_regex_vector(cameras_widgets, 
+        regex <- get_named_vector(cameras_widgets, 
+                                  col = "regex",
                                   widget_values = cameras_to_update)
         # Find default names
         default_names <- find_default_colnames(regex_list = regex,
@@ -698,52 +717,40 @@ importServer <- function(id) {
       res <- vector(mode = "list",
                     length = length(all_cameras_widgets))
       
+      # Names for res are the camera widget names (with "cov")
+      names(res) <- all_cameras_widgets
+      
       if(!is.null(cameras_cols())) { # user imported a camera file
-        
-        # if (input$input_type == 2) { # Manual file upload
-        #   # Wait for camera cols to be available
-        #   req(cameras_cols())
-        # }
-        names(res) <- all_cameras_widgets
-        
-        # Look for values in cameras
-        res <- get_mapping(mapping_list = res, 
-                           relevant_widgets = cameras_to_update, 
-                           nullval = nullval,
-                           example_mapping = example_mapping_cameras)
+        widgets_to_look_at <- cameras_to_update
         if (input$input_type != 1) {
           source <- "cameras"
         } else {
-          source <- "example (cameras loop)"
+          source <- "example"
         }
-        
-      } else {
-        # if (input$input_type == 2) { # Manual file upload
-        #   # Wait for camera cols to be available
-        #   req(records_cols())
-        # }
+      } else { # No camera file was imported
+        # Names for res are the records widget names
+        names(res) <- gsub("_cov$", "", names(res))
         
         # Get the mapping corresponding to cameras in records
         widget_cam <- records_widgets %>%
           dplyr::filter(type == "cameras") %>%
           extract2("widget")
-        # Update cam_columns
-        cam_columns <- mapping_records()[c(widget_cam, "cam_col")]
-        # names(res) <- all_cameras_widgets
-        
-        # Look for values in records
-        res <- get_mapping(mapping_list = res, 
-                           relevant_widgets = records_to_update(), 
-                           nullval = nullval,
-                           example_mapping = example_mapping_cameras)
+        # Add cam_col
+        widgets_to_look_at <- c(widget_cam, "cam_col")
         if (input$input_type != 1) {
           source <- "records"
         } else {
-          source <- "example (records loop)"
+          source <- "example"
         }
       }
       
-      # Rename list for consistency
+      # Look for values in the relevant widgets
+      res <- get_mapping(mapping_list = res, 
+                         relevant_widgets = widgets_to_look_at, 
+                         nullval = nullval,
+                         example_mapping = example_mapping_cameras)
+      
+      # Remove _cov for consistency
       names(res) <- gsub("_cov$", "", names(res))
       
       cat("Cameras --------------------------\n")
@@ -774,13 +781,25 @@ importServer <- function(id) {
                     "Wait a minute :)"))
       
       # Records ---
+      # Get casting values
+      castval <- get_named_vector(records_widgets,
+                                  col = "cast",
+                                  widget_values = names(mapping_records()))
+      cat("Castval records: ")
+      cat(paste(names(castval)))
+      cat("\n")
+      cat(paste(names(mapping_records())))
+      cat("\n")
+      
       dat$data$observations <- format_table(dat$data$observations,
-                                            mapping_records())
+                                            mapping = mapping_records(),
+                                            cast_type = castval)
       
       # Cameras ---
       # Initialize columns to use for formatting to cameras mapping
       source <- mapping_cameras()$source
       mapping_cameras <- mapping_cameras()$mapping
+      
       if (source == "records") { # Manual file input
         # Split data
         cameras <- dat$data$observations %>%
@@ -791,8 +810,22 @@ importServer <- function(id) {
         dat$data$deployments <- cameras
       }
       
+      # Get casting values
+      # /!\ Here we choose to look in the records table,
+      # because the cast types should be the same in both tables
+      # and mapping_cameras was renamed to remove the _col suffix
+      castval <- get_named_vector(records_widgets,
+                                  col = "cast",
+                                  widget_values = names(mapping_cameras))
+      cat("Castval cameras: ")
+      cat(paste(names(castval)))
+      cat("\n")
+      cat(paste(names(mapping_cameras)))
+      cat("\n")
+      
       dat$data$deployments <- format_table(dat$data$deployments,
-                                           mapping_cameras)
+                                           mapping = mapping_cameras()$mapping,
+                                           cast_type = castval)
       
       # Select unique rows for camera table
       # We want rows to be unique across the used camera columns defined in mapping_cameras()$mapping

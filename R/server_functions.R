@@ -17,22 +17,26 @@ get_example_mapping <- function(df, col) {
   return(res)
 }
 
-#' Get regex vector
+#' Get named vector
 #'
-#' Get the regex vector from a dataframe
+#' Get the named vector from a dataframe
 #'
-#' @param df The dataframe
-#' @param widget_values The widgets to get the regex for
-#'
-#' @return A named vector containing regex, names are the widget names
-get_regex_vector <- function(df, widget_values) {
+#' @param df The dataframe. Must have a column named widget
+#' and a column named like col.
+#' @param col  The column of the dataframe to extract
+#' @param widget_values The widgets to get the vector for
+#' 
+#' 
+#' @return A named vector containing the values of col, 
+#' names are the widget names
+get_named_vector <- function(df, col, widget_values) {
   
-  regex_df <- df %>%
+  res_df <- df %>%
     filter(widget %in% widget_values) 
-  regex <- regex_df %>%
-    extract2("regex")
-  names(regex) <- regex_df$widget
-  return(regex)
+  res <- res_df %>%
+    extract2(col)
+  names(res) <- res_df$widget
+  return(res)
 }
 
 #' Read csv
@@ -255,82 +259,42 @@ find_default_colnames <- function(regex_list,
 #' Cast columns to expected types
 #'
 #' @param df A dataframe containing the columns specified in col_mapping (values)
-#' @param col_mapping A named character vector: names are toe codes and values are 
-#' the corresponding column names
+#' @param cast_type A named vector with the type conversion to perform.
+#' Must be a valid function name to call.
+#' Names are the names of the columns to cast in df.
 #'
 #' @return the df with casted columns
 #' @export
 #'
 #' @examples
-#' library(camtraptor)
-#' data(mica)
-#' mapping <- c("col_spp" = "vernacularNames.en",
-#'              "cam_col" = "deploymentID",
-#'              "timestamp_col" = "timestamp")
-#' cast_columns(mica$data$observations, mapping)
-#' mapping <- c("cam_col_cov" = "deploymentID", 
-#'              "lat_col_cov" = "latitude", 
-#'              "lon_col_cov" = "longitude")
-#' cast_columns(mica$data$deployments, mapping)
-cast_columns <- function(df, col_mapping) {
-  
-  # Get column codes
-  col_codes <- names(col_mapping)
-  # If _cov present in column names, remove it
-  col_codes <- gsub("_cov$", "", col_codes)
-  
-  # Rename col_mapping
-  col_mapping_nocov <- col_mapping
-  names(col_mapping_nocov) <- col_codes
+#' df <- data.frame(num = 1:10,
+#'                  char = letters[1:10])
+#' cast <- c(num = "as.character",
+#'           char = "as.factor")
+#' dfcast <- cast_columns(df, cast)
+cast_columns <- function(df, cast_type) {
   
   # Initialize res
   res <- df
+  for (i in 1:length(cast_type)) {
+    castfunc <- cast_type[i]
+    col <- names(cast_type)[i]
+    
+    res[[col]] <- do.call(castfunc, 
+                          list(res[[col]]))
+    
+  }
   
-  # Cast species
-  if ("spp_col" %in% col_codes) {
-    col_name <- col_mapping_nocov["spp_col"]
-    res[[col_name]] <- as.character(res[[col_name]])
-  }
-  # Cast camera
-  if ("cam_col" %in% col_codes) {
-    col_name <- col_mapping_nocov["cam_col"]
-    res[[col_name]] <- as.character(res[[col_name]])
-  }
-  # Cast observation type
-  if ("obs_col" %in% col_codes) {
-    col_name <- col_mapping_nocov["obs_col"]
-    res[[col_name]] <- as.character(res[[col_name]])
-  }
-  # Cast date
-  if ("date_col" %in% col_codes) {
-    col_name <- col_mapping_nocov["date_col"]
-    res[[col_name]] <- as_date(res[[col_name]])
-  }
-  # Cast time
-  if ("time_col" %in% col_codes) {
-    col_name <- col_mapping_nocov["time_col"]
-    res[[col_name]] <- chron::times(res[[col_name]])
-  }
-  # Cast datetime
-  if ("timestamp_col" %in% col_codes) {
-    col_name <- col_mapping_nocov["timestamp_col"]
-    res[[col_name]] <-  as_datetime(res[[col_name]])
-  }
-  # Cast lat
-  if ("lat_col" %in% col_codes) {
-    col_name <- col_mapping_nocov["lat_col"]
-    res[[col_name]] <- as.numeric(res[[col_name]])
-  }
-  # Cast lon
-  if ("lon_col" %in% col_codes) {
-    col_name <- col_mapping_nocov["lon_col"]
-    res[[col_name]] <- as.numeric(res[[col_name]])
-  }
-  # Cast count
-  if ("count_col" %in% col_codes) {
-    col_name <- col_mapping_nocov["count_col"]
-    res[[col_name]] <- as.numeric(res[[col_name]])
-  }
+  # # Get column codes
+  # col_codes <- names(col_mapping)
+  # # If _cov present in column names, remove it
+  # col_codes <- gsub("_cov$", "", col_codes)
+  # 
+  # # Rename col_mapping
+  # col_mapping_nocov <- col_mapping
+  # names(col_mapping_nocov) <- col_codes
+  
+ 
   return(res)
 }
 
@@ -342,6 +306,11 @@ cast_columns <- function(df, col_mapping) {
 #'
 #' @param df The dataframe to clean
 #' @param mapping The mapping for columns in the dataframe.
+#' @param cast_type A named vector for which values are
+#' the functions names to apply for each corresponding column 
+#' of the vector name. Where mapping is NULL, the casting will not be
+#' performed for those columns and hence it is possible that cast_type
+#' contains only the non-null values of mapping.
 #'
 #' @return The dataframe df with cleaned columns.
 #' 
@@ -353,19 +322,38 @@ cast_columns <- function(df, col_mapping) {
 #' mapping <- list("col_spp" = "vernacularNames.en",
 #'                 "cam_col" = "deploymentID",
 #'                 "timestamp_col" = "timestamp")
-#' format_table(mica$data$observations, mapping)
-format_table <- function(df, mapping) {
+#' type <- c("col_spp" = "as.character",
+#'           "cam_col" = "as.character",
+#'           "timestamp_col" = "as_datetime")
+#' format_table(mica$data$observations, mapping, type)
+format_table <- function(df, mapping, cast_type) {
   
   # Vector from list (NULL will be discarded)
   vec <- unlist(mapping)
+  
+  # Check arguments are named
+  if (is.null(names(mapping)) || is.null(names(cast_type))) {
+    stop("mapping and cast_type must be named")
+  }
+  # Check all cast_types are in mapping
+  if ( !all(names(cast_type) %in% names(mapping)) ) {
+    stop("all columns listed in cast_type must be in mapping")
+  }
+  # Check all non-null mapping are in cast_type
+  if ( !all(names(vec) %in% names(cast_type)) ) {
+    stop("all non-null columns listed in mapping must be in cast_type")
+  }
 
   res <- df %>%
     select(all_of(unname(vec)),
            everything())
   
   # Cast columns
-  # res <- cast_columns(res,
-  #                     vec)
+  # Reorder
+  castval <- cast_type[names(vec)]
+  names(castval) <- vec
+  res <- cast_columns(res,
+                      castval)
   
   # Drop NA
   res <- remove_rows_with_NA(res, vec)

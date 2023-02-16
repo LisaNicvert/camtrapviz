@@ -4,12 +4,18 @@
 \alias{format_table}
 \title{Cleans a dataframe}
 \usage{
-format_table(df, mapping)
+format_table(df, mapping, cast_type)
 }
 \arguments{
 \item{df}{The dataframe to clean}
 
 \item{mapping}{The mapping for columns in the dataframe.}
+
+\item{cast_type}{A named vector for which values are
+the functions names to apply for each corresponding column
+of the vector name. Where mapping is NULL, the casting will not be
+performed for those columns and hence it is possible that cast_type
+contains only the non-null values of mapping.}
 }
 \value{
 The dataframe df with cleaned columns.
@@ -25,5 +31,8 @@ data(mica)
 mapping <- list("col_spp" = "vernacularNames.en",
                 "cam_col" = "deploymentID",
                 "timestamp_col" = "timestamp")
-format_table(mica$data$observations, mapping)
+type <- c("col_spp" = "as.character",
+          "cam_col" = "as.character",
+          "timestamp_col" = "as_datetime")
+format_table(mica$data$observations, mapping, type)
 }

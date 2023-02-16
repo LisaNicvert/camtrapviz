@@ -4,13 +4,14 @@
 \alias{cast_columns}
 \title{Cast columns to expected types}
 \usage{
-cast_columns(df, col_mapping)
+cast_columns(df, cast_type)
 }
 \arguments{
 \item{df}{A dataframe containing the columns specified in col_mapping (values)}
 
-\item{col_mapping}{A named character vector: names are toe codes and values are
-the corresponding column names}
+\item{cast_type}{A named vector with the type conversion to perform.
+Must be a valid function name to call.
+Names are the names of the columns to cast in df.}
 }
 \value{
 the df with casted columns
@@ -19,14 +20,9 @@ the df with casted columns
 Cast columns to expected types
 }
 \examples{
-library(camtraptor)
-data(mica)
-mapping <- c("col_spp" = "vernacularNames.en",
-             "cam_col" = "deploymentID",
-             "timestamp_col" = "timestamp")
-cast_columns(mica$data$observations, mapping)
-mapping <- c("cam_col_cov" = "deploymentID", 
-             "lat_col_cov" = "latitude", 
-             "lon_col_cov" = "longitude")
-cast_columns(mica$data$deployments, mapping)
+df <- data.frame(num = 1:10,
+                 char = letters[1:10])
+cast <- c(num = "as.character",
+          char = "as.factor")
+dfcast <- cast_columns(df, cast)
 }
