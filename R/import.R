@@ -96,6 +96,8 @@ importUI <- function(id) {
                                 )
                        ),
                        tabPanel("Cleaned data preview",
+                                verbatimTextOutput(NS(id, "records_mapping")),
+                                verbatimTextOutput(NS(id, "cameras_mapping")),
                                 conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
                                                  ns = ns,
                                                  h4("Records table"),
@@ -900,12 +902,25 @@ importServer <- function(id) {
       }
     )
     
+    output$records_mapping <- renderText({
+      paste(paste(names(mapping_records())),
+            paste(mapping_records()))
+    })
+    
+    output$cameras_mapping <- renderText({
+      paste(paste(names(mapping_cameras()$mapping)),
+            paste(mapping_cameras()$mapping))
+      
+    })
+    
 
 # Return values -----------------------------------------------------------
-    list(camtrap_data = reactive(dat()),
-         mapping_records = reactive(mapping_records()),
-         mapping_cameras = reactive(mapping_cameras()$mapping)
-         )
+    return(
+      list(camtrap_data = reactive(dat()),
+           mapping_records = reactive(mapping_records()),
+           mapping_cameras = reactive(mapping_cameras()$mapping)
+      )
+    )
     
   })
 }

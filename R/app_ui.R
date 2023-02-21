@@ -38,6 +38,8 @@ ui <- function() {
 
         tabItem(tabName = "summary",
                 fluidRow(
+                  # verbatimTextOutput("mapping_records"),
+                  # verbatimTextOutput("mapping_cameras")
                   summaryUI("summary")
                 )
         ),

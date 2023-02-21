@@ -6,6 +6,9 @@ summaryUI <- function(id) {
     box(width = 12,
         h2("Survey summary"),
         h3("Overview"),
+        fluidRow(verbatimTextOutput(NS(id, "mapping_records")),
+                 verbatimTextOutput(NS(id, "mapping_cameras"))
+                 ),
         fluidRow(infoBox("Cameras", 
                          icon = icon("camera"),
                          color = 'aqua',
@@ -67,7 +70,17 @@ summaryServer <- function(id,
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     
+# Test -----------------------------------------
+    output$mapping_records <- renderText({
+      paste(paste(names(mapping_records())),
+            paste(mapping_records()))
+    })
 
+    output$mapping_cameras <- renderText({
+      paste(paste(names(mapping_cameras())),
+            paste(mapping_cameras()))
+    })
+    
 # Create complete mapping -------------------------------------------------
     
     mapping_records_complete <- reactive({

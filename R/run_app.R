@@ -44,14 +44,16 @@ summaryApp <- function(...) {
   
   # Create test data
   utils::data(mica, package = "camtraptor")
-  mapping_records <- c("spp_col" = "vernacularNames.en",
-                       "obs_col" = "observationType",
-                       "cam_col" = "deploymentID",
-                       "timestamp_col" = "timestamp",
-                       "count_col" = "count")
-  mapping_cameras <- c("cam_col_cov" = "deploymentID",
-                       "lat_col_cov" = "latitude",
-                       "lon_col_cov" = "longitude")
+  mapping_records <- list("spp_col" = "vernacularNames.en",
+                          "cam_col" = "deploymentID",
+                          "date_col" = NULL,
+                          "time_col" = NULL,
+                          "timestamp_col" = "timestamp",
+                          "count_col" = "count",
+                          "obs_col" = "observationType")
+  mapping_cameras <- list("cam_col_cov" = "deploymentID",
+                          "lat_col_cov" = "latitude",
+                          "lon_col_cov" = "longitude")
   
   # UI
   module <- summaryUI("summary")
