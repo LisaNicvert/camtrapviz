@@ -6,9 +6,6 @@ summaryUI <- function(id) {
     box(width = 12,
         h2("Survey summary"),
         h3("Overview"),
-        fluidRow(verbatimTextOutput(NS(id, "mapping_records")),
-                 verbatimTextOutput(NS(id, "mapping_cameras"))
-                 ),
         fluidRow(infoBox("Cameras", 
                          icon = icon("camera"),
                          color = 'aqua',
@@ -70,44 +67,6 @@ summaryServer <- function(id,
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     
-# Test -----------------------------------------
-    output$mapping_records <- renderText({
-      paste(paste(names(mapping_records())),
-            paste(mapping_records()))
-    })
-
-    output$mapping_cameras <- renderText({
-      paste(paste(names(mapping_cameras())),
-            paste(mapping_cameras()))
-    })
-    
-# Create complete mapping -------------------------------------------------
-    
-    mapping_records_complete <- reactive({
-      res <- mapping_records()
-      if (!("timestamp_col" %in% names(res))) {
-        res["timestamp_col"] <- NA
-      }
-      
-      if (!("time_col" %in% names(res))) {
-        res["time_col"] <- NA
-      }
-      
-      if (!("date_col" %in% names(res))) {
-        res["date_col"] <- NA
-      }
-      
-      if (!("obs_col" %in% names(res))) {
-        res["obs_col"] <- NA
-      }
-      
-      if (!("count_col" %in% names(res))) {
-        res["count_col"] <- NA
-      }
-      
-      res
-    })
-
 # Reactive general values -------------------------------------------------
     ncameras <- reactive({
       nrow(camtrap_data()$data$deployments)
@@ -115,27 +74,26 @@ summaryServer <- function(id,
     
     nspecies <- reactive({
       # Get species column
-      species_col <- mapping_records()["spp_col"]
+      species_col <- mapping_records()$spp_col
       species <- camtrap_data()$data$observations[[species_col]]
       
-      if ("obs_col" %in% names(mapping_records())) {
+      if (!is.null(mapping_records()$obs_col)) {
         # Filter to get only animal species
-        obs_col <- mapping_records()["obs_col"]
+        obs_col <- mapping_records()$obs_col
         species <- species[camtrap_data()$data$observations[[obs_col]] == "animal"]
       }
-      
       length(unique(species))
     })
     
     daterange <- reactive({
-      if ("timestamp_col" %in% names(mapping_records())) {
+      if (!is.null(mapping_records()$timestamp_col)) {
         # We only have timestamp
-        timestamp_col <- mapping_records()["timestamp_col"]
+        timestamp_col <- mapping_records()$timestamp_col
         date <- camtrap_data()$data$observations[[timestamp_col]]
         date <- as_date(date)
-      } else if ("date_col" %in% names(mapping_records())) {
+      } else if (!is.null(mapping_records()$date_col)) {
         # We only have date
-        date_col <- mapping_records()["date_col"]
+        date_col <- mapping_records()$date_col
         date <- camtrap_data()$data$observations[[date_col]]
       } else {
         # No date or timestamp
@@ -174,11 +132,11 @@ summaryServer <- function(id,
       df <- camtrap_data()$data$observations
       
       plot_points(df,
-                  camera_col = ..(unname(mapping_records_complete()["cam_col"])),
-                  spp_col = ..(unname(mapping_records_complete()["spp_col"])),
-                  timestamp_col = ..(unname(mapping_records_complete()["timestamp_col"])),
-                  time_col = ..(unname(mapping_records_complete()["time_col"])),
-                  date_col = ..(unname(mapping_records_complete()["date_col"])))
+                  camera_col = ..(unname(mapping_records()$cam_col)),
+                  spp_col = ..(unname(mapping_records()$spp_col)),
+                  timestamp_col = ..(unname(mapping_records()$timestamp_col)),
+                  time_col = ..(unname(mapping_records()$time_col)),
+                  date_col = ..(unname(mapping_records()$date_col)))
     })
     
     output$plot_occurrences <- renderGirafe({
@@ -204,9 +162,9 @@ summaryServer <- function(id,
       df <- camtrap_data()$data$observations
       
       plot_species_bars(df, 
-                        spp_col = ..(unname(mapping_records_complete()["spp_col"])),
-                        obs_col = ..(unname(mapping_records_complete()["obs_col"])),
-                        count_col = ..(unname(mapping_records_complete()["count_col"])))
+                        spp_col = ..(unname(mapping_records()$spp_col)),
+                        obs_col = ..(unname(mapping_records()$obs_col)),
+                        count_col = ..(unname(mapping_records()$count_col)))
     })
     
     output$plot_species <- renderGirafe({

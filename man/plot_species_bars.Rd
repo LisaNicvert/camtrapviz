@@ -7,8 +7,8 @@
 plot_species_bars(
   df,
   spp_col,
-  count_col = NA,
-  obs_col = NA,
+  count_col = NULL,
+  obs_col = NULL,
   interactive = TRUE
 )
 }

@@ -463,8 +463,8 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #' @param spp_col Name of the species column
 #' @param timestamp_col Name of the timestamp column 
 #' (can be null if date_col and time_col are provided)
-#' @param date_col Name of the date column (can be NA if timestamp_col is provided)
-#' @param time_col Name of the time column (can be NA if timestamp_col is provided)
+#' @param date_col Name of the date column (can be NULL if timestamp_col is provided)
+#' @param time_col Name of the time column (can be NULL if timestamp_col is provided)
 #' @param interactive  Make the plot interactive?
 #'
 #' @details If date_col and time_col are provided along timestamp_col,
@@ -485,21 +485,21 @@ plot_points <- function(df,
                         camera_col,
                         spp_col,
                         timestamp_col,
-                        date_col = NA,
-                        time_col = NA,
+                        date_col = NULL,
+                        time_col = NULL,
                         interactive = TRUE) {
   
   # Initialize plotting data
   dfp <- df
   
-  if (is.na(timestamp_col)) { # no timestamp
-    if (is.na(date_col) | is.na(time_col)) {
+  if (is.null(timestamp_col)) { # no timestamp
+    if (is.null(date_col) | is.null(time_col)) {
       stop("If timestamp_col is not provided, date_col and time_col must be provided.")
     }
   }
   
   
-  if (is.na(timestamp_col)) { # no timestamp
+  if (is.null(timestamp_col)) { # no timestamp
     if("timestamp_col" %in% colnames(dfp)) {
       warning("timestamp_col already exists and this might interfer with plotting")
     }
@@ -557,14 +557,14 @@ plot_points <- function(df,
 #'                   spp_col = "Species")
 plot_species_bars <- function(df, 
                               spp_col, 
-                              count_col = NA,
-                              obs_col = NA,
+                              count_col = NULL,
+                              obs_col = NULL,
                               interactive = TRUE) {
   
   # Initialize df plot
   dfp <- df
   
-  if (!is.na(obs_col)) {
+  if (!is.null(obs_col)) {
     # Get only the observations of type animal
     dfp <- dfp %>% filter(.data[[obs_col]] == "animal")
   }
@@ -572,7 +572,7 @@ plot_species_bars <- function(df,
   # Group by species
   dfp <- dfp %>% group_by(.data[[spp_col]])
   
-  if (is.na(count_col)) { # no count column
+  if (is.null(count_col)) { # no count column
     dfp <- dfp %>%
       summarise(count = n())
   } else { # count column
