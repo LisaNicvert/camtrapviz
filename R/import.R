@@ -72,9 +72,11 @@ importUI <- function(id) {
                                                       conditionalPanel(condition = "output.records_extension !== 'json'",
                                                                        ns = ns,
                                                                        # Display only if not json file
-                                                                       fileInput(NS(id, "cameras_input"), 
-                                                                                 "Cameras table",
-                                                                                 accept = ".csv"),
+                                                                       shinyFilesButton(NS(id, "cameras_input"), 
+                                                                                        style = "margin-bottom: 25px",
+                                                                                        label = 'Choose cameras table', 
+                                                                                        title = 'Choose file',
+                                                                                        multiple = FALSE),
                                                                        separator_widget(NS(id, "cameras")))
                                                       ),
                                                       column(8,
@@ -82,8 +84,6 @@ importUI <- function(id) {
                                                              ))
                                       ) # conditional cameras table panel
                      ), # conditionalPanel upload file widgets
-                     
-                     verbatimTextOutput(NS(id, "code_import")),
 
 # File previews -----------------------------------------------------------
 
@@ -98,6 +98,9 @@ importUI <- function(id) {
                                 )
                        ),
                        tabPanel("Cleaned data preview",
+                                actionButton(NS(id, "code_import"), 
+                                             "Show data cleaning code", icon("code"),
+                                             style = "margin-top: 25px; margin-bottom: 15px;"),
                                 conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
                                                  ns = ns,
                                                  h4("Records table"),
@@ -418,7 +421,11 @@ importServer <- function(id) {
     shinyFileChoose(input, 'records_input', 
                     root = c("home" = fs::path_home()),
                     filetypes = c('csv', 'json'))
-  
+    
+    shinyFileChoose(input, 'cameras_input', 
+                    root = c("home" = fs::path_home()),
+                    filetypes = 'csv')
+    
 ## Get imported file extension ---------------------------------------------
 
     records_extension <- reactive({
@@ -483,7 +490,8 @@ importServer <- function(id) {
         # User wants to import a camera file?
         if (input$import_cameras) {
           # Get file
-          camera_file <- input$cameras_input
+          camera_file <- shinyFiles::parseFilePaths(roots,
+                                                    input$cameras_input)
           
           # Ensure file is loaded before continuing
           req(camera_file)
@@ -826,11 +834,10 @@ importServer <- function(id) {
 
 # Print code --------------------------------------------------------------
     
-    output$code_import <- renderPrint({
+    observeEvent(input$code_import, {
       code <- expandChain(dat())
-      formatCode(code,
-                 width = 60L, # ignored for some reason
-                 formatter = styler::style_text)
+      displayCodeModal(code,
+                       title = "Data formatting code")
     })
 
 
