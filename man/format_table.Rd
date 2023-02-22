@@ -2,7 +2,7 @@
 % Please edit documentation in R/server_functions.R
 \name{format_table}
 \alias{format_table}
-\title{Cleans a dataframe}
+\title{Formats a dataframe}
 \usage{
 format_table(df, mapping, cast_type)
 }

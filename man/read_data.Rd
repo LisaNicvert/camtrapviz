@@ -16,17 +16,12 @@ read_data(records_path, sep_records, cameras_path = NULL, sep_cameras = NULL)
 \item{sep_cameras}{separator used for the cameras (defaults to NULL).}
 }
 \value{
-A list with 1 or 2 components.
-If records_path is a json file, returns a list with one component
-$camtrap_data which contains a captrapDP list.
-If records_path is a csv file, returns a list with 2 components:
-$camtrap_data: a list with one component:
+A list with 1 components or a camtrapDP list.
+If records_path is a json file, returns a captrapDP list.
+If records_path is a csv file, returns a list with 1 component:
 $data: a list with 2 components:
 $observations (records)
 $deployments (cameras: if no camera file, is NULL)
-$sep: a list with 2 components (separators used to read files):
-$sep_records (for records)
-$sep_cameras (for cameras: if no cameras_path is NULL, it is NULL)
 }
 \description{
 Reads data from a file path (either csv of json file), and

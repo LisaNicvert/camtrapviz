@@ -82,6 +82,8 @@ importUI <- function(id) {
                                                              ))
                                       ) # conditional cameras table panel
                      ), # conditionalPanel upload file widgets
+                     
+                     verbatimTextOutput(NS(id, "code_import")),
 
 # File previews -----------------------------------------------------------
 
@@ -356,13 +358,6 @@ importServer <- function(id) {
                                                                "mica"),
                                     recordTableSample = get_example_mapping(cameras_widgets, 
                                                                             "recordTableSample"))
-    
-# Load example data -------------------------------------------------------
-
-    utils::data(mica, package = "camtraptor")
-    utils::data(recordTableSample, package = "camtrapR")
-    utils::data(camtraps, package = "camtrapR")
-    
 
 # Description for example datasets ----------------------------------------
 
@@ -448,14 +443,26 @@ importServer <- function(id) {
     
   
   ## Get raw data ------------------------------------------------------------
-  
-    dat_raw <- reactive({
+    
+    dat_raw <- metaReactive2({
       if (input$input_type == 1) { # Example dataset
         if(input$example_file == "mica") {
-          res <- mica
+          
+          metaExpr({
+            utils::data(mica, package = "camtraptor")
+            
+            mica
+          }, bindToReturn = TRUE)
         } else {
-          res <- list(data = list(observations = recordTableSample,
-                                  deployments = camtraps))
+          
+          metaExpr({
+            utils::data(recordTableSample, package = "camtrapR")
+            utils::data(camtraps, package = "camtrapR")
+            
+            list(data = list(observations = recordTableSample,
+                             deployments = camtraps))
+          }, bindToReturn = TRUE)
+          
         }
       } else if (input$input_type == 2) { # Uploaded dataset
         # Get file
@@ -465,10 +472,11 @@ importServer <- function(id) {
         req(file)
         
         # Get file_path
-        file_path <- file$datapath
+        file_path <- unname(file$datapath)
+
         validate(need(file_path != '', "Please upload a records file"))
         
-        # Get separator values
+        # Get input separator values
         sep_records <- input$records_sep
         sep_cameras <- input$cameras_sep
         
@@ -481,32 +489,43 @@ importServer <- function(id) {
           req(camera_file)
           
           # Get camera_path
-          cameras_path <- camera_file$datapath
+          cameras_path <- unname(camera_file$datapath)
           validate(need(cameras_path != '', "Please upload camera file"))
+          
         } else {
           cameras_path <- NULL
         }
         
-        # Read data
-        res_all <- read_data(file_path, 
-                             sep_records,
-                             cameras_path,
-                             sep_cameras)
+        # Try to automate separator values
+        if (is.null(sep_records)) {
+          L <- readLines(file_path, n = 1)
+          sep_records <- get_separator(L)
+        }
+        
+        if (!is.null(cameras_path)) {
+          if (is.null(sep_cameras)) {
+            L <- readLines(cameras_path, n = 1)
+            sep_cameras <- get_separator(L)
+          }
+        }
         
         # Update records separator
         updateRadioButtons(inputId = "records_sep",
-                           selected = res_all$sep$sep_records)
+                           selected = sep_records)
         
         # Update camera separator
         updateRadioButtons(inputId = "cameras_sep",
-                           selected = res_all$sep$sep_cameras)
+                           selected = sep_cameras)
         
-        # Get data
-        res <- res_all$camtrap_data
+        # Read data
+        metaExpr({
+          read_data(..(file_path), 
+                    ..(sep_records),
+                    ..(cameras_path),
+                    ..(sep_cameras))
+        }, bindToReturn = TRUE)
       }
-      
-      return(res)
-    })
+    }, varname = "dat_raw")
 
 # UI settings -------------------------------------------------------------
   
@@ -752,78 +771,69 @@ importServer <- function(id) {
     
 # Clean data --------------------------------------------------------------
     
-    dat <- reactive({
-      # Copy raw data
-      dat <- dat_raw()
+    dat <- metaReactive2({
       
       # Ensure data is available
       req(mapping_records())
       req(mapping_cameras()$mapping)
-      validate(need(all(unname(unlist(mapping_records())) %in% colnames(dat$data$observations)),
+      
+      validate(need(all(unname(unlist(mapping_records())) %in% colnames(dat_raw()$data$observations)),
                     "Wait a minute for the records :)"))
       if( mapping_cameras()$source != "records") {
         # If a file was imported
-        validate(need(all(unname(unlist(mapping_cameras()$mapping)) %in% colnames(dat$data$deployments)),
+        validate(need(all(unname(unlist(mapping_cameras()$mapping)) %in% colnames(dat_raw()$data$deployments)),
                       "Wait a minute for the cameras :)"))
       }
       
-      # Records ---
-      # Get casting values
-      castval <- get_named_vector(records_widgets,
-                                  col = "cast",
-                                  widget_values = names(mapping_records()))
-      
-      dat$data$observations <- format_table(dat$data$observations,
-                                            mapping = mapping_records(),
-                                            cast_type = castval)
-      
-      # Cameras ---
-      # Initialize columns to use for formatting to cameras mapping
-      source <- mapping_cameras()$source
-      mapping_cameras <- mapping_cameras()$mapping
-      
-      if (source == "records") { # Manual file input
-        # Split data
-        cameras <- dat$data$observations %>%
-          dplyr::select(all_of(unname(unlist(mapping_cameras))))
-        
-        cameras <- cameras %>% distinct()
-        
-        dat$data$deployments <- cameras
+      if ( mapping_cameras()$source == "records" ) {
+        split <- TRUE
+      } else {
+        split <- FALSE
       }
       
-      # Get casting values
+      # Get casting types ---
+      # Records
+      castval_rec <- get_named_vector(records_widgets,
+                                      col = "cast",
+                                      widget_values = names(mapping_records()))
+      # Cameras
       # /!\ Here we choose to look in the records table,
       # because the cast types should be the same in both tables
       # and mapping_cameras was renamed to remove the _col suffix
-      castval <- get_named_vector(records_widgets,
-                                  col = "cast",
-                                  widget_values = names(mapping_cameras))
+      castval_cam <- get_named_vector(records_widgets,
+                                      col = "cast",
+                                      widget_values = names(mapping_cameras()$mapping))
       
-      dat$data$deployments <- format_table(dat$data$deployments,
-                                           mapping = mapping_cameras()$mapping,
-                                           cast_type = castval)
+      metaExpr({
+        # Get mapping ---
+        mapping_cameras <- ..(mapping_cameras()$mapping)
+        mapping_records <- ..(mapping_records())
+        
+        # Casting types variables ---
+        castval_rec <- ..(castval_rec)
+        castval_cam <- ..(castval_cam)
+        
+        clean_data(dat = ..(dat_raw()), 
+                   mapping_cameras = mapping_cameras, 
+                   cam_type = castval_cam,
+                   mapping_records = mapping_records,
+                   rec_type = castval_rec,
+                   split = ..(split))
+        
+      }, bindToReturn = TRUE)
       
-      # Select unique rows for camera table
-      # We want rows to be unique across the used camera columns defined in mapping_cameras()$mapping
-      dat$data$deployments <- dat$data$deployments %>%
-        distinct(across(all_of(unname(unlist(mapping_cameras)))))
-      
-      # Both data ---
-      # Restrict data to shared cameras
-      cam_col_records <- mapping_records()[["cam_col"]]
-      cam_col_cameras <- mapping_cameras[["cam_col"]]
-      bothcam <- filter_cameras_in_both_tables(dat$data$observations,
-                                               dat$data$deployments, 
-                                               cam_col_records,
-                                               cam_col_cameras)
-      
-      dat$data$observations <- bothcam$records
-      dat$data$deployments <- bothcam$cameras
-      
-      return(dat)
-    })
+    }, varname = "dat")
+
+# Print code --------------------------------------------------------------
     
+    output$code_import <- renderPrint({
+      code <- expandChain(dat())
+      formatCode(code,
+                 width = 60L, # ignored for some reason
+                 formatter = styler::style_text)
+    })
+
+
 # File input preview ------------------------------------------------------
     
 ## Raw data ----------------------------------------------------------------
@@ -844,7 +854,6 @@ importServer <- function(id) {
     
 ## Cleaned data ------------------------------------------------------------
     output$records <- renderDataTable({
-      # req(dat()$data$observations)
       DT::datatable(dat()$data$observations,
                     filter = "none",
                     selection = "none",
@@ -854,7 +863,6 @@ importServer <- function(id) {
     })
     
     output$cameras <- renderDataTable({
-      # req(dat()$data$deployments)
       DT::datatable(dat()$data$deployments,
                     filter = "none",
                     selection = "none",

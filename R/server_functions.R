@@ -1,5 +1,31 @@
 # Import ------------------------------------------------------------------
 
+
+## Read data ---------------------------------------------------------------
+
+
+#' Get separator for a file
+#'
+#' Detects the separator from one line of a file.
+#' 
+#' @param line A line from a file
+#' @param default The default separator to use in case none work
+#'
+#' @return The detected separator (looks for comma, semicolon and tab)
+get_separator <- function(line, default = ",") {
+  
+  if(grepl(",", line)) {
+    sep <- ","
+  } else if(grepl(";", line)) {
+    sep <- ";"
+  } else if(grepl("\t", line)) {
+    sep <- "\t"
+  } else {
+    sep <- default
+  }
+  return(sep)
+}
+
 #' Get example mapping
 #' 
 #' Return the mapping for example datasets in a vector form
@@ -39,51 +65,6 @@ get_named_vector <- function(df, col, widget_values) {
   return(res)
 }
 
-#' Read csv
-#'
-#' Reads a csv file from a fileInput widget with the column separator specified in a 
-#' radioButtons widget.
-#'
-#' @param file_path a valid path to a csv file
-#' @param column_separator column separator character
-#'
-#' @return A list with 2 elements: 
-#' dat = the dataframe read from the file and
-#' sep = the character separator used to read the file
-#'
-#' @export
-read_csv <- function(file_path, column_separator) {
-  
-  if (is.null(column_separator)) { # Unspecified file separator
-    # Default to comma separator
-    fsep <- ","
-    df <- utils::read.csv(file_path, sep = fsep)
-    
-    if (ncol(df) == 1) { # Try tab
-      fsep <- "\t"
-      df <- utils::read.csv(file_path, sep = fsep)
-    }
-    if (ncol(df) == 1) { # Try semicolon
-      fsep <- ";"
-      df <- utils::read.csv(file_path, sep = fsep)
-    } 
-    if (ncol(df) == 1) { # Other character (choice of custom character to implement)
-      df <- utils::read.csv(file_path, sep = fsep)
-    }
-  } else { # File separator is specified
-    fsep <- column_separator
-    df <- utils::read.csv(file_path, sep = column_separator)
-  }
-  
-  # Warning
-  if (ncol(df) == 1) {
-    warning("Only one column detected: check file separator")
-  }
-  
-  return(list(dat = df,
-              sep = fsep))
-}
-
 #' Read data
 #'
 #' Reads data from a file path (either csv of json file), and 
@@ -94,17 +75,12 @@ read_csv <- function(file_path, column_separator) {
 #' @param sep_cameras separator used for the cameras (defaults to NULL).
 #' @param cameras_path A valid file path for cameras (defaults to NULL).
 #'
-#' @return A list with 1 or 2 components.
-#' If records_path is a json file, returns a list with one component
-#' $camtrap_data which contains a captrapDP list.
-#' If records_path is a csv file, returns a list with 2 components:
-#'  $camtrap_data: a list with one component: 
+#' @return A list with 1 components or a camtrapDP list.
+#' If records_path is a json file, returns a captrapDP list.
+#' If records_path is a csv file, returns a list with 1 component:
 #'    $data: a list with 2 components: 
-#'      $observations (records)
-#'       $deployments (cameras: if no camera file, is NULL)
-#'  $sep: a list with 2 components (separators used to read files):
-#'       $sep_records (for records)
-#'       $sep_cameras (for cameras: if no cameras_path is NULL, it is NULL)
+#'        $observations (records)
+#'        $deployments (cameras: if no camera file, is NULL)
 #' @export
 read_data <- function(records_path,
                       sep_records, 
@@ -116,32 +92,31 @@ read_data <- function(records_path,
   
   if (ext == "csv") { # User uploaded a csv file
     # Read csv
-    res_records <- read_csv(file_path = records_path, 
-                            column_separator = sep_records)
+    res_records <- utils::read.csv(records_path, sep = sep_records)
     
     if (!is.null(cameras_path)) { # User wants to import a camera file
       # Read csv
-      res_cameras <- read_csv(file_path = cameras_path, 
-                              column_separator = sep_cameras)
+      res_cameras <- utils::read.csv(cameras_path, sep = sep_cameras)
     } else { # User doesn't want to import a camera file
       res_cameras <- list(dat = NULL,
                           sep = NULL)
     }
     
-    res <- list(camtrap_data = list(data = list(observations = res_records$dat,
-                                                deployments = res_cameras$dat)),
-                sep = list(sep_records = res_records$sep,
-                           sep_cameras = res_cameras$sep))
+    res <- list(data = list(observations = res_records,
+                            deployments = res_cameras))
     
   } else if (ext == "json") { #   CamtrapDP format
-    dat <- camtraptor::read_camtrap_dp(records_path, media = FALSE)
-    res <- list(camtrap_data = dat)
+    res <- camtraptor::read_camtrap_dp(records_path, media = FALSE)
   } else { # Unknown extension
     validate(need(ext == "csv" || ext == "json", 
                   "Please upload a csv file or a json datapackage"))
   }
   return(res)
 }
+
+
+
+## Default colnames --------------------------------------------------------
 
 
 #' Find default colname
@@ -158,6 +133,7 @@ read_data <- function(records_path,
 #' (empty not allowed and no match)
 #' 
 #' @export
+#' 
 #' @examples 
 #' find_default_colname("species", 
 #'                      colnames = c("Species", "cameraID", "DateTime"), 
@@ -256,6 +232,44 @@ find_default_colnames <- function(regex_list,
   return(res)
 }
 
+
+## Clean data --------------------------------------------------------------
+
+
+#' Prepare cameras
+#' 
+#' Prepare the camera data for cleaning
+#'
+#' @param dat The data, a list with at least one component
+#' $data 
+#'    $deployments
+#'    $observations
+#' @param mapping_cameras The mapping for camera columns
+#' @param split should camera data be extracted from the records?
+#'
+#' @return The dataset with "pre-cleaned" camera data, i.e.
+#'  if split = TRUE, dat$data$deployments is filled with data extracted from the recorde
+#'  the records are unique across the mapping column
+prepare_cameras <- function(dat, mapping_cameras, split = FALSE) {
+  
+  # Initialize results
+  res <- dat
+  
+  if (split) { # Manual file input
+    # Split data
+    cameras <- dat$data$observations %>%
+      dplyr::select(all_of(unname(unlist(mapping_cameras))))
+    res$data$deployments <- cameras
+  }
+  
+  # Select unique rows for camera table
+  # We want rows to be unique across the used camera columns defined in mapping_cameras()$mapping
+  res$data$deployments <- res$data$deployments %>%
+    distinct(across(all_of(unname(unlist(mapping_cameras)))))
+  
+  return(res)
+}
+
 #' Cast columns to expected types
 #'
 #' @param df A dataframe containing the columns specified in col_mapping (values)
@@ -264,8 +278,9 @@ find_default_colnames <- function(regex_list,
 #' Names are the names of the columns to cast in df.
 #'
 #' @return the df with casted columns
+#' 
 #' @export
-#'
+#' 
 #' @examples
 #' df <- data.frame(num = 1:10,
 #'                  char = letters[1:10])
@@ -284,21 +299,11 @@ cast_columns <- function(df, cast_type) {
                           list(res[[col]]))
     
   }
-  
-  # # Get column codes
-  # col_codes <- names(col_mapping)
-  # # If _cov present in column names, remove it
-  # col_codes <- gsub("_cov$", "", col_codes)
-  # 
-  # # Rename col_mapping
-  # col_mapping_nocov <- col_mapping
-  # names(col_mapping_nocov) <- col_codes
-  
- 
+
   return(res)
 }
 
-#' Cleans a dataframe
+#' Formats a dataframe
 #' 
 #' Moves columns indicated in mapping to the beginning,
 #' casts those columns and removes rows where mapping columns
@@ -451,6 +456,64 @@ filter_cameras_in_both_tables <- function(records, cameras,
   return(res)
 }
 
+#' Clean data
+#'
+#' Cleans raw data by:
+#'    splitting data if needed
+#'    formatting cameras and records tables
+#'    selecting the subset of cameras present in both datasets
+#'  
+#' @param dat The data ti clean
+#' @param mapping_cameras The mapping for columns in the cameras dataframe.
+#' @param cam_type A named vector with the type conversion to perform.
+#' Must be a valid function name to call.
+#' Names are the names of the columns to cast in cameras df.
+#' @param mapping_records The mapping for columns in the records dataframe.
+#' @param rec_type A named vector with the type conversion to perform.
+#' Must be a valid function name to call.
+#' Names are the names of the columns to cast in records df.
+#' @param split Should the camera data be splitted from the records table?
+#'
+#' @return The cleaned dataset
+#' 
+#' @export
+clean_data <- function(dat, 
+                       mapping_cameras, 
+                       cam_type,
+                       mapping_records,
+                       rec_type,
+                       split = FALSE) {
+  
+  # Prepare cameras ---
+  res <- prepare_cameras(dat, 
+                         mapping_cameras = mapping_cameras, 
+                         split = split)
+  
+  # Records ---
+  res$data$observations <- format_table(res$data$observations,
+                                        mapping = mapping_records,
+                                        cast_type = rec_type)
+  
+  # Cameras ---
+  res$data$deployments <- format_table(res$data$deployments,
+                                       mapping = mapping_cameras,
+                                       cast_type = cam_type)
+  
+  # Both data ---
+  # Restrict data to shared cameras
+  # Get column names ---
+  cam_col_records <- mapping_records[["cam_col"]]
+  cam_col_cameras <- mapping_cameras[["cam_col"]]
+  bothcam <- filter_cameras_in_both_tables(res$data$observations,
+                                           res$data$deployments, 
+                                           cam_col_records,
+                                           cam_col_cameras)
+  
+  res$data$observations <- bothcam$records
+  res$data$deployments <- bothcam$cameras
+  
+  return(res)
+}
 
 # Summary -----------------------------------------------------------------
 
