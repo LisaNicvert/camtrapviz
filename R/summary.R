@@ -46,6 +46,12 @@ summaryUI <- function(id) {
                  outputCodeButton(girafeOutput(NS(id, "plot_species")))
                  )
         ),
+        h3("Map"),
+        fluidRow(
+          column(width = 12,
+                 outputCodeButton(leafletOutput(NS(id, "plot_map")))
+          )
+        )
         )
     )
     
@@ -133,8 +139,12 @@ summaryServer <- function(id,
       width <- max(8,
                    unitw/(1 + exp(-24*unitw)))
       
+      # Create a meaningful name
+      import_dat <- camtrap_data()
+      
       metaExpr({
-        df <- camtrap_data()$data$observations
+        "# See  code in import tab to create import_dat"
+        df <- import_dat$data$observations
         
         gg <- plot_points(df,
                           camera_col = ..(unname(mapping_records()$cam_col)),
@@ -158,8 +168,12 @@ summaryServer <- function(id,
       height <- max(5, 
                     unit/(1 + exp(-12*unit)))
       
+      # Create a meaningful name
+      import_dat <- camtrap_data()
+      
       metaExpr({
-        df <- camtrap_data()$data$observations
+        "# See code in import tab to create import_dat"
+        df <- import_dat$data$observations
         
         gg <- plot_species_bars(df, 
                                 spp_col = ..(unname(mapping_records()$spp_col)),
@@ -175,8 +189,19 @@ summaryServer <- function(id,
       })
       
     })
-    
-
+  
+    output$plot_map <- metaRender2(renderLeaflet, {
+      # Create a meaningful name
+      import_dat <- camtrap_data()
+      
+      metaExpr({
+        df <- import_dat$data$deployments
+        
+        plot_map(df, 
+                 lat_col = ..(unname(mapping_cameras()$lat_col)),
+                 lon_col = ..(unname(mapping_cameras()$lon_col)))
+      })
+    })
 # Plots code --------------------------------------------------------------
     observeEvent(input$plot_occurrences_output_code, {
       code <- expandChain(output$plot_occurrences())
@@ -185,6 +210,11 @@ summaryServer <- function(id,
     
     observeEvent(input$plot_species_output_code, {
       code <- expandChain(output$plot_species())
+      displayCodeModal(code)
+    })
+    
+    observeEvent(input$plot_map_output_code, {
+      code <- expandChain(output$plot_map())
       displayCodeModal(code)
     })
     

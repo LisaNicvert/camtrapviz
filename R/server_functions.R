@@ -663,3 +663,10 @@ plot_species_bars <- function(df,
   
   return(gg)
 }
+
+plot_map <- function(df, lat_col, lon_col) {
+  leaflet(df) %>% 
+    addTiles() %>% 
+    addCircles(data = df, 
+               lat = df[[lat_col]], lng = df[[lon_col]])
+}

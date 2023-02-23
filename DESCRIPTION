@@ -27,4 +27,5 @@ Imports:
     ggiraph,
     shinymeta,
     styler,
-    tibble
+    tibble,
+    leaflet
