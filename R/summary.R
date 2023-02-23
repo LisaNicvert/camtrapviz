@@ -9,47 +9,42 @@ summaryUI <- function(id) {
         fluidRow(infoBox("Cameras", 
                          icon = icon("camera"),
                          color = 'aqua',
-                         value = textOutput(NS(id, "ncameras"))
+                         value = textOutput(NS(id, "ncameras")),
+                         width = 6
                          ),
                  infoBox("Species", 
                          icon = icon("paw"),
                          color = 'teal',
-                         value = textOutput(NS(id, "nspecies"))
+                         value = textOutput(NS(id, "nspecies")),
+                         width = 6
                          )
                  ),
         fluidRow(infoBox("Trapping nights", 
                          icon = icon("clock"),
                          color = 'fuchsia',
-                         value = textOutput(NS(id, "sampling_length"))),
+                         value = textOutput(NS(id, "sampling_length")),
+                         width = 6
+                         ),
                  infoBox("Active", 
                          icon = icon("calendar"),
                          color = 'purple',
-                         value = textOutput(NS(id, "daterange")))
+                         value = textOutput(NS(id, "daterange")),
+                         width = 6
+                         )
                  ),
         br(),
         h3("Camera activity"),
         fluidRow(
           column(width = 12,
-                 div(
-                   style = "height:600px; width:100%;",
-                   girafeOutput(NS(id, "plot_occurrences"), 
-                                height = "600px")
-                 )
-                 ),
-          column(width = 12,
-                 verbatimTextOutput(NS(id, "code_occurrences"))
+                 outputCodeButton(girafeOutput(NS(id, "plot_occurrences")))
                  )
         ),
         br(),
         h3("Species count"),
         fluidRow(
           column(width = 12,
-                 style = "height:600px; width:100%;",
-                 girafeOutput(NS(id, "plot_species"), height = "600px")
-                 ),
-          column(width = 12,
-                 verbatimTextOutput(NS(id, "code_species"))
-          )
+                 outputCodeButton(girafeOutput(NS(id, "plot_species")))
+                 )
         ),
         )
     )
@@ -128,18 +123,7 @@ summaryServer <- function(id,
     
 # Plots -------------------------------------------------------------------
     
-    gg_occurrences <- metaReactive({
-      df <- camtrap_data()$data$observations
-      
-      plot_points(df,
-                  camera_col = ..(unname(mapping_records()$cam_col)),
-                  spp_col = ..(unname(mapping_records()$spp_col)),
-                  timestamp_col = ..(unname(mapping_records()$timestamp_col)),
-                  time_col = ..(unname(mapping_records()$time_col)),
-                  date_col = ..(unname(mapping_records()$date_col)))
-    })
-    
-    output$plot_occurrences <- renderGirafe({
+    output$plot_occurrences <- metaRender2(renderGirafe, {
       # Define height
       unith <- ncameras()/4
       height <- max(5, 
@@ -149,52 +133,59 @@ summaryServer <- function(id,
       width <- max(8,
                    unitw/(1 + exp(-24*unitw)))
       
-      x <- girafe(ggobj = gg_occurrences(),
-                  width_svg = width,
-                  height_svg = height)
-      x <- girafe_options(x,
-                          opts_zoom(min = 0.5, max = 10))
-      x
-    })
-    
-    
-    gg_species <- metaReactive({
-      df <- camtrap_data()$data$observations
+      metaExpr({
+        df <- camtrap_data()$data$observations
+        
+        gg <- plot_points(df,
+                          camera_col = ..(unname(mapping_records()$cam_col)),
+                          spp_col = ..(unname(mapping_records()$spp_col)),
+                          timestamp_col = ..(unname(mapping_records()$timestamp_col)),
+                          time_col = ..(unname(mapping_records()$time_col)),
+                          date_col = ..(unname(mapping_records()$date_col)))
+        x <- girafe(ggobj = gg,
+                    width_svg = ..(width),
+                    height_svg = ..(height))
+        x <- girafe_options(x,
+                            opts_zoom(min = 0.5, max = 10))
+        x
+      }, bindToReturn = TRUE)
       
-      plot_species_bars(df, 
-                        spp_col = ..(unname(mapping_records()$spp_col)),
-                        obs_col = ..(unname(mapping_records()$obs_col)),
-                        count_col = ..(unname(mapping_records()$count_col)))
     })
     
-    output$plot_species <- renderGirafe({
+    output$plot_species <- metaRender2(renderGirafe, {
       # Set height
       unit <- nspecies()/6
       height <- max(5, 
                     unit/(1 + exp(-12*unit)))
       
-      x <- girafe(ggobj = gg_species(),
-                  width_svg = 8,
-                  height_svg = height)
-      x <- girafe_options(x,
-                          opts_zoom(min = 0.5, max = 10))
-      x
+      metaExpr({
+        df <- camtrap_data()$data$observations
+        
+        gg <- plot_species_bars(df, 
+                                spp_col = ..(unname(mapping_records()$spp_col)),
+                                obs_col = ..(unname(mapping_records()$obs_col)),
+                                count_col = ..(unname(mapping_records()$count_col)))
+        
+        x <- girafe(ggobj = gg,
+                    width_svg = 8,
+                    height_svg = ..(height))
+        x <- girafe_options(x,
+                            opts_zoom(min = 0.5, max = 10))
+        x
+      })
+      
     })
     
 
 # Plots code --------------------------------------------------------------
-    output$code_occurrences <- renderPrint({
-      code <- withMetaMode(gg_occurrences())
-      formatCode(code, 
-                 width = 60L, # ignored for some reason
-                 formatter = styler::style_text)
+    observeEvent(input$plot_occurrences_output_code, {
+      code <- expandChain(output$plot_occurrences())
+      displayCodeModal(code)
     })
     
-    output$code_species <- renderPrint({
-      code <- withMetaMode(gg_species())
-      formatCode(code, 
-                 width = 60L, # ignored for some reason
-                 formatter = styler::style_text)
+    observeEvent(input$plot_species_output_code, {
+      code <- expandChain(output$plot_species())
+      displayCodeModal(code)
     })
     
   })
