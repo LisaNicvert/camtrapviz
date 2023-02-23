@@ -33,24 +33,23 @@ summaryUI <- function(id) {
                          )
                  ),
         br(),
-        h3("Camera activity"),
         fluidRow(
-          column(width = 12,
-                 outputCodeButton(girafeOutput(NS(id, "plot_occurrences")))
+          column(width = 6,
+                 h3("Map"),
+                 outputCodeButton(leafletOutput(NS(id, "plot_map"),
+                                                height = "400px")),
+          ),
+          column(width = 6,
+                 h3("Camera activity"),
+                 outputCodeButton(girafeOutput(NS(id, "plot_occurrences"),
+                                               height = "400px"))
                  )
         ),
-        br(),
         h3("Species count"),
         fluidRow(
           column(width = 12,
                  outputCodeButton(girafeOutput(NS(id, "plot_species")))
                  )
-        ),
-        h3("Map"),
-        fluidRow(
-          column(width = 12,
-                 outputCodeButton(leafletOutput(NS(id, "plot_map")))
-          )
         )
         )
     )
@@ -128,6 +127,20 @@ summaryServer <- function(id,
     })
     
 # Plots -------------------------------------------------------------------
+    output$plot_map <- metaRender2(renderLeaflet, {
+      # Create a meaningful name
+      import_dat <- camtrap_data()
+      
+      metaExpr({
+        df <- import_dat$data$deployments
+        
+        plot_map(df, 
+                 lat_col = ..(unname(mapping_cameras()$lat_col)),
+                 lon_col = ..(unname(mapping_cameras()$lon_col)),
+                 cam_col = ..(unname(mapping_cameras()$cam_col)),
+                 color = "black")
+      })
+    })
     
     output$plot_occurrences <- metaRender2(renderGirafe, {
       # Define height
@@ -190,19 +203,13 @@ summaryServer <- function(id,
       
     })
   
-    output$plot_map <- metaRender2(renderLeaflet, {
-      # Create a meaningful name
-      import_dat <- camtrap_data()
-      
-      metaExpr({
-        df <- import_dat$data$deployments
-        
-        plot_map(df, 
-                 lat_col = ..(unname(mapping_cameras()$lat_col)),
-                 lon_col = ..(unname(mapping_cameras()$lon_col)))
-      })
-    })
 # Plots code --------------------------------------------------------------
+    
+    observeEvent(input$plot_map_output_code, {
+      code <- expandChain(output$plot_map())
+      displayCodeModal(code)
+    })
+    
     observeEvent(input$plot_occurrences_output_code, {
       code <- expandChain(output$plot_occurrences())
       displayCodeModal(code)
@@ -210,11 +217,6 @@ summaryServer <- function(id,
     
     observeEvent(input$plot_species_output_code, {
       code <- expandChain(output$plot_species())
-      displayCodeModal(code)
-    })
-    
-    observeEvent(input$plot_map_output_code, {
-      code <- expandChain(output$plot_map())
       displayCodeModal(code)
     })
     

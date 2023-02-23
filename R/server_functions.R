@@ -664,9 +664,27 @@ plot_species_bars <- function(df,
   return(gg)
 }
 
-plot_map <- function(df, lat_col, lon_col) {
+#' Plot map
+#' 
+#' Plot a leaflet map of cameras
+#' 
+#' @param df A dataframe with latitude and longitude columns
+#' @param lat_col Name of the latitude column
+#' @param lon_col Name of the longitude column
+#' @param cam_col Name of the camera name column
+#' @param color color for the points
+#'
+#' @return a leaflet map
+#' @export
+plot_map <- function(df, 
+                     lat_col, lon_col, 
+                     cam_col,
+                     color) {
+  
   leaflet(df) %>% 
     addTiles() %>% 
     addCircles(data = df, 
-               lat = df[[lat_col]], lng = df[[lon_col]])
+               lat = df[[lat_col]], lng = df[[lon_col]],
+               label = paste0("Camera: ", df[[cam_col]]),
+               color = color)
 }
