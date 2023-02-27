@@ -582,7 +582,8 @@ plot_points <- function(df,
                           col = .data[[spp_col]],
                           tooltip = paste(.data[[spp_col]], 
                                           .data[[timestamp_col]],
-                                          sep = ": ")
+                                          sep = ": "),
+                          data_id = .data[[camera_col]]
                           )) +
       geom_point_interactive(show.legend = FALSE)
   } else {
@@ -686,5 +687,8 @@ plot_map <- function(df,
     addCircles(data = df, 
                lat = df[[lat_col]], lng = df[[lon_col]],
                label = paste0("Camera: ", df[[cam_col]]),
-               color = color)
+               layerId = df[[cam_col]],
+               popup = df[[cam_col]],
+               color = color,
+               highlightOptions = highlightOptions(color = "red"))
 }

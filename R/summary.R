@@ -33,6 +33,7 @@ summaryUI <- function(id) {
                          )
                  ),
         br(),
+        textOutput(NS(id, "sel")),
         fluidRow(
           column(width = 6,
                  h3("Map"),
@@ -142,6 +143,34 @@ summaryServer <- function(id,
       })
     })
     
+    # Girafe observer
+    observeEvent(input$plot_occurrences_selected, {
+      clicked_point <- input$plot_occurrences_selected
+      cat(clicked_point)
+      cat("\n")
+      
+      camdf <- camtrap_data()$data$deployments
+      lat <- camdf[[mapping_cameras()$lat_col]][camdf[[mapping_cameras()$cam_col]] == clicked_point]
+      lon <- camdf[[mapping_cameras()$lon_col]][camdf[[mapping_cameras()$cam_col]] == clicked_point]
+      cat(paste(lat, lon))
+      cat("\n")
+
+      leafletProxy(mapId = "plot_map", session) %>% 
+        removeMarker(layerId = clicked_point) %>%
+        addCircles(lng = lon,
+                   lat = lat,
+                   layerId = clicked_point,
+                   options = popupOptions(closeButton = FALSE),
+                   col = "red")
+    })
+    
+    output$sel <- renderText({
+      paste(paste("Leaflet:", paste(input$plot_map_shape_click, collapse = ", ")),
+            paste("Girafe:", input$plot_occurrences_selected)
+            )
+    })
+
+    
     output$plot_occurrences <- metaRender2(renderGirafe, {
       # Define height
       unith <- ncameras()/4
@@ -169,7 +198,12 @@ summaryServer <- function(id,
                     width_svg = ..(width),
                     height_svg = ..(height))
         x <- girafe_options(x,
-                            opts_zoom(min = 0.5, max = 10))
+                            opts_zoom(min = 0.5, max = 10),
+                            opts_hover_inv(css = "opacity:0.3"),
+                            opts_selection_inv(css = "opacity:0.3"),
+                            opts_selection(type = "single"),
+                            opts_hover(css = "")
+                            )
         x
       }, bindToReturn = TRUE)
       
