@@ -14,12 +14,12 @@ ui <- function() {
       sidebarMenu(
         menuItem("Data import", tabName = "dataimport", 
                  icon = icon("th-list")),
-        menuItem("Data summary", tabName = "summary",
+        menuItem("Data overview", tabName = "summary",
                  icon = icon("dashboard")),
-        menuItem("Activity plot", tabName = "activity",
-                 icon = icon("sun")),
-        menuItem("Map", tabName = "map",
-                 icon = icon("map"))
+        menuItem("All species", tabName = "all",
+                 icon = icon("puzzle-piece")),
+        menuItem("One species", tabName = "one"),
+        menuItem("Two species", tabName = "two")
       )
     ),
     dashboardBody(
@@ -43,14 +43,19 @@ ui <- function() {
                   summaryUI("summary")
                 )
         ),
-        tabItem(tabName = "activity",
-                box(width = 12, 
-                    h2("Activity tab content"))
+        tabItem(tabName = "all",
+                fluidRow(
+                  allspeciesUI("allspecies")
+                )
         ),
-        tabItem(tabName = "map",
+        tabItem(tabName = "one",
                 box(width = 12,
-                    h2("Map tab content"))
-        )
+                    h2("One species tab content")),
+        ),
+        tabItem(tabName = "two",
+                box(width = 12,
+                    h2("Two species tab content"))
+                )
       ) # End tabItems
     ) # End dashboardBody
   ) # End dashboardPage

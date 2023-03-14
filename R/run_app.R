@@ -69,3 +69,36 @@ summaryApp <- function(...) {
   }
   shiny::shinyApp(ui = ui, server = server, ...)  
 }
+
+#' Run standalone allspecies module
+#'
+#' @param ... Arguments to pass to shiny::shinyApp besides server and ui
+#'
+#' @return A working Shiny app
+#' @export
+allspeciesApp <- function(...) {
+  
+  # Create test data
+  utils::data(mica, package = "camtraptor")
+  mapping_records <- list("spp_col" = "vernacularNames.en",
+                          "cam_col" = "deploymentID",
+                          "date_col" = NULL,
+                          "time_col" = NULL,
+                          "timestamp_col" = "timestamp",
+                          "count_col" = "count",
+                          "obs_col" = "observationType")
+  mapping_cameras <- list("cam_col_cov" = "deploymentID",
+                          "lat_col_cov" = "latitude",
+                          "lon_col_cov" = "longitude")
+  
+  # UI
+  module <- allspeciesUI("allspecies")
+  ui <- create_dashboard(tagList = module,
+                         menu_title = "All species")
+  
+  # Server
+  server <- function(input, output, session) {
+    allspeciesServer("allspecies")
+  }
+  shiny::shinyApp(ui = ui, server = server, ...)  
+}

@@ -34,23 +34,18 @@ summaryUI <- function(id) {
                  ),
         br(),
         textOutput(NS(id, "sel")),
+        
         fluidRow(
           column(width = 6,
                  h3("Map"),
                  outputCodeButton(leafletOutput(NS(id, "plot_map"),
-                                                height = "400px")),
-          ),
+                                                height = "400px"))
+                 ),
           column(width = 6,
                  h3("Camera activity"),
                  outputCodeButton(girafeOutput(NS(id, "plot_occurrences"),
                                                height = "400px"))
-                 )
-        ),
-        h3("Species count"),
-        fluidRow(
-          column(width = 12,
-                 outputCodeButton(girafeOutput(NS(id, "plot_species")))
-                 )
+          )
         )
         )
     )
@@ -74,6 +69,16 @@ summaryServer <- function(id,
     })
     
     nspecies <- reactive({
+      
+      get_nspecies <- function(df, species_col, obs_col = NULL) {
+        if (!is.null(obs_col)) {
+          # Filter to get only animal species
+          species <- species[df[[obs_col]] == "animal"]
+        }
+        n <- length(unique(species))
+        return(n)
+      }
+      
       # Get species column
       species_col <- mapping_records()$spp_col
       species <- camtrap_data()$data$observations[[species_col]]
@@ -161,7 +166,7 @@ summaryServer <- function(id,
                    lat = lat,
                    layerId = clicked_point,
                    options = popupOptions(closeButton = FALSE),
-                   col = "red")
+                   color = "red")
     })
     
     output$sel <- renderText({
@@ -209,33 +214,6 @@ summaryServer <- function(id,
       
     })
     
-    output$plot_species <- metaRender2(renderGirafe, {
-      # Set height
-      unit <- nspecies()/6
-      height <- max(5, 
-                    unit/(1 + exp(-12*unit)))
-      
-      # Create a meaningful name
-      import_dat <- camtrap_data()
-      
-      metaExpr({
-        "# See code in import tab to create import_dat"
-        df <- import_dat$data$observations
-        
-        gg <- plot_species_bars(df, 
-                                spp_col = ..(unname(mapping_records()$spp_col)),
-                                obs_col = ..(unname(mapping_records()$obs_col)),
-                                count_col = ..(unname(mapping_records()$count_col)))
-        
-        x <- girafe(ggobj = gg,
-                    width_svg = 8,
-                    height_svg = ..(height))
-        x <- girafe_options(x,
-                            opts_zoom(min = 0.5, max = 10))
-        x
-      })
-      
-    })
   
 # Plots code --------------------------------------------------------------
     
@@ -246,11 +224,6 @@ summaryServer <- function(id,
     
     observeEvent(input$plot_occurrences_output_code, {
       code <- expandChain(output$plot_occurrences())
-      displayCodeModal(code)
-    })
-    
-    observeEvent(input$plot_species_output_code, {
-      code <- expandChain(output$plot_species())
       displayCodeModal(code)
     })
     

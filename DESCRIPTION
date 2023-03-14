@@ -28,4 +28,5 @@ Imports:
     shinymeta,
     styler,
     tibble,
-    leaflet
+    leaflet,
+    shinyAce

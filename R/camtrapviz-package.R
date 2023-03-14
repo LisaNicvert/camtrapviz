@@ -84,6 +84,7 @@
 #' @importFrom shiny renderUI
 #' @importFrom shiny req
 #' @importFrom shiny selectInput
+#' @importFrom shiny selectizeInput
 #' @importFrom shiny tabPanel
 #' @importFrom shiny tabsetPanel
 #' @importFrom shiny tagList
