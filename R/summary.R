@@ -109,8 +109,47 @@ summaryServer <- function(id,
     })
     
     sampling_length <- reactive({
-      #### TO IMPROVE
-      daterange()[2] - daterange()[1]
+      # problems <- TRUE
+      
+      # Get start and end date for each camera
+      cam_col <- mapping_records()$cam_col
+      
+      cam_to_summarize <- camtrap_data()$data$observations
+
+      if (!is.null(mapping_records()$timestamp_col)) {
+        # We already have timestamp
+        timestamp_col <- mapping_records()$timestamp_col
+      } else if (!is.null(mapping_records()$date_col)) {
+        # We only have date and time
+        date_col <- mapping_records()$date_col
+        time_col <- mapping_records()$time_col
+        cam_to_summarize$timestamp <- paste(cam_to_summarize[[date_col]],
+                                            cam_to_summarize[[time_col]])
+        timestamp_col <- "timestamp"
+      } else {
+        # No date or timestamp
+        stop("Date or time must be present in data")
+      }
+      
+      camsum <- summarize_cameras(cam_to_summarize, 
+                                  cam_col = cam_col, 
+                                  time_col = timestamp_col)
+      
+      # Cast to character for cameraOperation
+      date_format <- "%Y-%m-%d %H:%M:%S"
+      camsum$start <- as.character(camsum$start, format = date_format)
+      camsum$end <- as.character(camsum$end, format = date_format)
+      
+      mat <- camtrapR::cameraOperation(camsum,
+                                       stationCol = cam_col,
+                                       setupCol = "start",
+                                       retrievalCol = "end",
+                                       dateFormat = "Ymd HMS",
+                                       hasProblems = FALSE)
+      rescam <- rowSums(mat, na.rm = TRUE)
+      res <- sum(rescam)
+      res
+      # as.numeric(daterange()[2] - daterange()[1], "days")
     })
 
 # Infobox values ----------------------------------------------------------

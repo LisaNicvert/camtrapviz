@@ -692,3 +692,25 @@ plot_map <- function(df,
                color = color,
                highlightOptions = highlightOptions(color = "red"))
 }
+
+#' Summarize cameras
+#' 
+#' Summarize camera trap data (records) by creating a start 
+#' and an end date.
+#' 
+#' @param df the dataframe
+#' @param cam_col name of the column containing camera IDs
+#' @param time_col name of the column containing stamps#'
+#' 
+#' @return A summarized dataframe with one row per camera:
+#' cam_col, start, end
+#' 
+#' @export
+summarize_cameras <- function(df, cam_col, time_col) {
+  
+  daterange <- df %>%
+    group_by(.data[[cam_col]]) %>%
+    summarise(start = min(.data[[time_col]]),
+              end = max(.data[[time_col]]))
+  return(daterange)
+}
