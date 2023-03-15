@@ -237,6 +237,8 @@ importServer <- function(id) {
                  "timestamp_col",
                  "lat_col",
                  "lon_col",
+                 "setup_col",
+                 "retrieval_col",
                  "count_col",
                  "obs_col"),
       label = c("Species",
@@ -246,6 +248,8 @@ importServer <- function(id) {
                 "Timestamp",
                 "Latitude",
                 "Longitude",
+                "Setup date",
+                "Retrieval date",
                 "Count",
                 "Observation type"),
       empty_allowed = c(FALSE,
@@ -256,12 +260,16 @@ importServer <- function(id) {
                         FALSE,
                         FALSE,
                         TRUE,
+                        TRUE,
+                        TRUE,
                         TRUE),
       type = c("records",
                "records",
                "date_time",
                "date_time",
                "timestamp",
+               "cameras",
+               "cameras",
                "cameras",
                "cameras",
                "records",
@@ -273,6 +281,8 @@ importServer <- function(id) {
                 "timestamp|datetime",
                 "lat|((^|[^[:alpha:]]+)y([^[:alpha:]]+|$))",
                 "lon|((^|[^[:alpha:]]+)x([^[:alpha:]]+|$))",
+                "setup|start",
+                "retrieval|end",
                 "count",
                 "observationType"),
       mica = c("vernacularNames.en",
@@ -280,6 +290,8 @@ importServer <- function(id) {
                NA,
                NA,
                "timestamp",
+               NA,
+               NA,
                NA,
                NA,
                "count",
@@ -292,6 +304,8 @@ importServer <- function(id) {
                             NA,
                             NA,
                             NA,
+                            NA,
+                            NA,
                             NA),
       cast =  c("as.character",
                 "as.character",
@@ -300,25 +314,35 @@ importServer <- function(id) {
                 "as_datetime",
                 "as.numeric",
                 "as.numeric",
+                "as.character",
+                "as.character",
                 "as.numeric",
                 "as.character")
       )
     
     cameras_widgets <- records_widgets %>% 
-      dplyr::filter(widget %in% c("cam_col", "lat_col", "lon_col")) %>%
+      dplyr::filter(widget == "cam_col" | type == "cameras") %>%
       mutate(widget = paste(widget, "cov", sep = "_"))
     # Set default for lon/lat for mica
     cameras_widgets <- cameras_widgets %>%
       mutate(mica = ifelse(widget == "lat_col_cov", 
                            "latitude", mica)) %>%
       mutate(mica = ifelse(widget == "lon_col_cov", 
-                           "longitude", mica))
+                           "longitude", mica)) %>%
+      mutate(mica = ifelse(widget == "setup_col_cov", 
+                           "start", mica)) %>%
+      mutate(mica = ifelse(widget == "retrieval_col_cov", 
+                           "end", mica))
     # Set default for lon/lat for recordTableSample
     cameras_widgets <- cameras_widgets %>%
       mutate(recordTableSample = ifelse(widget == "lat_col_cov", 
                                         "utm_y", recordTableSample)) %>%
       mutate(recordTableSample = ifelse(widget == "lon_col_cov", 
-                                        "utm_x", recordTableSample))
+                                        "utm_x", recordTableSample)) %>%
+      mutate(recordTableSample = ifelse(widget == "setup_col_cov", 
+                                        "Setup_date", recordTableSample)) %>%
+      mutate(recordTableSample = ifelse(widget == "retrieval_col_cov", 
+                                        "Retrieval_date", recordTableSample))
     
 # Setup variables ---------------------------------------------------------
     # Define roots for ShinyFiles 
