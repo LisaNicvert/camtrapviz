@@ -53,7 +53,7 @@ importUI <- function(id) {
                                      ),
                                      conditionalPanel(condition = "!input.import_cameras && output.records_extension !== 'json'",
                                                       ns = ns,
-                                                      uiOutput(NS(id, "crs_records_col")),
+                                                      uiOutput(NS(id, "ui_crs_records_col")),
                                                       uiOutput(NS(id, "lonlat_records_col")),
                                                       uiOutput(NS(id, "other_cov_records_col"))
                                                       ),
@@ -82,7 +82,7 @@ importUI <- function(id) {
                                                                        separator_widget(NS(id, "cameras")))
                                                       ),
                                                       column(8,
-                                                             uiOutput(NS(id, "crs_col")),
+                                                             uiOutput(NS(id, "ui_crs_col")),
                                                              uiOutput(NS(id, "longlat_col")),
                                                              uiOutput(NS(id, "other_cov_col"))
                                                              ))
@@ -102,6 +102,7 @@ importUI <- function(id) {
                                 )
                        ),
                        tabPanel("Cleaned data preview",
+                                textOutput(NS(id, "crs")),
                                 conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
                                                  ns = ns,
                                                  actionButton(NS(id, "code_import"), 
@@ -475,8 +476,7 @@ importServer <- function(id) {
     other_cov_widgets_cov <- create_widget_list(other_cov)
     
     # Create CRS widget
-    output$crs_records_col <- renderUI({
-      crs_val <- 
+    output$ui_crs_records_col <- renderUI({
       selectizeInput(NS(id, crs_records$widget), 
                      crs_records$label,
                      choices = NULL,
@@ -513,7 +513,7 @@ importServer <- function(id) {
     other_cov_widgets <- create_widget_list(other_cov)
     
     # Create CRS widget
-    output$crs_col <- renderUI({
+    output$ui_crs_col <- renderUI({
       selectizeInput(NS(id, crs_cameras$widget), 
                      crs_cameras$label,
                      choices = NULL,
@@ -888,6 +888,30 @@ importServer <- function(id) {
       
       list(mapping = res,
            source = source)
+    })
+    
+
+## CRS ---------------------------------------------------------------------
+    
+    crs <- reactive({
+      if (input$input_type == 1) { # Example file
+        if(input$example_file == "mica") {
+          res <- crs_cameras[["mica"]]
+        } else {
+          res <- crs_cameras[["recordTableSample"]]
+        }
+      } else if (input$input_type == 2) { # Manual import file
+        if (input$import_cameras || records_extension() == "json") { # Import a camera file
+          res <- input[[crs_cameras$widget]]
+        } else { # Don't import a camera file
+          res <- input[[crs_records$widget]]
+        }
+      }
+      return(res)
+    })
+    
+    output$crs <- renderText({
+      crs()
     })
     
 # Clean data --------------------------------------------------------------
