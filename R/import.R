@@ -53,10 +53,7 @@ importUI <- function(id) {
                                      ),
                                      conditionalPanel(condition = "!input.import_cameras && output.records_extension !== 'json'",
                                                       ns = ns,
-                                                      selectizeInput(NS(id, "coord_format_cov"), 
-                                                                     "Coordinates format",
-                                                                     choices = NULL,
-                                                                     options = list(placeholder = 'Select a coordinate reference system')),
+                                                      uiOutput(NS(id, "crs_records_col")),
                                                       uiOutput(NS(id, "lonlat_records_col")),
                                                       uiOutput(NS(id, "other_cov_records_col"))
                                                       ),
@@ -85,10 +82,7 @@ importUI <- function(id) {
                                                                        separator_widget(NS(id, "cameras")))
                                                       ),
                                                       column(8,
-                                                             selectizeInput(NS(id, "coord_format"), 
-                                                                            "Coordinates format",
-                                                                            choices = NULL,
-                                                                            options = list(placeholder = 'Select a coordinate reference system')),
+                                                             uiOutput(NS(id, "crs_col")),
                                                              uiOutput(NS(id, "longlat_col")),
                                                              uiOutput(NS(id, "other_cov_col"))
                                                              ))
@@ -239,6 +233,12 @@ importServer <- function(id) {
       }
       return(res)
     }
+
+# CRS formats -------------------------------------------------------------
+    epsg_df <-rgdal::make_EPSG()
+    
+    epsg <- as.list(epsg_df$code)
+    names(epsg) <- paste0(epsg_df$note, " (EPSG:", epsg ,")")
     
 # Widgets dataframes --------------------------------------------------------
     records_widgets <- data.frame(
@@ -247,6 +247,7 @@ importServer <- function(id) {
                  "date_col",
                  "time_col",
                  "timestamp_col",
+                 "crs_col",
                  "lat_col",
                  "lon_col",
                  "setup_col",
@@ -258,6 +259,7 @@ importServer <- function(id) {
                 "Date",
                 "Time",
                 "Timestamp",
+                "Coordinates format (CRS)",
                 "Latitude",
                 "Longitude",
                 "Setup date/datetime",
@@ -265,6 +267,7 @@ importServer <- function(id) {
                 "Count",
                 "Observation type"),
       empty_allowed = c(FALSE,
+                        FALSE,
                         FALSE,
                         FALSE,
                         FALSE,
@@ -284,6 +287,7 @@ importServer <- function(id) {
                "cameras",
                "cameras",
                "cameras",
+               "cameras",
                "records",
                "records"),
       regex = c("^vernacularNames\\.en$|species", 
@@ -291,6 +295,7 @@ importServer <- function(id) {
                 "date", 
                 "hour|time(?!stamp)", 
                 "timestamp|datetime",
+                NA,
                 "lat|((^|[^[:alpha:]]+)y([^[:alpha:]]+|$))",
                 "lon|((^|[^[:alpha:]]+)x([^[:alpha:]]+|$))",
                 "setup|start",
@@ -302,6 +307,7 @@ importServer <- function(id) {
                NA,
                NA,
                "timestamp",
+               NA,
                NA,
                NA,
                NA,
@@ -318,18 +324,32 @@ importServer <- function(id) {
                             NA,
                             NA,
                             NA,
+                            NA,
                             NA),
       cast =  c("as.character",
                 "as.character",
                 "as_date",
                 "times",
                 "as_datetime",
+                "as.character",
                 "as.numeric",
                 "as.numeric",
                 "as.character",
                 "as.character",
                 "as.numeric",
-                "as.character")
+                "as.character"),
+      in_columns = c(TRUE,
+                     TRUE,
+                     TRUE,
+                     TRUE,
+                     TRUE,
+                     FALSE,
+                     TRUE,
+                     TRUE,
+                     TRUE,
+                     TRUE,
+                     TRUE,
+                     TRUE)
       )
     
     cameras_widgets <- records_widgets %>% 
@@ -338,6 +358,8 @@ importServer <- function(id) {
     
     # Set default camera columns for mica
     cameras_widgets <- cameras_widgets %>%
+      mutate(mica = ifelse(widget == "crs_col_cov", 
+                           "4326", mica)) %>%
       mutate(mica = ifelse(widget == "lat_col_cov", 
                            "latitude", mica)) %>%
       mutate(mica = ifelse(widget == "lon_col_cov", 
@@ -348,6 +370,8 @@ importServer <- function(id) {
                            "end", mica))
     # Set default camera columns  for recordTableSample
     cameras_widgets <- cameras_widgets %>%
+      mutate(recordTableSample = ifelse(widget == "crs_col_cov", 
+                                        "32650", recordTableSample)) %>%
       mutate(recordTableSample = ifelse(widget == "lat_col_cov", 
                                         "utm_y", recordTableSample)) %>%
       mutate(recordTableSample = ifelse(widget == "lon_col_cov", 
@@ -365,6 +389,18 @@ importServer <- function(id) {
     nullval <- "Not present in data"
     
 # Useful variables from widgets df ----------------------------------------
+    
+    # Get CRS spec
+    crs_records <- records_widgets %>%
+      filter(in_columns == FALSE)
+    crs_cameras <- cameras_widgets %>%
+      filter(in_columns == FALSE)
+    
+    # Get widgets that correspond to columns
+    records_widgets <- records_widgets %>%
+      filter(in_columns == TRUE)
+    cameras_widgets <- cameras_widgets %>%
+      filter(in_columns == TRUE)
     
     # Get time widgets
     time_widgets <- records_widgets %>% 
@@ -438,14 +474,16 @@ importServer <- function(id) {
     lonlat_widgets_cov <- create_widget_list(lonlat)
     other_cov_widgets_cov <- create_widget_list(other_cov)
     
-    # Create coordinates format
-    epsg_df <-rgdal::make_EPSG()
-    
-    epsg <- as.list(epsg_df$code)
-    names(epsg) <- paste0(epsg_df$note, " (EPSG:", epsg ,")")
-    
+    # Create CRS widget
+    output$crs_records_col <- renderUI({
+      crs_val <- 
+      selectizeInput(NS(id, crs_records$widget), 
+                     crs_records$label,
+                     choices = NULL,
+                     options = list(placeholder = 'Select a coordinate reference system'))
+    })
     updateSelectizeInput(session = session,
-                         "coord_format_cov", 
+                         crs_records$widget, 
                          choices = epsg,
                          selected = "4326",
                          server = TRUE)
@@ -474,8 +512,15 @@ importServer <- function(id) {
     lonlat_widgets <- create_widget_list(lonlat)
     other_cov_widgets <- create_widget_list(other_cov)
     
+    # Create CRS widget
+    output$crs_col <- renderUI({
+      selectizeInput(NS(id, crs_cameras$widget), 
+                     crs_cameras$label,
+                     choices = NULL,
+                     options = list(placeholder = 'Select a coordinate reference system'))
+    })
     updateSelectizeInput(session = session,
-                         "coord_format", 
+                         crs_cameras$widget, 
                          choices = epsg,
                          selected = "4326",
                          server = TRUE)
@@ -716,13 +761,11 @@ importServer <- function(id) {
     
     # Mapping value for records columns
     mapping_records <- reactive({
-      # Ensure column list is available
-      # req(records_cols())
       
       # Initialize NULL list
       res <- vector(mode = "list",
-                    length = length(all_records_widgets))
-      names(res) <- all_records_widgets
+                    length = nrow(records_widgets))
+      names(res) <- records_widgets$widget
       
       res <- get_mapping(mapping_list = res, 
                          relevant_widgets = records_to_update(), 
@@ -854,7 +897,7 @@ importServer <- function(id) {
       # Ensure data is available
       req(mapping_records())
       req(mapping_cameras()$mapping)
-      
+
       validate(need(all(unname(unlist(mapping_records())) %in% colnames(dat_raw()$data$observations)),
                     "Wait a minute for the records :)"))
       if( mapping_cameras()$source != "records") {
@@ -871,9 +914,11 @@ importServer <- function(id) {
       
       # Get casting types ---
       # Records
+      
       castval_rec <- get_named_vector(records_widgets,
                                       col = "cast",
                                       widget_values = names(mapping_records()))
+      
       # Cameras
       # /!\ Here we choose to look in the records table,
       # because the cast types should be the same in both tables
@@ -881,7 +926,6 @@ importServer <- function(id) {
       castval_cam <- get_named_vector(records_widgets,
                                       col = "cast",
                                       widget_values = names(mapping_cameras()$mapping))
-      
       metaExpr({
         # Get mapping ---
         mapping_cameras <- ..(mapping_cameras()$mapping)

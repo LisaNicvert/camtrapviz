@@ -114,8 +114,6 @@ read_data <- function(records_path,
   return(res)
 }
 
-
-
 ## Default colnames --------------------------------------------------------
 
 
@@ -483,7 +481,7 @@ clean_data <- function(dat,
                        mapping_records,
                        rec_type,
                        split = FALSE) {
-  
+
   # Prepare cameras ---
   res <- prepare_cameras(dat, 
                          mapping_cameras = mapping_cameras, 
