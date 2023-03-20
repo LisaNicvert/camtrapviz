@@ -53,7 +53,12 @@ importUI <- function(id) {
                                      ),
                                      conditionalPanel(condition = "!input.import_cameras && output.records_extension !== 'json'",
                                                       ns = ns,
-                                                      uiOutput(NS(id, "cameras_records_col"))
+                                                      selectizeInput(NS(id, "coord_format_cov"), 
+                                                                     "Coordinates format",
+                                                                     choices = NULL,
+                                                                     options = list(placeholder = 'Select a coordinate reference system')),
+                                                      uiOutput(NS(id, "lonlat_records_col")),
+                                                      uiOutput(NS(id, "other_cov_records_col"))
                                                       ),
                                      uiOutput(NS(id, "optional_records_col"))
                                      ) # End column for records selectInput
@@ -80,7 +85,12 @@ importUI <- function(id) {
                                                                        separator_widget(NS(id, "cameras")))
                                                       ),
                                                       column(8,
-                                                             uiOutput(NS(id, "cameras_col"))
+                                                             selectizeInput(NS(id, "coord_format"), 
+                                                                            "Coordinates format",
+                                                                            choices = NULL,
+                                                                            options = list(placeholder = 'Select a coordinate reference system')),
+                                                             uiOutput(NS(id, "longlat_col")),
+                                                             uiOutput(NS(id, "other_cov_col"))
                                                              ))
                                       ) # conditional cameras table panel
                      ), # conditionalPanel upload file widgets
@@ -164,9 +174,10 @@ importServer <- function(id) {
     # 
     # @param df A dataframe with columns
     #   widget, label, empty_allowed, type
+    # @param ... additional arguments passed to selectInput
     # 
     # @return A list of selectInput
-    create_widget_list <- function(df) {
+    create_widget_list <- function(df, ...) {
       
       res <- list()
       for (i in 1:nrow(df)){
@@ -177,7 +188,8 @@ importServer <- function(id) {
           label <- paste(label, "(optional)")
         }
         res[[i]] <- selectInput(NS(id, wid),
-                                label, choices = NULL)
+                                label, choices = NULL,
+                                ...)
       }
       return(res)
     }
@@ -248,8 +260,8 @@ importServer <- function(id) {
                 "Timestamp",
                 "Latitude",
                 "Longitude",
-                "Setup date",
-                "Retrieval date",
+                "Setup date/datetime",
+                "Retrieval date/datetime",
                 "Count",
                 "Observation type"),
       empty_allowed = c(FALSE,
@@ -323,7 +335,8 @@ importServer <- function(id) {
     cameras_widgets <- records_widgets %>% 
       dplyr::filter(widget == "cam_col" | type == "cameras") %>%
       mutate(widget = paste(widget, "cov", sep = "_"))
-    # Set default for lon/lat for mica
+    
+    # Set default camera columns for mica
     cameras_widgets <- cameras_widgets %>%
       mutate(mica = ifelse(widget == "lat_col_cov", 
                            "latitude", mica)) %>%
@@ -333,7 +346,7 @@ importServer <- function(id) {
                            "start", mica)) %>%
       mutate(mica = ifelse(widget == "retrieval_col_cov", 
                            "end", mica))
-    # Set default for lon/lat for recordTableSample
+    # Set default camera columns  for recordTableSample
     cameras_widgets <- cameras_widgets %>%
       mutate(recordTableSample = ifelse(widget == "lat_col_cov", 
                                         "utm_y", recordTableSample)) %>%
@@ -417,7 +430,25 @@ importServer <- function(id) {
     # Crete camera selecters
     cov <- records_widgets %>%
       dplyr::filter(type == "cameras")
-    cov_widgets <- create_widget_list(cov)
+    lonlat <- cov %>% 
+      dplyr::filter(widget %in% c("lon_col", "lat_col"))
+    other_cov <- cov %>% 
+      dplyr::filter(!(widget %in% c("lon_col", "lat_col")))
+    
+    lonlat_widgets_cov <- create_widget_list(lonlat)
+    other_cov_widgets_cov <- create_widget_list(other_cov)
+    
+    # Create coordinates format
+    epsg_df <-rgdal::make_EPSG()
+    
+    epsg <- as.list(epsg_df$code)
+    names(epsg) <- paste0(epsg_df$note, " (EPSG:", epsg ,")")
+    
+    updateSelectizeInput(session = session,
+                         "coord_format_cov", 
+                         choices = epsg,
+                         selected = "4326",
+                         server = TRUE)
     
     # Create optional selecters
     optional <- records_widgets %>%
@@ -429,13 +460,28 @@ importServer <- function(id) {
     output$mandatory_records_col <- renderUI(mandatory_widgets)
     output$datetime_records_col <- renderUI(datetime_widgets)
     output$timestamp_records_col <- renderUI(timestamp_widgets)
-    output$cameras_records_col <- renderUI(cov_widgets)
+    output$lonlat_records_col <- renderUI(lonlat_widgets_cov)
+    output$other_cov_records_col <- renderUI(other_cov_widgets_cov)
     output$optional_records_col <- renderUI(optional_widgets)
-
+    
 
 # Create cameras widgets --------------------------------------------------
-    cameras_widgets_col <- create_widget_list(cameras_widgets)
-    output$cameras_col <- renderUI(cameras_widgets_col)
+    lonlat <- cameras_widgets %>% 
+      dplyr::filter(widget %in% c("lon_col_cov", "lat_col_cov"))
+    other_cov <- cameras_widgets %>% 
+      dplyr::filter(!(widget %in% c("lon_col_cov", "lat_col_cov")))
+    
+    lonlat_widgets <- create_widget_list(lonlat)
+    other_cov_widgets <- create_widget_list(other_cov)
+    
+    updateSelectizeInput(session = session,
+                         "coord_format", 
+                         choices = epsg,
+                         selected = "4326",
+                         server = TRUE)
+    
+    output$longlat_col <- renderUI(lonlat_widgets)
+    output$other_cov_col <- renderUI(other_cov_widgets)
     
 # Read files --------------------------------------------------------------
 
