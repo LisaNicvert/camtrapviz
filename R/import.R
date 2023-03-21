@@ -102,7 +102,6 @@ importUI <- function(id) {
                                 )
                        ),
                        tabPanel("Cleaned data preview",
-                                textOutput(NS(id, "crs")),
                                 conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
                                                  ns = ns,
                                                  actionButton(NS(id, "code_import"), 
@@ -360,7 +359,7 @@ importServer <- function(id) {
     # Set default camera columns for mica
     cameras_widgets <- cameras_widgets %>%
       mutate(mica = ifelse(widget == "crs_col_cov", 
-                           "4326", mica)) %>%
+                           4326, mica)) %>%
       mutate(mica = ifelse(widget == "lat_col_cov", 
                            "latitude", mica)) %>%
       mutate(mica = ifelse(widget == "lon_col_cov", 
@@ -372,7 +371,7 @@ importServer <- function(id) {
     # Set default camera columns  for recordTableSample
     cameras_widgets <- cameras_widgets %>%
       mutate(recordTableSample = ifelse(widget == "crs_col_cov", 
-                                        "32650", recordTableSample)) %>%
+                                        32650, recordTableSample)) %>%
       mutate(recordTableSample = ifelse(widget == "lat_col_cov", 
                                         "utm_y", recordTableSample)) %>%
       mutate(recordTableSample = ifelse(widget == "lon_col_cov", 
@@ -907,11 +906,7 @@ importServer <- function(id) {
           res <- input[[crs_records$widget]]
         }
       }
-      return(res)
-    })
-    
-    output$crs <- renderText({
-      crs()
+      return(as.numeric(res))
     })
     
 # Clean data --------------------------------------------------------------
@@ -1057,7 +1052,8 @@ importServer <- function(id) {
     return(
       list(camtrap_data = reactive(dat()),
            mapping_records = reactive(mapping_records()),
-           mapping_cameras = reactive(mapping_cameras()$mapping)
+           mapping_cameras = reactive(mapping_cameras()$mapping),
+           crs = reactive(crs())
       )
     )
     

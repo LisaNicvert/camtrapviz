@@ -457,9 +457,9 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #' Clean data
 #'
 #' Cleans raw data by:
-#'    splitting data if needed
-#'    formatting cameras and records tables
-#'    selecting the subset of cameras present in both datasets
+#' + splitting data if needed
+#' + formatting cameras and records tables
+#' + selecting the subset of cameras present in both datasets
 #'  
 #' @param dat The data ti clean
 #' @param mapping_cameras The mapping for columns in the cameras dataframe.
@@ -670,23 +670,36 @@ plot_species_bars <- function(df,
 #' @param df A dataframe with latitude and longitude columns
 #' @param lat_col Name of the latitude column
 #' @param lon_col Name of the longitude column
+#' @param crs EPSG code for the coordinate reference system
 #' @param cam_col Name of the camera name column
 #' @param color color for the points
+
 #'
 #' @return a leaflet map
 #' @export
 plot_map <- function(df, 
                      lat_col, lon_col, 
+                     crs = NULL,
                      cam_col,
                      color) {
   
-  leaflet(df) %>% 
+  if(!is.null(crs)) { # Specify the CRS
+    df_sf <- sf::st_as_sf(df, 
+                          coords = c(lon_col, lat_col),
+                          crs = as.numeric(crs))
+    # Reproject in WGS 84 (a.k.a. EPSG:4326)
+    df_sf <- sf::st_transform(df_sf, 4326)
+  } else { # Let leaflet choose the CRS
+    df_sf <- sf::st_as_sf(df, 
+                          coords = c(lon_col, lat_col))
+  }
+  
+  leaflet(df_sf) %>% 
     addTiles() %>% 
-    addCircles(data = df, 
-               lat = df[[lat_col]], lng = df[[lon_col]],
-               label = paste0("Camera: ", df[[cam_col]]),
-               layerId = df[[cam_col]],
-               popup = df[[cam_col]],
+    addCircles(data = df_sf,
+               label = paste0("Camera: ", df_sf[[cam_col]]),
+               layerId = df_sf[[cam_col]],
+               popup = df_sf[[cam_col]],
                color = color,
                highlightOptions = highlightOptions(color = "red"))
 }

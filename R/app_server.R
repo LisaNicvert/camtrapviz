@@ -27,11 +27,13 @@ server <- function(input, output, session) {
   summaryServer("summary",
                 camtrap_data = import_val$camtrap_data,
                 mapping_records = import_val$mapping_records,
-                mapping_cameras = import_val$mapping_cameras)
+                mapping_cameras = import_val$mapping_cameras,
+                crs = import_val$crs)
   
   # All species
   allspeciesServer("allspecies",
                    camtrap_data = import_val$camtrap_data,
                    mapping_records = import_val$mapping_records,
-                   mapping_cameras = import_val$mapping_cameras)
+                   mapping_cameras = import_val$mapping_cameras,
+                   crs = import_val$crs) 
 }

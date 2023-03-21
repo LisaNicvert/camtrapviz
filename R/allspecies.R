@@ -48,13 +48,15 @@ allspeciesUI <- function(id) {
 allspeciesServer <- function(id,
                              camtrap_data, 
                              mapping_records,
-                             mapping_cameras) {
+                             mapping_cameras,
+                             crs) {
   moduleServer(id, function(input, output, session) {
     
 # Test reactive input -----------------------------------------------------
     stopifnot(is.reactive(camtrap_data))
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
+    stopifnot(is.reactive(crs))
 
 # Plot species ------------------------------------------------------------
 

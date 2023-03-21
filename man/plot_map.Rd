@@ -4,7 +4,7 @@
 \alias{plot_map}
 \title{Plot map}
 \usage{
-plot_map(df, lat_col, lon_col, cam_col, color)
+plot_map(df, lat_col, lon_col, crs = NULL, cam_col, color)
 }
 \arguments{
 \item{df}{A dataframe with latitude and longitude columns}
@@ -12,6 +12,8 @@ plot_map(df, lat_col, lon_col, cam_col, color)
 \item{lat_col}{Name of the latitude column}
 
 \item{lon_col}{Name of the longitude column}
+
+\item{crs}{EPSG code for the coordinate reference system}
 
 \item{cam_col}{Name of the camera name column}
 

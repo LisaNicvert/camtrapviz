@@ -35,7 +35,9 @@ The cleaned dataset
 }
 \description{
 Cleans raw data by:
-splitting data if needed
-formatting cameras and records tables
-selecting the subset of cameras present in both datasets
+\itemize{
+\item splitting data if needed
+\item formatting cameras and records tables
+\item selecting the subset of cameras present in both datasets
+}
 }

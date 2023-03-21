@@ -30,4 +30,5 @@ Imports:
     tibble,
     leaflet,
     shinyAce,
-    rgdal
+    rgdal,
+    sf

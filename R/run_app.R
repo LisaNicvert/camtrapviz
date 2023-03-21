@@ -54,6 +54,7 @@ summaryApp <- function(...) {
   mapping_cameras <- list("cam_col_cov" = "deploymentID",
                           "lat_col_cov" = "latitude",
                           "lon_col_cov" = "longitude")
+  crs <- "4326"
   
   # UI
   module <- summaryUI("summary")
@@ -65,7 +66,8 @@ summaryApp <- function(...) {
     summaryServer("summary",
                   camtrap_data = reactive(mica), 
                   mapping_records = reactive(mapping_records),
-                  mapping_cameras = reactive(mapping_cameras))
+                  mapping_cameras = reactive(mapping_cameras),
+                  crs = reactive(crs))
   }
   shiny::shinyApp(ui = ui, server = server, ...)  
 }
@@ -90,6 +92,7 @@ allspeciesApp <- function(...) {
   mapping_cameras <- list("cam_col_cov" = "deploymentID",
                           "lat_col_cov" = "latitude",
                           "lon_col_cov" = "longitude")
+  crs <- "4326"
   
   # UI
   module <- allspeciesUI("allspecies")
@@ -98,7 +101,11 @@ allspeciesApp <- function(...) {
   
   # Server
   server <- function(input, output, session) {
-    allspeciesServer("allspecies")
+    allspeciesServer("allspecies",
+                     camtrap_data = reactive(mica), 
+                     mapping_records = reactive(mapping_records),
+                     mapping_cameras = reactive(mapping_cameras),
+                     crs = reactive(crs))
   }
   shiny::shinyApp(ui = ui, server = server, ...)  
 }

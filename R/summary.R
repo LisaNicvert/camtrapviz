@@ -34,7 +34,6 @@ summaryUI <- function(id) {
                  ),
         br(),
         textOutput(NS(id, "sel")),
-        
         fluidRow(
           column(width = 6,
                  h3("Map"),
@@ -55,13 +54,15 @@ summaryUI <- function(id) {
 summaryServer <- function(id, 
                           camtrap_data, 
                           mapping_records,
-                          mapping_cameras) {
+                          mapping_cameras,
+                          crs) {
   moduleServer(id, function(input, output, session) {
     
 # Test reactive input -----------------------------------------------------
     stopifnot(is.reactive(camtrap_data))
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
+    stopifnot(is.reactive(crs))
     
 # Reactive general values -------------------------------------------------
     ncameras <- reactive({
@@ -182,6 +183,7 @@ summaryServer <- function(id,
         plot_map(df, 
                  lat_col = ..(unname(mapping_cameras()$lat_col)),
                  lon_col = ..(unname(mapping_cameras()$lon_col)),
+                 crs = ..(crs()),
                  cam_col = ..(unname(mapping_cameras()$cam_col)),
                  color = "black")
       })
