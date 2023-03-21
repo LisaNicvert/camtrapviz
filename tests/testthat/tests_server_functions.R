@@ -78,6 +78,48 @@ test_that("Format data", {
                fixed = TRUE)
 })
 
+test_that("Clean data", {
+  
+  # Normal case
+  mapping_cam <- list(cam_col = "Station",
+                      lat_col = "utm_y",
+                      lon_col = "utm_x",
+                      setup_col = NULL,
+                      retrieval_col = NULL)
+  cast_cam <- c(cam_col = "as.character",
+                lat_col = "as.numeric",
+                lon_col = "as.numeric")
+  
+  mapping_rec <- list(spp_col = "Species",
+                      cam_col = "Station",
+                      date_col = NULL,
+                      time_col = NULL,
+                      timestamp_col = "DateTimeOriginal")
+  cast_rec <- c(spp_col = "as.character",
+                cam_col = "as.character",
+                date_col = "as_datetime",
+                time_col = "chron::time",
+                timestamp_col = "as_datetime")
+  
+  dat <- list(data = list(deployments = camtraps,
+                          observations = recordTableSample))
+  dat_clean <- clean_data(dat = dat, 
+                          mapping_cameras = mapping_cam,
+                          cam_type =  cast_cam,
+                          mapping_records = mapping_rec, 
+                          rec_type = cast_rec,
+                          split = FALSE)
+  
+  expect_equal(class(dat_clean$data$observations$Species), "character")
+  expect_equal(class(dat_clean$data$observations$Station), "character")
+  expect_equal(class(dat_clean$data$observations$DateTimeOriginal), c("POSIXct", "POSIXt"))
+  
+  expect_equal(class(dat_clean$data$deployments$Station), "character")
+  expect_equal(class(dat_clean$data$deployments$utm_y), "numeric")
+  expect_equal(class(dat_clean$data$deployments$utm_x), "numeric")
+})
+
+
 test_that("Summarize cameras", {
   res <- summarize_cameras(mica$data$observations, 
                            cam_col = "deploymentID", 
