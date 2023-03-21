@@ -82,19 +82,6 @@ test_that("Summarize cameras", {
   res <- summarize_cameras(mica$data$observations, 
                            cam_col = "deploymentID", 
                            time_col = "timestamp")
-  # res$start <- as_date(res$start)
-  # res$end <- as_date(res$end)
-  res$start <- as.character(res$start, 
-                            format = "%Y-%m-%d %H:%M:%S")  
-  res$end <- as.character(res$end, 
-                          format = "%Y-%m-%d %H:%M:%S")
-  
-  camtrapR::cameraOperation(res,
-                            stationCol = "deploymentID",
-                            setupCol = "start",
-                            retrievalCol = "end",
-                            dateFormat =  "YmdHMS",
-                            hasProblems = FALSE)
   
   expect_equal(colnames(res), c("deploymentID", "start", "end"))
   expect_equal(class(res$start), c("POSIXct", "POSIXt"))
