@@ -33,6 +33,15 @@ summaryUI <- function(id) {
                          )
                  ),
         br(),
+
+# Tables ------------------------------------------------------------------
+        
+        dataTableOutput(NS(id, "cameras_table")),
+        
+
+# Plots -------------------------------------------------------------------
+
+        
         textOutput(NS(id, "sel")),
         fluidRow(
           column(width = 6,
@@ -109,49 +118,59 @@ summaryServer <- function(id,
       c(min(date), max(date))
     })
     
-    sampling_length <- reactive({
-      # problems <- TRUE
+    cameras_values <- reactive({
       
-      # Get start and end date for each camera
+      # Summarize sampling dates for each camera
       cam_col <- mapping_records()$cam_col
+      camsum <- summarize_cameras(camtrap_data()$data$observations, 
+                                  cam_col = cam_col,
+                                  timestamp_col = mapping_records()$timestamp_col,
+                                  date_col = mapping_records()$date_col,
+                                  time_col = mapping_records()$time_col)
       
-      cam_to_summarize <- camtrap_data()$data$observations
-
-      if (!is.null(mapping_records()$timestamp_col)) {
-        # We already have timestamp
-        timestamp_col <- mapping_records()$timestamp_col
-      } else if (!is.null(mapping_records()$date_col)) {
-        # We only have date and time
-        date_col <- mapping_records()$date_col
-        time_col <- mapping_records()$time_col
-        cam_to_summarize$timestamp <- paste(cam_to_summarize[[date_col]],
-                                            cam_to_summarize[[time_col]])
-        timestamp_col <- "timestamp"
-      } else {
-        # No date or timestamp
-        stop("Date or time must be present in data")
+      
+      if (!is.null(mapping_cameras()$setup_col)) {
+        # Setup date specified in cameras
+        
+        # Reorder rows of camtrap data
+        setup_df <- camtrap_data()$data$deployments
+        setup_df <- setup_df[match(camsum[[cam_col]], setup_df[[cam_col]]), ]
+        # Replace setup
+        camsum$setup <- setup_df[[mapping_cameras()$setup_col]]
+        
       }
       
-      camsum <- summarize_cameras(cam_to_summarize, 
-                                  cam_col = cam_col, 
-                                  time_col = timestamp_col)
+      if (!is.null(mapping_cameras()$retrieval_col)) {
+        # Retrieval date specified in cameras
+        
+        # Reorder rows of camtrap data
+        retrieval_df <- camtrap_data()$data$deployments
+        retrieval_df <- retrieval_df[match(camsum[[cam_col]], retrieval_df[[cam_col]]), ]
+        # Replace retrieval
+        camsum$retrieval <- retrieval_df[[mapping_cameras()$retrieval_col]]
+      }
       
       # Cast to character for cameraOperation
       date_format <- "%Y-%m-%d %H:%M:%S"
-      camsum$start <- as.character(camsum$start, format = date_format)
-      camsum$end <- as.character(camsum$end, format = date_format)
+      camsum$setup <- as.character(camsum$setup, format = date_format)
+      camsum$retrieval <- as.character(camsum$retrieval, format = date_format)
       
       mat <- camtrapR::cameraOperation(camsum,
                                        stationCol = cam_col,
-                                       setupCol = "start",
-                                       retrievalCol = "end",
+                                       setupCol = "setup",
+                                       retrievalCol = "retrieval",
                                        dateFormat = "Ymd HMS",
                                        hasProblems = FALSE)
-      rescam <- rowSums(mat, na.rm = TRUE)
-      res <- sum(rescam)
-      res
-      # as.numeric(daterange()[2] - daterange()[1], "days")
+      
+      # Get sampling length per camera
+      sampling_length <- rowSums(mat, na.rm = TRUE)
+      sampling_length <- sampling_length[match(camsum[[cam_col]], names(sampling_length))]
+      
+      camsum$sampling_length <- sampling_length
+      
+      camsum
     })
+    
 
 # Infobox values ----------------------------------------------------------
     output$ncameras <- renderText({
@@ -163,13 +182,23 @@ summaryServer <- function(id,
     })
     
     output$sampling_length <- renderText({
-      as.numeric(sampling_length(), "days")
+      total_sampling <- sum(cameras_values()$sampling_length)
+      total_sampling
     })
     
     output$daterange <- renderText({
       minmax_date <- daterange()
       minmax_date <- format(minmax_date, "%d %b %Y")
       paste(minmax_date[1], "to", minmax_date[2])
+    })
+    
+
+# Tables ------------------------------------------------------------------
+    output$cameras_table <- renderDataTable({
+      DT::datatable(cameras_values(),
+                    filter = "none",
+                    selection = "none",
+                    options = list(scrollX = TRUE))
     })
     
 # Plots -------------------------------------------------------------------

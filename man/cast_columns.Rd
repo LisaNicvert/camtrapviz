@@ -9,9 +9,12 @@ cast_columns(df, cast_type)
 \arguments{
 \item{df}{A dataframe containing the columns specified in col_mapping (values)}
 
-\item{cast_type}{A named vector with the type conversion to perform.
-Must be a valid function name to call.
-Names are the names of the columns to cast in df.}
+\item{cast_type}{A named list with the type conversion to perform.
+Names are the names of the columns to cast in df.
+Elements of this list can either be characters giving
+a valid function name to call, or a list with the first element as
+the function to call and additional arguments (that can be named)
+being the arguments to pass to the function.}
 }
 \value{
 the df with casted columns
@@ -22,7 +25,7 @@ Cast columns to expected types
 \examples{
 df <- data.frame(num = 1:10,
                  char = letters[1:10])
-cast <- c(num = "as.character",
-          char = "as.factor")
+cast <- list(num = "as.character",
+             char = "as.factor")
 dfcast <- cast_columns(df, cast)
 }

@@ -4,20 +4,24 @@
 \alias{summarize_cameras}
 \title{Summarize cameras}
 \usage{
-summarize_cameras(df, cam_col, time_col)
+summarize_cameras(df, cam_col, timestamp_col, date_col = NULL, time_col = NULL)
 }
 \arguments{
 \item{df}{the dataframe}
 
 \item{cam_col}{name of the column containing camera IDs}
 
-\item{time_col}{name of the column containing stamps#'}
+\item{timestamp_col}{name of the column containing timestamps}
+
+\item{date_col}{name of the column containing date}
+
+\item{time_col}{name of the column containing hour}
 }
 \value{
 A summarized dataframe with one row per camera:
-cam_col, start, end
+cam_col (name of the camera column), setup, retrieval
 }
 \description{
 Summarize camera trap data (records) by creating a start
-and an end date.
+and an retrieval date.
 }

@@ -271,9 +271,12 @@ prepare_cameras <- function(dat, mapping_cameras, split = FALSE) {
 #' Cast columns to expected types
 #'
 #' @param df A dataframe containing the columns specified in col_mapping (values)
-#' @param cast_type A named vector with the type conversion to perform.
-#' Must be a valid function name to call.
+#' @param cast_type A named list with the type conversion to perform.
 #' Names are the names of the columns to cast in df.
+#' Elements of this list can either be characters giving
+#' a valid function name to call, or a list with the first element as 
+#' the function to call and additional arguments (that can be named)
+#' being the arguments to pass to the function.
 #'
 #' @return the df with casted columns
 #' 
@@ -282,19 +285,37 @@ prepare_cameras <- function(dat, mapping_cameras, split = FALSE) {
 #' @examples
 #' df <- data.frame(num = 1:10,
 #'                  char = letters[1:10])
-#' cast <- c(num = "as.character",
-#'           char = "as.factor")
+#' cast <- list(num = "as.character",
+#'              char = "as.factor")
 #' dfcast <- cast_columns(df, cast)
 cast_columns <- function(df, cast_type) {
   
   # Initialize res
   res <- df
   for (i in 1:length(cast_type)) {
-    castfunc <- cast_type[i]
+    castall <- cast_type[[i]]
     col <- names(cast_type)[i]
     
+    if (is.list(castall)) {
+      # We assume the first argument is the function
+      castfunc <- castall[[1]]
+      
+      # Other arguments are the options
+      rest <- castall[-1]
+      args <- c(list(res[[col]]),
+                rest) 
+    } else {
+      # Only one argument is the function
+      castfunc <- castall
+      
+      # Args is only the column
+      args <- list(res[[col]])
+    }
+    
+    col <- names(cast_type)[[i]]
+    
     res[[col]] <- do.call(castfunc, 
-                          list(res[[col]]))
+                          args)
     
   }
 
@@ -707,21 +728,49 @@ plot_map <- function(df,
 #' Summarize cameras
 #' 
 #' Summarize camera trap data (records) by creating a start 
-#' and an end date.
+#' and an retrieval date.
 #' 
 #' @param df the dataframe
 #' @param cam_col name of the column containing camera IDs
-#' @param time_col name of the column containing stamps#'
+#' @param timestamp_col name of the column containing timestamps
+#' @param date_col name of the column containing date
+#' @param time_col name of the column containing hour
 #' 
 #' @return A summarized dataframe with one row per camera:
-#' cam_col, start, end
+#' cam_col (name of the camera column), setup, retrieval
 #' 
 #' @export
-summarize_cameras <- function(df, cam_col, time_col) {
+summarize_cameras <- function(df, cam_col, 
+                              timestamp_col,
+                              date_col = NULL, time_col = NULL) {
   
-  daterange <- df %>%
+  if (missing(timestamp_col) || is.null(timestamp_col)) {
+    if (is.null(date_col) || is.null(time_col)) {
+      stop("If timestamp_col is not specified or NULL, both date_col and time_col must be provided.")
+    }
+  }
+  if (!missing(timestamp_col)) {
+    if (!is.null(date_col) || !is.null(time_col)) {
+      message("timestamp_col is provided, so date_col and time_col will be ignored.")
+    }
+  }
+  
+  res <- df
+  
+  if (missing(timestamp_col) || is.null(timestamp_col)) {
+    # Create timestamp column
+    res$timestamp <- paste(res[[date_col]],
+                           res[[time_col]])
+    res$timestamp <- as.POSIXct(res$timestamp)
+    # Set timestamp_col to 'timestamp'
+    timestamp_col <- "timestamp"
+  }
+  
+  # Summarize with timestamp
+  res <- res %>%
     group_by(.data[[cam_col]]) %>%
-    summarise(start = min(.data[[time_col]]),
-              end = max(.data[[time_col]]))
-  return(daterange)
+    summarise(setup = min(.data[[timestamp_col]]),
+              retrieval = max(.data[[timestamp_col]]))
+  
+  return(res)
 }
