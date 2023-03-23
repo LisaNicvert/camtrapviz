@@ -53,14 +53,15 @@ get_example_mapping <- function(df, col) {
 #' @param widget_values The widgets to get the vector for
 #' 
 #' 
-#' @return A named vector containing the values of col, 
+#' @return A named list containing the values of col, 
 #' names are the widget names
-get_named_vector <- function(df, col, widget_values) {
+get_named_list <- function(df, col, widget_values) {
   
   res_df <- df %>%
     filter(widget %in% widget_values) 
   res <- res_df %>%
     extract2(col)
+  res <- as.list(res)
   names(res) <- res_df$widget
   return(res)
 }
@@ -206,7 +207,7 @@ find_default_colnames <- function(regex_list,
   
   for (i in 1:length(regex_list)) { # Iterate through input widgets
     w <- names(regex_list)[i]
-    pat <- regex_list[w]
+    pat <- regex_list[[w]]
     
     # Define empty_allowed boolean
     if (w %in% empty_allowed_list) {

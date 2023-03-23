@@ -55,7 +55,9 @@ importUI <- function(id) {
                                                       ns = ns,
                                                       uiOutput(NS(id, "ui_crs_records_col")),
                                                       uiOutput(NS(id, "lonlat_records_col")),
-                                                      uiOutput(NS(id, "other_cov_records_col"))
+                                                      uiOutput(NS(id, "other_cov_records_col")),
+                                                      textInput(NS(id, "setup_retrieval_format"),
+                                                                "Date format")
                                                       ),
                                      uiOutput(NS(id, "optional_records_col"))
                                      ) # End column for records selectInput
@@ -702,9 +704,9 @@ importServer <- function(id) {
                           nullval)))
       
       # Prepare regex vector
-      regex <- get_named_vector(records_widgets, 
-                                col = "regex",
-                                widget_values = records_to_update())
+      regex <- get_named_list(records_widgets, 
+                              col = "regex",
+                              widget_values = records_to_update())
 
       # Find default names
       default_names <- find_default_colnames(regex_list = regex,
@@ -798,9 +800,9 @@ importServer <- function(id) {
       # Find default names
       if (!is.null(cameras_cols())) {
         # Prepare regex vector
-        regex <- get_named_vector(cameras_widgets, 
-                                  col = "regex",
-                                  widget_values = cameras_to_update)
+        regex <- get_named_list(cameras_widgets, 
+                                col = "regex",
+                                widget_values = cameras_to_update)
         # Find default names
         default_names <- find_default_colnames(regex_list = regex,
                                                colnames = cameras_cols(),
@@ -934,17 +936,19 @@ importServer <- function(id) {
       # Get casting types ---
       # Records
       
-      castval_rec <- get_named_vector(records_widgets,
-                                      col = "cast",
-                                      widget_values = names(mapping_records()))
+      castval_rec <- get_named_list(records_widgets,
+                                    col = "cast",
+                                    widget_values = names(mapping_records()))
       
       # Cameras
       # /!\ Here we choose to look in the records table,
       # because the cast types should be the same in both tables
       # and mapping_cameras was renamed to remove the _col suffix
-      castval_cam <- get_named_vector(records_widgets,
-                                      col = "cast",
-                                      widget_values = names(mapping_cameras()$mapping))
+      castval_cam <- get_named_list(records_widgets,
+                                    col = "cast",
+                                    widget_values = names(mapping_cameras()$mapping))
+      
+      
       metaExpr({
         # Get mapping ---
         mapping_cameras <- ..(mapping_cameras()$mapping)
