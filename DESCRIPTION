@@ -31,4 +31,5 @@ Imports:
     leaflet,
     shinyAce,
     rgdal,
-    sf
+    sf,
+    parsedate

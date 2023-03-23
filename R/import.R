@@ -55,9 +55,7 @@ importUI <- function(id) {
                                                       ns = ns,
                                                       uiOutput(NS(id, "ui_crs_records_col")),
                                                       uiOutput(NS(id, "lonlat_records_col")),
-                                                      uiOutput(NS(id, "other_cov_records_col")),
-                                                      textInput(NS(id, "setup_retrieval_format"),
-                                                                "Date format")
+                                                      uiOutput(NS(id, "other_cov_records_col"))
                                                       ),
                                      uiOutput(NS(id, "optional_records_col"))
                                      ) # End column for records selectInput
@@ -86,7 +84,9 @@ importUI <- function(id) {
                                                       column(8,
                                                              uiOutput(NS(id, "ui_crs_col")),
                                                              uiOutput(NS(id, "longlat_col")),
-                                                             uiOutput(NS(id, "other_cov_col"))
+                                                             uiOutput(NS(id, "other_cov_col")),
+                                                             textInput(NS(id, "setup_retrieval_format"),
+                                                                       "Date format")
                                                              ))
                                       ) # conditional cameras table panel
                      ), # conditionalPanel upload file widgets
@@ -99,8 +99,11 @@ importUI <- function(id) {
                                                  ns = ns,
                                                  h4("Records table"),
                                                  dataTableOutput(NS(id, "raw_records")),
-                                                 h4("Cameras table"),
-                                                 dataTableOutput(NS(id, "raw_cameras"))
+                                                 conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
+                                                                  ns = ns,
+                                                                  h4("Cameras table"),
+                                                                  dataTableOutput(NS(id, "raw_cameras"))
+                                                 )
                                 )
                        ),
                        tabPanel("Cleaned data preview",
@@ -330,14 +333,14 @@ importServer <- function(id) {
                             NA),
       cast =  c("as.character",
                 "as.character",
-                "as_date",
+                "parse_date",
                 "times",
                 "as_datetime",
                 "as.character",
                 "as.numeric",
                 "as.numeric",
-                "as.character",
-                "as.character",
+                "parse_date",
+                "parse_date",
                 "as.numeric",
                 "as.character"),
       in_columns = c(TRUE,
@@ -948,6 +951,15 @@ importServer <- function(id) {
                                     col = "cast",
                                     widget_values = names(mapping_cameras()$mapping))
       
+      if (input$setup_retrieval_format != "") {
+        # Get casting value for setup
+        cast_setup <- castval_cam$setup_col
+        cast_setup_new <- list(cast_setup,
+                               format = input$setup_retrieval_format)
+        
+        # Set new value
+        castval_cam$setup_col <- cast_setup_new
+      }
       
       metaExpr({
         # Get mapping ---

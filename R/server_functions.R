@@ -99,8 +99,7 @@ read_data <- function(records_path,
       # Read csv
       res_cameras <- utils::read.csv(cameras_path, sep = sep_cameras)
     } else { # User doesn't want to import a camera file
-      res_cameras <- list(dat = NULL,
-                          sep = NULL)
+      res_cameras <- NULL
     }
     
     res <- list(data = list(observations = res_records,
