@@ -263,7 +263,8 @@ prepare_cameras <- function(dat, mapping_cameras, split = FALSE) {
   # Select unique rows for camera table
   # We want rows to be unique across the used camera columns defined in mapping_cameras()$mapping
   res$data$deployments <- res$data$deployments %>%
-    distinct(across(all_of(unname(unlist(mapping_cameras)))))
+    distinct(across(all_of(unname(unlist(mapping_cameras)))),
+             .keep_all = TRUE)
   
   return(res)
 }
