@@ -10,6 +10,7 @@ clean_data(
   cam_type,
   mapping_records,
   rec_type,
+  only_shared_cameras = FALSE,
   split = FALSE
 )
 }
@@ -27,6 +28,9 @@ Names are the names of the columns to cast in cameras df.}
 \item{rec_type}{A named vector with the type conversion to perform.
 Must be a valid function name to call.
 Names are the names of the columns to cast in records df.}
+
+\item{only_shared_cameras}{restrict cleaned data to shared cameras? (ie the
+cameras that are in data$deployments and in data$observations)}
 
 \item{split}{Should the camera data be splitted from the records table?}
 }

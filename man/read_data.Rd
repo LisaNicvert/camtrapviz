@@ -4,7 +4,13 @@
 \alias{read_data}
 \title{Read data}
 \usage{
-read_data(records_path, sep_records, cameras_path = NULL, sep_cameras = NULL)
+read_data(
+  records_path,
+  sep_records,
+  cameras_path = NULL,
+  sep_cameras = NULL,
+  NA_strings = c("NA", "")
+)
 }
 \arguments{
 \item{records_path}{A valid file path for records.}
@@ -14,6 +20,9 @@ read_data(records_path, sep_records, cameras_path = NULL, sep_cameras = NULL)
 \item{cameras_path}{A valid file path for cameras (defaults to NULL).}
 
 \item{sep_cameras}{separator used for the cameras (defaults to NULL).}
+
+\item{NA_strings}{Vector of characters that should be considered NAs
+after import}
 }
 \value{
 A list with 1 components or a camtrapDP list.

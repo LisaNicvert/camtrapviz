@@ -75,6 +75,8 @@ get_named_list <- function(df, col, widget_values) {
 #' @param sep_records separator used for the records.
 #' @param sep_cameras separator used for the cameras (defaults to NULL).
 #' @param cameras_path A valid file path for cameras (defaults to NULL).
+#' @param NA_strings Vector of characters that should be considered NAs
+#' after import
 #'
 #' @return A list with 1 components or a camtrapDP list.
 #' If records_path is a json file, returns a captrapDP list.
@@ -86,18 +88,21 @@ get_named_list <- function(df, col, widget_values) {
 read_data <- function(records_path,
                       sep_records, 
                       cameras_path = NULL,
-                      sep_cameras = NULL) {
+                      sep_cameras = NULL,
+                      NA_strings = c("NA", "")) {
   
   # Get file extension
   ext <- tools::file_ext(records_path)
   
   if (ext == "csv") { # User uploaded a csv file
     # Read csv
-    res_records <- utils::read.csv(records_path, sep = sep_records)
+    res_records <- utils::read.csv(records_path, sep = sep_records,
+                                   na.strings = NA_strings)
     
     if (!is.null(cameras_path)) { # User wants to import a camera file
       # Read csv
-      res_cameras <- utils::read.csv(cameras_path, sep = sep_cameras)
+      res_cameras <- utils::read.csv(cameras_path, sep = sep_cameras,
+                                     na.strings = NA_strings)
     } else { # User doesn't want to import a camera file
       res_cameras <- NULL
     }
@@ -381,7 +386,7 @@ format_table <- function(df, mapping, cast_type) {
                       castval)
   
   # Drop NA
-  res <- remove_rows_with_NA(res, vec)
+  # res <- remove_rows_with_NA(res, vec)
   
   return(res)
 }
@@ -493,6 +498,8 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #' Must be a valid function name to call.
 #' Names are the names of the columns to cast in records df.
 #' @param split Should the camera data be splitted from the records table?
+#' @param only_shared_cameras restrict cleaned data to shared cameras? (ie the
+#' cameras that are in data$deployments and in data$observations)
 #'
 #' @return The cleaned dataset
 #' 
@@ -502,6 +509,7 @@ clean_data <- function(dat,
                        cam_type,
                        mapping_records,
                        rec_type,
+                       only_shared_cameras = FALSE,
                        split = FALSE) {
 
   # Prepare cameras ---
@@ -520,23 +528,103 @@ clean_data <- function(dat,
                                        cast_type = cam_type)
   
   # Both data ---
-  # Restrict data to shared cameras
-  # Get column names ---
-  cam_col_records <- mapping_records[["cam_col"]]
-  cam_col_cameras <- mapping_cameras[["cam_col"]]
-  bothcam <- filter_cameras_in_both_tables(res$data$observations,
-                                           res$data$deployments, 
-                                           cam_col_records,
-                                           cam_col_cameras)
-  
-  res$data$observations <- bothcam$records
-  res$data$deployments <- bothcam$cameras
+  if (only_shared_cameras) {
+    # Restrict data to shared cameras
+    # Get column names ---
+    cam_col_records <- mapping_records[["cam_col"]]
+    cam_col_cameras <- mapping_cameras[["cam_col"]]
+    bothcam <- filter_cameras_in_both_tables(res$data$observations,
+                                             res$data$deployments, 
+                                             cam_col_records,
+                                             cam_col_cameras)
+    
+    res$data$observations <- bothcam$records
+    res$data$deployments <- bothcam$cameras
+  }
   
   return(res)
 }
 
 # Summary -----------------------------------------------------------------
 
+#' Get cameras not in
+#'
+#' From a records and a cameras dataframe, determine which cameras are in a file
+#' but not in the other
+#'
+#' @param dfrecords records dataframe
+#' @param dfcameras cameras dataframe
+#' @param cam_col_records name of the cameras column in the records dataframe
+#' @param cam_col_cameras name of the cameras column in the cameras dataframe
+#'
+#' @return A named list with 2 components
+#' not_in_records: cameras from dfcameras that are not in dfrecords
+#' not_in_cameras: cameras from dfrecords that are not in dfcameras
+#' If the cameras are toe same in both files, the components of the list are 
+#' character vectors of length zero.
+#'
+#' @export
+#'
+#' @examples
+#' dfrecords <- data.frame(camID = letters[2:7])
+#' dfcam <- data.frame(cameras = letters[1:5])
+#' get_cameras_not_in(dfrecords = dfrecords, 
+#'                    dfcameras = dfcam,
+#'                    cam_col_records = "camID",
+#'                    cam_col_cameras = "cameras")
+get_cameras_not_in <- function(dfrecords, 
+                               dfcameras,
+                               cam_col_records,
+                               cam_col_cameras) {
+  
+  # Get cameras from records and camera file
+  records_cameras <- unique(dfrecords[[cam_col_records]])
+  deployments_cameras <- dfcameras[[cam_col_cameras]]
+  
+  # Get not matching list
+  not_in_cameras <- records_cameras[!(records_cameras %in% deployments_cameras)]
+  not_in_records <- deployments_cameras[!(deployments_cameras %in% records_cameras)]
+  
+  res <- list("not_in_records" = not_in_records,
+              "not_in_cameras" = not_in_cameras)
+  return(res)
+}
+
+#' Print check cameras
+#' 
+#' Prints a message to describe cameras status
+#'
+#' @param cameras character vector of camera names
+#' @param type type of message to print: not_in_records or not_in_cameras
+#'
+#' @return A message describing which cameras are missing where, 
+#' the empty string of no cameras are missing
+print_check_cameras <- function(cameras, 
+                                type = c("not_in_records", "not_in_cameras")) {
+  
+  if (length(cameras) != 0) {
+    if (length(cameras) == 1) {
+      if (type == "not_in_records") {
+        sentence <- " camera is in the cameras file but not in the records: "
+      } else if (type == "not_in_cameras"){
+        sentence <- " camera is in the records but not in the cameras file: "
+      }
+      
+    } else {
+      if (type == "not_in_records") {
+        sentence <- " cameras are in the cameras file but not in the records: "
+      } else if (type == "not_in_cameras"){
+        sentence <- " cameras are in the records but not in the cameras file: "
+      }
+    }
+    msg <- paste0(length(cameras), sentence,
+                  paste(cameras, collapse = ", "))
+  } else {
+    msg <- ""
+  }
+  
+  return(msg)
+}
 #' Plot points
 #' 
 #' Plot occurrences points from a dataframe
@@ -580,7 +668,6 @@ plot_points <- function(df,
       stop("If timestamp_col is not provided, date_col and time_col must be provided.")
     }
   }
-  
   
   if (is.null(timestamp_col)) { # no timestamp
     if("timestamp_col" %in% colnames(dfp)) {
@@ -730,48 +817,127 @@ plot_map <- function(df,
 #' 
 #' Summarize camera trap data (records) by creating a start 
 #' and an retrieval date.
+#' If setup and retrieval date are provided via dfcam,
+#' then the dates used in setup and retrieval will be used instead of
+#' the first/last picture date.
 #' 
 #' @param df the dataframe
 #' @param cam_col name of the column containing camera IDs
-#' @param timestamp_col name of the column containing timestamps
-#' @param date_col name of the column containing date
-#' @param time_col name of the column containing hour
+#' @param timestamp_col name of the column containing timestamps 
+#' (optional if date_col and time_col are provided)
+#' @param date_col name of the column containing date (optional if timestamp is provided)
+#' @param time_col name of the column containing hour (optional if timestamp is provided)
+#' @param dfcam the dataframe of cameras deployments (optional)
+#' @param cam_col_dfcam name of the column containing camera IDs in dfcam (optional if dfcam not provided)
+#' @param setup_col name of the column containing setup date/time in dfcam (optional if retrieval_col is provided)
+#' @param retrieval_col name of the column containing retrieval date/time in dfcam (optional if setup_col is provided)
 #' 
 #' @return A summarized dataframe with one row per camera:
-#' cam_col (name of the camera column), setup, retrieval
+#' cam_col (name of the camera column), setup, retrieval,
+#' setup_origin ("picture" or "setup_date") and
+#' retrieval_origin ("picture" or "retrieval_date")
 #' 
 #' @export
 summarize_cameras <- function(df, cam_col, 
                               timestamp_col,
-                              date_col = NULL, time_col = NULL) {
+                              date_col = NULL, time_col = NULL,
+                              dfcam = NULL, cam_col_dfcam = NULL,
+                              setup_col = NULL, retrieval_col = NULL) {
   
-  if (missing(timestamp_col) || is.null(timestamp_col)) {
-    if (is.null(date_col) || is.null(time_col)) {
-      stop("If timestamp_col is not specified or NULL, both date_col and time_col must be provided.")
-    }
-  }
+  # Display message to say that date_col and time_col will
+  # not be used
   if (!missing(timestamp_col)) {
     if (!is.null(date_col) || !is.null(time_col)) {
       message("timestamp_col is provided, so date_col and time_col will be ignored.")
     }
   }
   
-  res <- df
+  # Stop if not date AND time are specified
+  if (missing(timestamp_col) || is.null(timestamp_col)) {
+    if (is.null(date_col) || is.null(time_col)) {
+      stop("If timestamp_col is not specified or NULL, both date_col and time_col must be provided.")
+    }
+  }
+  
+  # Check that some columns are provided when dfcam is provided
+  if (!is.null(dfcam)) {
+    if (is.null(cam_col_dfcam)) {
+      stop("If dfcam is not NULL, then cam_col_dfcam must be provided.")
+    }
+    if (is.null(setup_col) & is.null(retrieval_col)) {
+      stop("If dfcam is not NULL, then setup_col or retrieval_col must be provided.")
+    }
+  }
+  
+  camsum <- df
   
   if (missing(timestamp_col) || is.null(timestamp_col)) {
     # Create timestamp column
-    res$timestamp <- paste(res[[date_col]],
-                           res[[time_col]])
-    res$timestamp <- as.POSIXct(res$timestamp)
+    camsum$timestamp <- paste(camsum[[date_col]],
+                              camsum[[time_col]])
+    camsum$timestamp <- as.POSIXct(camsum$timestamp)
     # Set timestamp_col to 'timestamp'
     timestamp_col <- "timestamp"
   }
   
   # Summarize with timestamp
-  res <- res %>%
+  camsum <- camsum %>%
     group_by(.data[[cam_col]]) %>%
     summarise(setup = min(.data[[timestamp_col]]),
-              retrieval = max(.data[[timestamp_col]]))
+              retrieval = max(.data[[timestamp_col]]),
+              setup_origin = "picture",
+              retrieval_origin = "picture")
   
-  return(res)
+  # If we have additiolal info from dfcam
+  if (!is.null(dfcam)) {
+    
+    # Add cameras present in dfcam but not in df
+    not_in_camsum <- dfcam[[cam_col_dfcam]][!(dfcam[[cam_col_dfcam]] %in% camsum[[cam_col]])]
+    
+    if (length(not_in_camsum) != 0) {
+      dfbind <- data.frame(not_in_camsum, NA, NA, NA, NA)
+      names(dfbind) <- c(cam_col, "setup", "retrieval", "setup_origin", "retrieval_origin")
+    }
+    
+    if (!is.null(setup_col)) { # Setup date specified in cameras
+      
+      setup_df <- dfcam
+      
+      # Get non-NA setup
+      setup_df <- setup_df %>%
+        filter(!is.na(.data[[setup_col]]))
+      
+      # Cast to POSIX
+      setup_df[[setup_col]] <- as.POSIXct(setup_df[[setup_col]],
+                                          tz = lubridate::tz(camsum$timestamp))
+      
+      # Get indices to replace in camsum
+      # We will replace all these indices because they are not null
+      # and we keep the values that are missing in dfcam but were already
+      # in camsum
+      ind <- match(setup_df[[cam_col_dfcam]], camsum[[cam_col]])
+      
+      camsum$setup[ind] <- setup_df[[setup_col]]
+      camsum$setup_origin[ind] <- "setup"
+    }
+    if (!is.null(retrieval_col)) { # Retrieval date specified in cameras
+      
+      retrieval_df <- dfcam
+      
+      # Get not null retrieval
+      retrieval_df <- retrieval_df %>%
+        filter(!is.null(.data[[retrieval_col]]))
+      
+      # Get indices to replace in camsum
+      # We will replace all these indices because they are not null
+      # and we keep the values that are missing in dfcam but were already
+      # in camsum
+      ind <- match(retrieval_df[[cam_col_dfcam]], camsum[[cam_col]])
+      
+      camsum$retrieval[ind] <- retrieval_df[[retrieval_col]]
+      camsum$retrieval_origin[ind] <- "retrieval"
+    }
+  }
+  
+  return(camsum)
 }

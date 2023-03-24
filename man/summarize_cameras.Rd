@@ -4,24 +4,48 @@
 \alias{summarize_cameras}
 \title{Summarize cameras}
 \usage{
-summarize_cameras(df, cam_col, timestamp_col, date_col = NULL, time_col = NULL)
+summarize_cameras(
+  df,
+  cam_col,
+  timestamp_col,
+  date_col = NULL,
+  time_col = NULL,
+  dfcam = NULL,
+  cam_col_dfcam = NULL,
+  setup_col = NULL,
+  retrieval_col = NULL
+)
 }
 \arguments{
 \item{df}{the dataframe}
 
 \item{cam_col}{name of the column containing camera IDs}
 
-\item{timestamp_col}{name of the column containing timestamps}
+\item{timestamp_col}{name of the column containing timestamps
+(optional if date_col and time_col are provided)}
 
-\item{date_col}{name of the column containing date}
+\item{date_col}{name of the column containing date (optional if timestamp is provided)}
 
-\item{time_col}{name of the column containing hour}
+\item{time_col}{name of the column containing hour (optional if timestamp is provided)}
+
+\item{dfcam}{the dataframe of cameras deployments (optional)}
+
+\item{cam_col_dfcam}{name of the column containing camera IDs in dfcam (optional if dfcam not provided)}
+
+\item{setup_col}{name of the column containing setup date/time in dfcam (optional if retrieval_col is provided)}
+
+\item{retrieval_col}{name of the column containing retrieval date/time in dfcam (optional if setup_col is provided)}
 }
 \value{
 A summarized dataframe with one row per camera:
-cam_col (name of the camera column), setup, retrieval
+cam_col (name of the camera column), setup, retrieval,
+setup_origin ("picture" or "setup_date") and
+retrieval_origin ("picture" or "retrieval_date")
 }
 \description{
 Summarize camera trap data (records) by creating a start
 and an retrieval date.
+If setup and retrieval date are provided via dfcam,
+then the dates used in setup and retrieval will be used instead of
+the first/last picture date.
 }

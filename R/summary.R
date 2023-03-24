@@ -34,11 +34,6 @@ summaryUI <- function(id) {
                  ),
         br(),
 
-# Tables ------------------------------------------------------------------
-        
-        dataTableOutput(NS(id, "cameras_table")),
-        
-
 # Plots -------------------------------------------------------------------
 
         
@@ -54,7 +49,14 @@ summaryUI <- function(id) {
                  outputCodeButton(girafeOutput(NS(id, "plot_occurrences"),
                                                height = "400px"))
           )
-        )
+        ),
+
+# Tables ------------------------------------------------------------------
+
+        h3("Cameras summary"),
+        textOutput(NS(id, "check_cameras_records")),
+        textOutput(NS(id, "check_cameras_cameras")),
+        dataTableOutput(NS(id, "cameras_table"))
         )
     )
     
@@ -122,33 +124,16 @@ summaryServer <- function(id,
       
       # Summarize sampling dates for each camera
       cam_col <- mapping_records()$cam_col
+      
       camsum <- summarize_cameras(camtrap_data()$data$observations, 
                                   cam_col = cam_col,
                                   timestamp_col = mapping_records()$timestamp_col,
                                   date_col = mapping_records()$date_col,
-                                  time_col = mapping_records()$time_col)
-      
-      
-      if (!is.null(mapping_cameras()$setup_col)) {
-        # Setup date specified in cameras
-        
-        # Reorder rows of camtrap data
-        setup_df <- camtrap_data()$data$deployments
-        setup_df <- setup_df[match(camsum[[cam_col]], setup_df[[cam_col]]), ]
-        # Replace setup
-        camsum$setup <- setup_df[[mapping_cameras()$setup_col]]
-        
-      }
-      
-      if (!is.null(mapping_cameras()$retrieval_col)) {
-        # Retrieval date specified in cameras
-        
-        # Reorder rows of camtrap data
-        retrieval_df <- camtrap_data()$data$deployments
-        retrieval_df <- retrieval_df[match(camsum[[cam_col]], retrieval_df[[cam_col]]), ]
-        # Replace retrieval
-        camsum$retrieval <- retrieval_df[[mapping_cameras()$retrieval_col]]
-      }
+                                  time_col = mapping_records()$time_col,
+                                  dfcam = camtrap_data()$data$deployments, 
+                                  cam_col_dfcam = mapping_cameras()$cam_col,
+                                  setup_col = mapping_cameras()$setup_col,
+                                  retrieval_col = mapping_cameras()$retrieval_col)
       
       # Cast to character for cameraOperation
       date_format <- "%Y-%m-%d %H:%M:%S"
@@ -172,6 +157,15 @@ summaryServer <- function(id,
     })
     
 
+# Check cameras -----------------------------------------------------------
+    
+    cameras_status <- reactive({
+      get_cameras_not_in(dfrecords = camtrap_data()$data$observations,
+                         dfcameras = camtrap_data()$data$deployments,
+                         cam_col_records = mapping_records()$cam_col,
+                         cam_col_cameras = mapping_cameras()$cam_col)
+    })
+    
 # Infobox values ----------------------------------------------------------
     output$ncameras <- renderText({
       ncameras()
@@ -193,6 +187,18 @@ summaryServer <- function(id,
     })
     
 
+# Check cameras message ---------------------------------------------------
+    
+    output$check_cameras_records <- renderText({
+      print_check_cameras(cameras_status()$not_in_records,
+                          type = "not_in_records")
+    })
+    
+    output$check_cameras_cameras <- renderText({
+      print_check_cameras(cameras_status()$not_in_cameras,
+                          type = "not_in_cameras")
+    })
+    
 # Tables ------------------------------------------------------------------
     output$cameras_table <- renderDataTable({
       DT::datatable(cameras_values(),
