@@ -844,9 +844,10 @@ summarize_cameras <- function(df, cam_col,
                               dfcam = NULL, cam_col_dfcam = NULL,
                               setup_col = NULL, retrieval_col = NULL) {
   
+  # --- Check inputs
   # Display message to say that date_col and time_col will
   # not be used
-  if (!missing(timestamp_col)) {
+  if (!missing(timestamp_col) && !is.null(timestamp_col)) {
     if (!is.null(date_col) || !is.null(time_col)) {
       message("timestamp_col is provided, so date_col and time_col will be ignored.")
     }
@@ -869,6 +870,7 @@ summarize_cameras <- function(df, cam_col,
     }
   }
   
+  # --- Compute first and last picture
   camsum <- df
   
   if (missing(timestamp_col) || is.null(timestamp_col)) {
@@ -888,7 +890,8 @@ summarize_cameras <- function(df, cam_col,
               setup_origin = "picture",
               retrieval_origin = "picture")
   
-  # If we have additiolal info from dfcam
+  # --- Use dfcam for setup and retrieval
+  # If we have additional info from dfcam
   if (!is.null(dfcam)) {
     
     # Add cameras present in dfcam but not in df
@@ -897,6 +900,7 @@ summarize_cameras <- function(df, cam_col,
     if (length(not_in_camsum) != 0) {
       dfbind <- data.frame(not_in_camsum, NA, NA, NA, NA)
       names(dfbind) <- c(cam_col, "setup", "retrieval", "setup_origin", "retrieval_origin")
+      camsum <- rbind(camsum, dfbind)
     }
     
     if (!is.null(setup_col)) { # Setup date specified in cameras
@@ -938,6 +942,38 @@ summarize_cameras <- function(df, cam_col,
       camsum$retrieval_origin[ind] <- "retrieval"
     }
   }
+  
+  # --- Compute sampling length
+  # Cast to character for cameraOperation
+  date_format <- "%Y-%m-%d %H:%M:%S" # Choose standard format to cast to character
+  
+  # Get rows where setup and retrieval are not NA (can't compute sampling length without
+  # setup and retrieval)
+  camsum_sampling_time <- camsum %>%
+    filter(!is.na(setup)) %>%
+    filter(!is.na(retrieval))
+  
+  # Cast to character
+  camsum_sampling_time$setup <- as.character(camsum_sampling_time$setup, 
+                                             format = date_format)
+  camsum_sampling_time$retrieval <- as.character(camsum_sampling_time$retrieval, 
+                                                 format = date_format)
+  
+  mat <- camtrapR::cameraOperation(camsum_sampling_time,
+                                   stationCol = cam_col,
+                                   setupCol = "setup",
+                                   retrievalCol = "retrieval",
+                                   dateFormat = "Ymd HMS",
+                                   hasProblems = FALSE) # To modify once the user will be able to add problems
+  
+  # Get sampling length per camera
+  sampling_length <- rowSums(mat, na.rm = TRUE)
+  sampling_length <- sampling_length[match(camsum[[cam_col]], names(sampling_length))]
+  # (will set the cameras of camsum without sampling_length
+  # to NA which is what we want)
+  
+  # Modify result
+  camsum$sampling_length <- sampling_length
   
   return(camsum)
 }

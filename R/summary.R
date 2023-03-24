@@ -56,7 +56,8 @@ summaryUI <- function(id) {
         h3("Cameras summary"),
         textOutput(NS(id, "check_cameras_records")),
         textOutput(NS(id, "check_cameras_cameras")),
-        dataTableOutput(NS(id, "cameras_table"))
+        dataTableOutput(NS(id, "cameras_table")),
+        verbatimTextOutput(NS(id, "code_cameras_table"))
         )
     )
     
@@ -120,40 +121,27 @@ summaryServer <- function(id,
       c(min(date), max(date))
     })
     
-    cameras_values <- reactive({
+    cameras_values <- metaReactive2({
       
-      # Summarize sampling dates for each camera
-      cam_col <- mapping_records()$cam_col
+      # Create intermediate variables
+      df_records <- camtrap_data()$data$observations
+      df_cam <- camtrap_data()$data$deployments
       
-      camsum <- summarize_cameras(camtrap_data()$data$observations, 
-                                  cam_col = cam_col,
-                                  timestamp_col = mapping_records()$timestamp_col,
-                                  date_col = mapping_records()$date_col,
-                                  time_col = mapping_records()$time_col,
-                                  dfcam = camtrap_data()$data$deployments, 
-                                  cam_col_dfcam = mapping_cameras()$cam_col,
-                                  setup_col = mapping_cameras()$setup_col,
-                                  retrieval_col = mapping_cameras()$retrieval_col)
+      mapping_records <- mapping_records()
+      mapping_cameras <- mapping_cameras()
       
-      # Cast to character for cameraOperation
-      date_format <- "%Y-%m-%d %H:%M:%S"
-      camsum$setup <- as.character(camsum$setup, format = date_format)
-      camsum$retrieval <- as.character(camsum$retrieval, format = date_format)
+      metaExpr({
+        summarize_cameras(df_records, 
+                          cam_col = ..(mapping_records$cam_col),
+                          timestamp_col = ..(mapping_records$timestamp_col),
+                          date_col = ..(mapping_records$date_col),
+                          time_col = ..(mapping_records$time_col),
+                          dfcam = df_cam, 
+                          cam_col_dfcam = ..(mapping_cameras$cam_col),
+                          setup_col = ..(mapping_cameras$setup_col),
+                          retrieval_col = ..(mapping_cameras$retrieval_col))
+      })
       
-      mat <- camtrapR::cameraOperation(camsum,
-                                       stationCol = cam_col,
-                                       setupCol = "setup",
-                                       retrievalCol = "retrieval",
-                                       dateFormat = "Ymd HMS",
-                                       hasProblems = FALSE)
-      
-      # Get sampling length per camera
-      sampling_length <- rowSums(mat, na.rm = TRUE)
-      sampling_length <- sampling_length[match(camsum[[cam_col]], names(sampling_length))]
-      
-      camsum$sampling_length <- sampling_length
-      
-      camsum
     })
     
 
@@ -297,6 +285,12 @@ summaryServer <- function(id,
     observeEvent(input$plot_occurrences_output_code, {
       code <- expandChain(output$plot_occurrences())
       displayCodeModal(code)
+    })
+
+# Tables code -------------------------------------------------------------
+    
+    output$code_cameras_table <- renderPrint({
+      expandChain(cameras_values())
     })
     
   })

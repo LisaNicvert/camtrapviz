@@ -241,7 +241,6 @@ test_that("Summarize cameras with different cameras name", {
 })
 
 test_that("Summarize cameras with NA in setup/retrieval", {
-  # Remove camera A11 because it is not in kga_cameras
 
   # NA in setup
   kga_cameras_test <- kga_cameras
@@ -273,8 +272,8 @@ test_that("Summarize cameras with NA in setup/retrieval", {
   expect_equal(res$setup[res$cameraID == "KGA_A01"], expected)
   
   # Missing camera in data
-  kga_test2 <- kga %>% filter(cameraID != "KGA_A01")
-  res <- summarize_cameras(kga, 
+  kga_test <- kga %>% filter(cameraID != "KGA_A01")
+  res <- summarize_cameras(kga_test, 
                            cam_col = "cameraID", 
                            time_col = "eventTime",
                            date_col = "eventDate",
@@ -283,6 +282,28 @@ test_that("Summarize cameras with NA in setup/retrieval", {
                            setup_col = "Setup.Date")
   expected <- as.POSIXct(kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A01"])
   expect_equal(res$setup[res$cameraID == "KGA_A01"], expected)
+  expect_true(is.na(res$retrieval[res$cameraID == "KGA_A01"]))
+  
+  # Missing camera in data and in setup
+  kga_test2 <- kga %>% filter(cameraID != "KGA_A02")
+  kga_cameras_test <- kga_cameras %>% filter(cameraID != "KGA_A01")
+  res <- summarize_cameras(kga_test2, 
+                           cam_col = "cameraID", 
+                           time_col = "eventTime",
+                           date_col = "eventDate",
+                           dfcam = kga_cameras_test,
+                           cam_col_dfcam = "cameraID", 
+                           setup_col = "Setup.Date")
+  expected <- kga_test2 %>% filter(cameraID == "KGA_A01") %>% 
+    mutate(dtime = as.POSIXct(paste(eventDate, eventTime))) %>%
+    summarise(mintime = min(dtime),
+              maxtime = max(dtime))
+  expect_equal(res$setup[res$cameraID == "KGA_A01"], expected$mintime)
+  expect_equal(res$retrieval[res$cameraID == "KGA_A01"], expected$maxtime)
+  
+  expected <- as.POSIXct(kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A02"])
+  expect_equal(res$setup[res$cameraID == "KGA_A02"], expected)
+  expect_true(is.na(res$retrieval[res$cameraID == "KGA_A02"]))
   
 })
 
