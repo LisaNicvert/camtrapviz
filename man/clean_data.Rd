@@ -17,13 +17,17 @@ clean_data(
 \arguments{
 \item{dat}{The data ti clean}
 
-\item{mapping_cameras}{The mapping for columns in the cameras dataframe.}
+\item{mapping_cameras}{The mapping for columns in the cameras dataframe.
+Names are free except the camera column which must be identified with cam_col.
+They must only be the same names as in cam_type.}
 
-\item{cam_type}{A named vector with the type conversion to perform.
+\item{cam_type}{A named list with the type conversion to perform.
 Must be a valid function name to call.
 Names are the names of the columns to cast in cameras df.}
 
-\item{mapping_records}{The mapping for columns in the records dataframe.}
+\item{mapping_records}{The mapping for columns in the records dataframe.
+Names are free except the camera column which must be identified with cam_col.
+They must only be the same names as in rec_type.}
 
 \item{rec_type}{A named vector with the type conversion to perform.
 Must be a valid function name to call.
@@ -42,6 +46,31 @@ Cleans raw data by:
 \itemize{
 \item splitting data if needed
 \item formatting cameras and records tables
-\item selecting the subset of cameras present in both datasets
+\item (if only_shared_cameras): selecting the subset of cameras present in both datasets
 }
+}
+\examples{
+data(recordTableSample, package = "camtrapR")
+data(camtraps, package = "camtrapR")
+dat <- list(data = list(observations = recordTableSample,
+                        deployments = camtraps))
+mapping_records <- list(cam_col = "Station",
+date_col = "Date",
+time_col = "Time")
+rec_type <- list(cam_col = "as.character",
+                 date_col = list("as_date",
+                                 format = "\%Y-\%m-\%d"),
+                 time_col = "times")
+
+mapping_cameras <- list(cam_col = "Station",
+                        setup_col = "Setup_date",
+                        retrieval_col = "Retrieval_date")
+cam_type <- list(cam_col = "as.character",
+                 setup_col = list("as_date",
+                                  format = "\%d/\%m/\%Y"), 
+                 retrieval_col = list("as_date",
+                                      format = "\%d/\%m/\%Y"))
+dat_clean <- clean_data(dat, 
+                        mapping_records = mapping_records, rec_type = rec_type,
+                        mapping_cameras = mapping_cameras, cam_type = cam_type)
 }

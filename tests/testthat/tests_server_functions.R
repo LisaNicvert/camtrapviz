@@ -126,7 +126,6 @@ test_that("Clean data", {
   cast_rec <- list(spp_col = "as.character",
                    cam_col = "as.character",
                    date_col = "as_datetime",
-                   time_col = "chron::time",
                    timestamp_col = "as_datetime")
   
   dat <- list(data = list(deployments = camtraps,
@@ -186,16 +185,23 @@ test_that("Summarize cameras raises errors", {
 })
 
 test_that("Summarize cameras (no dfcam)", {
+  expected_colnames <- c("deploymentID", "setup", "retrieval",
+                         "setup_origin", "retrieval_origin",
+                         "sampling_length")
+  
   res <- summarize_cameras(mica$data$observations, 
                            cam_col = "deploymentID", 
                            timestamp_col = "timestamp")
   
-  expect_equal(colnames(res), c("deploymentID", "setup", "retrieval",
-                                "setup_origin", "retrieval_origin"))
+  expect_equal(colnames(res), expected_colnames)
   expect_equal(class(res$setup), c("POSIXct", "POSIXt"))
   expect_true(all(res$setup < res$retrieval))
   expect_equal(rep("picture", nrow(res)), res$setup_origin)
   expect_equal(rep("picture", nrow(res)), res$retrieval_origin)
+  # Test duration
+  len <- mica$data$observations %>% group_by(deploymentID) %>%
+    summarize(len = as.numeric(max(timestamp) - min(timestamp), "days"))
+  expect_equal(res$sampling_length, len$len, tolerance = 10e-3)
   
   # With date/time
   res <- summarize_cameras(kga, 
@@ -203,12 +209,18 @@ test_that("Summarize cameras (no dfcam)", {
                            time_col = "eventTime",
                            date_col = "eventDate")
   
-  expect_equal(colnames(res), c("cameraID", "setup", "retrieval",
-                                "setup_origin", "retrieval_origin"))
+  expected_colnames <- c("cameraID", "setup", "retrieval",
+                         "setup_origin", "retrieval_origin",
+                         "sampling_length")
+  expect_equal(colnames(res), expected_colnames)
   expect_equal(class(res$setup), c("POSIXct", "POSIXt"))
   expect_true(all(res$setup < res$retrieval))
   expect_equal(rep("picture", nrow(res)), res$setup_origin)
   expect_equal(rep("picture", nrow(res)), res$retrieval_origin)
+  len <- kga %>% group_by(cameraID) %>%
+    mutate(timestamp = as.POSIXct(paste(eventDate, eventTime))) %>%
+    summarize(len = as.numeric(max(timestamp) - min(timestamp), "days"))
+  expect_equal(res$sampling_length, len$len, tolerance = 10e-3)
 })
 
 test_that("Summarize cameras with camera df", {
@@ -220,12 +232,22 @@ test_that("Summarize cameras with camera df", {
                            dfcam = kga_cameras,
                            cam_col_dfcam = "cameraID", 
                            setup_col = "Setup.Date")
-  expect_equal(colnames(res), c("cameraID", "setup", "retrieval",
-                                "setup_origin", "retrieval_origin"))
+  expected_colnames <- c("cameraID", "setup", "retrieval",
+                         "setup_origin", "retrieval_origin",
+                         "sampling_length")
+  expect_equal(colnames(res), expected_colnames)
   expect_equal(class(res$setup), c("POSIXct", "POSIXt"))
   expect_true(all(res$setup < res$retrieval))
   expect_equal(rep("setup", nrow(res)), res$setup_origin)
   expect_equal(rep("picture", nrow(res)), res$retrieval_origin)
+  # Test duration
+  setup <- kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A01"]
+  retrieval <- kga[kga$cameraID == "KGA_A01", ]
+  retrieval <- max(as.POSIXct(paste(retrieval$eventDate, retrieval$eventTime)))
+  len <- as.numeric(retrieval - as.POSIXct(setup), "days")
+  expect_equal(res$sampling_length[res$cameraID == "KGA_A01"], len, 
+               tolerance = 10e-3)
+  
 })
 
 test_that("Summarize cameras with different cameras name", {
