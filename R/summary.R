@@ -36,20 +36,13 @@ summaryUI <- function(id) {
 
 # Plots -------------------------------------------------------------------
 
-        
-        textOutput(NS(id, "sel")),
-        fluidRow(
-          column(width = 6,
-                 h3("Map"),
-                 outputCodeButton(leafletOutput(NS(id, "plot_map"),
-                                                height = "400px"))
-                 ),
-          column(width = 6,
-                 h3("Camera activity"),
-                 outputCodeButton(girafeOutput(NS(id, "plot_occurrences"),
-                                               height = "400px"))
-          )
-        ),
+        # textOutput(NS(id, "sel")),
+        h3("Map"),
+        outputCodeButton(leafletOutput(NS(id, "plot_map"),
+                                       height = "500px")),
+        h3("Camera activity"),
+        outputCodeButton(girafeOutput(NS(id, "plot_occurrences"),
+                                      height = "500px")),
 
 # Tables ------------------------------------------------------------------
 
