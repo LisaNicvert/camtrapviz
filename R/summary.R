@@ -130,17 +130,30 @@ summaryServer <- function(id,
       mapping_records <- mapping_records()
       mapping_cameras <- mapping_cameras()
       
-      metaExpr({
-        summarize_cameras(df_records, 
-                          cam_col = ..(mapping_records$cam_col),
-                          timestamp_col = ..(mapping_records$timestamp_col),
-                          date_col = ..(mapping_records$date_col),
-                          time_col = ..(mapping_records$time_col),
-                          dfcam = df_cam, 
-                          cam_col_dfcam = ..(mapping_cameras$cam_col),
-                          setup_col = ..(mapping_cameras$setup_col),
-                          retrieval_col = ..(mapping_cameras$retrieval_col))
-      })
+      # Case no info in camera df
+      if (is.null(mapping_cameras$setup_col) && is.null(mapping_cameras$retrieval_col)) { 
+        # Don't use dfcam in function call
+        metaExpr({
+          summarize_cameras(df_records, 
+                            cam_col = ..(mapping_records$cam_col),
+                            timestamp_col = ..(mapping_records$timestamp_col),
+                            date_col = ..(mapping_records$date_col),
+                            time_col = ..(mapping_records$time_col))
+        })
+      } else {
+        metaExpr({
+          summarize_cameras(df_records, 
+                            cam_col = ..(mapping_records$cam_col),
+                            timestamp_col = ..(mapping_records$timestamp_col),
+                            date_col = ..(mapping_records$date_col),
+                            time_col = ..(mapping_records$time_col),
+                            dfcam = df_cam, 
+                            cam_col_dfcam = ..(mapping_cameras$cam_col),
+                            setup_col = ..(mapping_cameras$setup_col),
+                            retrieval_col = ..(mapping_cameras$retrieval_col))
+        })
+      }
+      
       
     })
     
