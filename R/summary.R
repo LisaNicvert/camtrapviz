@@ -105,20 +105,8 @@ summaryServer <- function(id,
     })
     
     daterange <- reactive({
-      if (!is.null(mapping_records()$timestamp_col)) {
-        # We only have timestamp
-        timestamp_col <- mapping_records()$timestamp_col
-        date <- camtrap_data()$data$observations[[timestamp_col]]
-        date <- as_date(date)
-      } else if (!is.null(mapping_records()$date_col)) {
-        # We only have date
-        date_col <- mapping_records()$date_col
-        date <- camtrap_data()$data$observations[[date_col]]
-      } else {
-        # No date or timestamp
-        stop("Date or time must be present in data")
-      }
-      c(min(date), max(date))
+      c(min(cameras_values()$setup), 
+        max(cameras_values()$retrieval))
     })
     
     cameras_values <- metaReactive2({
