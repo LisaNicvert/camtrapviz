@@ -99,7 +99,7 @@ importUI <- function(id) {
                                                  ns = ns,
                                                  h4("Records table"),
                                                  dataTableOutput(NS(id, "raw_records")),
-                                                 conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
+                                                 conditionalPanel(condition = "input.input_type == 1 || input.import_cameras || output.records_extension === 'json'",
                                                                   ns = ns,
                                                                   h4("Cameras table"),
                                                                   dataTableOutput(NS(id, "raw_cameras"))
