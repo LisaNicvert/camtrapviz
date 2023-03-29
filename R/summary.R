@@ -78,7 +78,7 @@ summaryServer <- function(id,
     
 # Reactive general values -------------------------------------------------
     ncameras <- reactive({
-      nrow(camtrap_data()$data$deployments)
+      nrow(cameras_values())
     })
     
     nspecies <- reactive({
