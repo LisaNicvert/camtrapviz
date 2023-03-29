@@ -3,3 +3,4 @@ rstudio
 .Rproj.user
 preliminary_tests/*
 docs/*
+inst/doc

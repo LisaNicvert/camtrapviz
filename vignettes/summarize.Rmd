@@ -1,0 +1,150 @@
+---
+title: "analyze-camtrap-data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{analyze-camtrap-data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(camtrapviz)
+library(dplyr)
+```
+
+This vignette demonstrates how this package can be used to summarize camera trap data.
+
+```{r}
+data(recordTableSample, package = "camtrapR")
+data(camtraps, package = "camtrapR")
+```
+
+```{r}
+recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal)
+recordTableSample$Date <- as.Date(recordTableSample$Date)
+recordTableSample$Time <- chron::times(recordTableSample$Time)
+
+camtraps$Setup_date <- as.Date(camtraps$Setup_date, format = "%d/%m/%Y")
+camtraps$Retrieval_date <- as.Date(camtraps$Retrieval_date, format = "%d/%m/%Y")
+```
+
+## Camera information
+
+We can summarize the camera sampling with the function `summarize_cameras`. The start and end dates are taken from the data and the sampling length is computed using the `cameraOperation` matrix from the `camtrapR` package.
+
+If we provide only the observation dataframe, sampling will be computed from first and last picture.
+
+```{r}
+camsum <- summarize_cameras(recordTableSample,
+                            cam_col = "Station",
+                            date_col = "Date",
+                            time_col = "Time")
+knitr::kable(camsum)
+```
+
+
+If we provide the cameras dataframe, whenever possible the sampling information will be obtained from setup and retrieval columns.
+
+```{r}
+camsum <- summarize_cameras(recordTableSample,
+                            cam_col = "Station",
+                            date_col = "Date",
+                            time_col = "Time",
+                            dfcam = camtraps, 
+                            cam_col_dfcam = "Station", 
+                            setup_col = "Setup_date",
+                            retrieval_col = "Retrieval_date")
+knitr::kable(camsum)
+```
+
+If some information is missing from the camera dataframe, then the information from the observations will be used.
+
+```{r}
+cam_missing <- camtraps
+cam_missing$Retrieval_date[cam_missing$Station == "StationA"] <- NA
+
+knitr::kable(cam_missing |> 
+               select(Station, Setup_date, Retrieval_date))
+```
+
+
+```{r}
+camsum <- summarize_cameras(recordTableSample,
+                            cam_col = "Station",
+                            date_col = "Date",
+                            time_col = "Time",
+                            dfcam = cam_missing, 
+                            cam_col_dfcam = "Station", 
+                            setup_col = "Setup_date",
+                            retrieval_col = "Retrieval_date")
+knitr::kable(camsum)
+```
+
+## Plot observations
+
+The package provides a function to plot the observations for each camera.
+
+```{r}
+plot_points(recordTableSample,
+            camera_col = "Station", spp_col = "Species", 
+            date_col = "Date", time_col = "Time")
+```
+
+If a `timestamp_col` is present it can also be used.
+
+```{r}
+plot_points(recordTableSample,
+            camera_col = "Station", spp_col = "Species", 
+            timestamp_col = "DateTimeOriginal")
+```
+
+## Plot cameras
+
+The package also provides a function to plot the cameras with Leaflet.
+
+Here, the dataset is already projected using the UTM zone 50 (East Asia)/ Therefore, we provide the EPSG code to use (EPSG:32650).
+
+```{r}
+plot_map(camtraps, 
+         cam_col = "Station",
+         lat_col = "utm_y", lon_col = "utm_x", 
+         crs = 32650)
+```
+
+## Plot species
+
+Here is a simple function to plot species counts.
+
+```{r}
+plot_species_bars(recordTableSample, 
+                  spp_col = "Species")
+```
+
+If there is a count column, it can also be included.
+
+```{r}
+with_count <- recordTableSample |> 
+  mutate(count = 2)
+
+plot_species_bars(with_count, 
+                  spp_col = "Species", count_col = "count")
+```
+
+Finally, if there is an observation type column, `NA` values in the species column will be replaced with the values in observation type.
+
+```{r}
+with_obstype <- recordTableSample |> 
+  mutate(type = "animal")
+with_obstype <- rbind(with_obstype,
+                      c(rep(NA, 11), "human"))
+
+plot_species_bars(with_obstype, 
+                  spp_col = "Species", obs_col = "type")
+```

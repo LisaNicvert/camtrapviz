@@ -1,0 +1,87 @@
+---
+title: "read-and-clean-data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{read-and-clean-data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(camtrapviz)
+```
+
+This vignette demonstrates how the functions included in this package can be used to read and clean different data formats.
+
+## Write data in tempfile
+
+```{r}
+data(recordTableSample, package = "camtrapR")
+data(camtraps, package = "camtrapR")
+
+recordfile <- paste0(tempdir(), "/records.csv")
+camtrapfile <- paste0(tempdir(), "/camtraps.csv")
+
+write.csv(recordTableSample, recordfile, 
+          row.names = FALSE)
+write.csv(camtraps, camtrapfile, 
+          row.names = FALSE)
+```
+
+## Read data
+
+### Read csv files
+
+```{r}
+dat <- read_data(records_path = recordfile,
+                 cameras_path = camtrapfile,
+                 sep_records = ",", sep_cameras = ",")
+```
+
+### Read camtrapDP json file
+
+To write
+
+## Clean data
+
+### Clean csv records and table
+
+```{r}
+mapping_records <- list(cam_col = "Station",
+                        date_col = "Date",
+                        time_col = "Time",
+                        timestamp_col = "DateTimeOriginal")
+rec_type <- list(cam_col = "as.character",
+                 date_col = list("as_date",
+                                 format = "%Y-%m-%d"),
+                 time_col = "times",
+                 timestamp_col = "as.POSIXct")
+
+mapping_cameras <- list(cam_col = "Station",
+                        setup_col = "Setup_date",
+                        retrieval_col = "Retrieval_date")
+cam_type <- list(cam_col = "as.character",
+                 setup_col = list("as_date",
+                                  format = "%d/%m/%Y"), 
+                 retrieval_col = list("as_date",
+                                      format = "%d/%m/%Y"))
+
+dat_clean <- clean_data(dat, 
+                        mapping_records = mapping_records, rec_type = rec_type,
+                        mapping_cameras = mapping_cameras, cam_type = cam_type)
+```
+
+### Read a unique csv file with camera info
+
+To write
+
+### Read a camtrapDP json file
+
+To write

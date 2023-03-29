@@ -4,7 +4,7 @@
 \alias{plot_map}
 \title{Plot map}
 \usage{
-plot_map(df, lat_col, lon_col, crs = NULL, cam_col, color)
+plot_map(df, lat_col, lon_col, crs = NULL, cam_col, color = "black")
 }
 \arguments{
 \item{df}{A dataframe with latitude and longitude columns}

@@ -692,13 +692,13 @@ plot_points <- function(df,
   # Initialize plotting data
   dfp <- df
   
-  if (is.null(timestamp_col)) { # no timestamp
+  if (missing(timestamp_col) || is.null(timestamp_col)) { # no timestamp
     if (is.null(date_col) | is.null(time_col)) {
       stop("If timestamp_col is not provided, date_col and time_col must be provided.")
     }
   }
   
-  if (is.null(timestamp_col)) { # no timestamp
+  if (missing(timestamp_col) || is.null(timestamp_col)) { # no timestamp
     if("timestamp_col" %in% colnames(dfp)) {
       warning("timestamp_col already exists and this might interfer with plotting")
     }
@@ -819,7 +819,7 @@ plot_map <- function(df,
                      lat_col, lon_col, 
                      crs = NULL,
                      cam_col,
-                     color) {
+                     color = "black") {
   
   if(!is.null(crs)) { # Specify the CRS
     df_sf <- sf::st_as_sf(df, 
@@ -957,9 +957,9 @@ summarize_cameras <- function(df, cam_col,
       
       retrieval_df <- dfcam
       
-      # Get not null retrieval
+      # Get non-NA retrieval
       retrieval_df <- retrieval_df %>%
-        filter(!is.null(.data[[retrieval_col]]))
+        filter(!is.na(.data[[retrieval_col]]))
       
       # Get indices to replace in camsum
       # We will replace all these indices because they are not null
