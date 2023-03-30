@@ -238,6 +238,33 @@ find_default_colnames <- function(regex_list,
 
 ## Clean data --------------------------------------------------------------
 
+#' Add tryFormats to cast list
+#'
+#' This function adds a tryFormats attribute to some elements of castvec.
+#' 
+#' @param castlist A named list of types conversions to perform 
+#' @param formats The formats to add to tryFormats
+#' @param names_to_add The names of the list for which to add
+#' a tryFormats element
+#'
+#' @return The original castlist where elements names like in names_to_add
+#' have a new slot tryFormats = formats.
+#' Will not add tryFormats if the casting function is NULL.
+add_tryformats <- function(castlist,
+                           formats,
+                           names_to_add) {
+  res <- castlist
+  for (n in names_to_add) {
+    cast_init <- res[[n]]
+    if (!is.null(cast_init)) {
+      cast_new <- list(cast_init,
+                       tryFormats = formats)
+      # Set new value
+      res[[n]] <- cast_new
+    }
+  }
+  return(res)
+}
 
 #' Prepare cameras
 #' 

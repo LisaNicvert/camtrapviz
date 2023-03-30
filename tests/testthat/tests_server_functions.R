@@ -67,6 +67,34 @@ test_that("Cast columns", {
   expect_equal(class(dfcast$date), "Date")
 })
 
+test_that("add_tryformats", {
+  # Normal case
+  cast <- list(num = "as.character",
+               date = "as.Date",
+               date2 = "as.Date")
+  
+  fmt <- c("%Y-%m-%d", "%d-%m-%Y")
+  res <- add_tryformats(cast, 
+                        formats = fmt, 
+                        names_to_add = c("date", "date2"))
+  
+  expect_equal(res$date, list("as.Date",
+                              tryFormats = fmt))
+  expect_equal(res$date2, list("as.Date",
+                              tryFormats = fmt))
+  
+  # NULL
+  cast <- list(num = "as.character",
+               date = NULL)
+  
+  fmt <- c("%Y-%m-%d", "%d-%m-%Y")
+  res <- add_tryformats(cast, 
+                        formats = fmt, 
+                        names_to_add = "date")
+  
+  expect_true(is.null(res$date))
+})
+
 test_that("Format data", {
   
   # Normal case

@@ -31,8 +31,7 @@ Imports:
     leaflet,
     shinyAce,
     rgdal,
-    sf,
-    parsedate
+    sf
 Suggests: 
     knitr,
     rmarkdown

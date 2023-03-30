@@ -84,9 +84,7 @@ importUI <- function(id) {
                                                       column(8,
                                                              uiOutput(NS(id, "mandatory_cameras_col")),
                                                              uiOutput(NS(id, "ui_crs_col")),
-                                                             uiOutput(NS(id, "optional_cameras_col")),
-                                                             textInput(NS(id, "setup_retrieval_format"),
-                                                                       "Date format")
+                                                             uiOutput(NS(id, "optional_cameras_col"))
                                                              ))
                                       ) # conditional cameras table panel
                      ), # conditionalPanel upload file widgets
@@ -333,14 +331,14 @@ importServer <- function(id) {
                             NA),
       cast =  c("as.character",
                 "as.character",
-                "parse_date",
+                "as.Date",
                 "times",
                 "as_datetime",
                 "as.character",
                 "as.numeric",
                 "as.numeric",
-                "parse_date",
-                "parse_date",
+                "as.Date",
+                "as.Date",
                 "as.numeric",
                 "as.character"),
       in_columns = c(TRUE,
@@ -373,7 +371,7 @@ importServer <- function(id) {
                            "start", mica)) %>%
       mutate(mica = ifelse(widget == "retrieval_col_cov", 
                            "end", mica))
-    # Set default camera columns  for recordTableSample
+    # Set default camera columns for recordTableSample
     cameras_widgets <- cameras_widgets %>%
       mutate(recordTableSample = ifelse(widget == "crs_col_cov", 
                                         32650, recordTableSample)) %>%
@@ -393,6 +391,12 @@ importServer <- function(id) {
     # Define placeholder for optional columns
     nullval <- "Not present in data"
     
+    dates_formats <- c("%Y-%m-%d",
+                       "%Y/%m/%d",
+                       "%d-%m-%Y",
+                       "%d/%m/%Y",
+                       "%m-%d-%Y",
+                       "%m/%d/%Y")
 # Useful variables from widgets df ----------------------------------------
     
     # Get CRS spec
@@ -938,7 +942,6 @@ importServer <- function(id) {
       
       # Get casting types ---
       # Records
-      
       castval_rec <- get_named_list(records_widgets,
                                     col = "cast",
                                     widget_values = names(mapping_records()))
@@ -951,15 +954,39 @@ importServer <- function(id) {
                                     col = "cast",
                                     widget_values = names(mapping_cameras()$mapping))
       
-      if (input$setup_retrieval_format != "") {
-        # Get casting value for setup
-        cast_setup <- castval_cam$setup_col
-        cast_setup_new <- list(cast_setup,
-                               format = input$setup_retrieval_format)
-        
-        # Set new value
-        castval_cam$setup_col <- cast_setup_new
+      # Fine-tune date format
+      if (input$input_type == 1) { # Example files (known date format)
+        if (input$example_file == "mica") {
+          fmt_rec <- NULL
+          fmt_cam <- "%Y-%m-%d"
+        } else if (input$example_file == "recordTableSample") {
+          fmt_rec <- NULL
+          fmt_cam <- "%d/%m/%Y"
+        }
+      } else { # Manual file input
+        fmt_rec <- dates_formats
+        fmt_cam <- dates_formats
       }
+      
+      # Add options to casting for dates
+      dates_cast <- records_widgets %>%
+        filter(cast == "as.Date")
+      dates_cast <- dates_cast$widget
+      
+      # Add a casting type only if relevant
+      if (!all(is.null(fmt_rec))) {
+        castval_rec <- add_tryformats(castval_rec,
+                                      formats = fmt_rec,
+                                      names_to_add = dates_cast)
+      }
+      if (!all(is.null(fmt_cam))) {
+        castval_cam <- add_tryformats(castval_cam,
+                                      formats = fmt_cam,
+                                      names_to_add = dates_cast)
+      }
+      
+      
+      
       
       metaExpr({
         # Get mapping ---

@@ -56,7 +56,6 @@
 #' @importFrom lubridate as_datetime
 #' @importFrom magrittr %>%
 #' @importFrom magrittr extract2
-#' @importFrom parsedate parse_date
 #' @importFrom shiny actionButton
 #' @importFrom shiny br
 #' @importFrom shiny checkboxInput
