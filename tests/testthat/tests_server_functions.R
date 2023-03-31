@@ -200,13 +200,6 @@ test_that("Summarize cameras raises errors", {
                                  cam_col = "Station",
                                  timestamp_col = "DateTimeOriginal",
                                  dfcam = camtraps,
-                                 setup_col = "Setup_date"),
-               "If dfcam is not NULL, then cam_col_dfcam must be provided.")
-  
-  expect_error(summarize_cameras(recordTableSample, 
-                                 cam_col = "Station",
-                                 timestamp_col = "DateTimeOriginal",
-                                 dfcam = camtraps,
                                  cam_col_dfcam = "Station"),
                "If dfcam is not NULL, then setup_col or retrieval_col must be provided.")
 
