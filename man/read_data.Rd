@@ -17,22 +17,44 @@ read_data(
 
 \item{sep_records}{separator used for the records.}
 
-\item{cameras_path}{A valid file path for cameras (defaults to NULL).}
+\item{cameras_path}{A valid file path for cameras (defaults to \code{NULL}).}
 
-\item{sep_cameras}{separator used for the cameras (defaults to NULL).}
+\item{sep_cameras}{separator used for the cameras (defaults to \code{NULL}).}
 
-\item{NA_strings}{Vector of characters that should be considered NAs
+\item{NA_strings}{Vector of characters that should be considered \code{NA}
 after import}
 }
 \value{
-A list with 1 components or a camtrapDP list.
-If records_path is a json file, returns a captrapDP list.
-If records_path is a csv file, returns a list with 1 component:
-$data: a list with 2 components:
-$observations (records)
-$deployments (cameras: if no camera file, is NULL)
+A list with one component or a \code{datapackage} object.
+\itemize{
+\item if \code{records_path} is a json file, returns a \code{datapackage} object
+(inheriting list). The data is in the \verb{$data} slot,
+which is a list with 2 components:
+\itemize{
+\item \verb{$deployments} (cameras)
+\item \verb{$observations} (records)
+}
+\item if \code{records_path} is a csv file, returns a list with one component
+named \verb{$data}, which is a list with 2 components:
+\itemize{
+\item \verb{$deployments} (cameras: if no camera file was provided in \code{cameras_path},
+it is \code{NULL})
+\item \verb{$observations} (records)
+}
+}
 }
 \description{
 Reads data from a file path (either csv of json file), and
-optionnally another csv file with camera data.
+optionally from another csv file (with camera data).
+}
+\examples{
+\dontrun{
+# Read only records
+read_data(records_path = "records.csv", sep_records = ",")
+# Read records and cameras
+read_data(records_path = "records.csv", sep_records = ",",
+          cameras_path = "cameras.csv", sep_cameras = ",")
+# Read a json file
+read_data(records_path = "datapackage.json")
+}
 }

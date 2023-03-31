@@ -2,13 +2,13 @@
 % Please edit documentation in R/server_functions.R
 \name{filter_cameras_in_both_tables}
 \alias{filter_cameras_in_both_tables}
-\title{Filter data to keep only cameras in both tables}
+\title{Filter cameras in both tables}
 \usage{
 filter_cameras_in_both_tables(
   records,
   cameras,
   cam_col_records,
-  cam_col_cameras
+  cam_col_cameras = NULL
 )
 }
 \arguments{
@@ -16,13 +16,28 @@ filter_cameras_in_both_tables(
 
 \item{cameras}{Cameras dataframe}
 
-\item{cam_col_records}{Name of the columns with camera values in records}
+\item{cam_col_records}{Name of the column with cameras names in records}
 
-\item{cam_col_cameras}{Name of the columns with camera values in cameras}
+\item{cam_col_cameras}{Name of the column with cameras names in cameras.
+If \code{NULL} will be assumed to be the same as \code{cam_col_records}.}
 }
 \value{
-A list of 2 dataframes with filtered values.
+A list of two dataframes with filtered values:
+\itemize{
+\item \verb{$records} is the records dataframe
+\item \verb{$cameras} is the cameras dataframe
+}
 }
 \description{
-Selects rows where cameras are in both tables
+Filter data to keep only rows where cameras are in both tables
+}
+\examples{
+records <- data.frame(species = c("pigeon", "mouse", "pigeon", "mouse"),
+                      stamp = Sys.time() + seq(60, length.out = 4, by = 60),
+                      camera = c("A", "B", "C", "E"))
+cameras <- data.frame(camera = c("A", "B", "C", "D"), 
+                      lat = c(20.12, 20.22, 22.34, 21.35),
+                      lon = c(33.44, 33.45, 33.42, 33.53))
+filter_cameras_in_both_tables(records, cameras, 
+                              cam_col_records = "camera")
 }

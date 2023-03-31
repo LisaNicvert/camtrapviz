@@ -2,33 +2,37 @@
 % Please edit documentation in R/server_functions.R
 \name{remove_rows_with_NA}
 \alias{remove_rows_with_NA}
-\title{Remove rows with NAs}
+\title{Remove rows with NA}
 \usage{
 remove_rows_with_NA(df, mapping)
 }
 \arguments{
-\item{df}{The dataframe to clean}
+\item{df}{The dataframe for which to remove NA}
 
-\item{mapping}{The mapping for columns in the dataframe.}
+\item{mapping}{The mapping list for columns in the dataframe.
+Names are the column types. They are free, except the
+species column and the observation type column, which
+must be coded with respectively \code{obs_col} and \code{spp_col}
+(if they exist). If \code{obs_col} is present in the names,
+then \code{spp_col} is assumed to be present too.
+Values are the corresponding column names in the dataframe.}
 }
 \value{
-The dataframe where rows in mapping contain no NA values
-(except spp_col which is allowed to have NA values if obs_col is in mapping,
-when obs_col != 'animal')
+The filtered dataframe, so that rows in \code{mapping} contain no
+\code{NA} values. \code{NA} are allowed only in \code{spp_col} if \code{obs_col}
+is in mapping is not \code{animal}.
 }
 \description{
-Remove rows with NAs
+Remove rows with NA
 }
 \examples{
-library(camtraptor)
-data(mica)
-df <- mica$data$observations
-mapping <- c("spp_col" = "vernacularNames.en",
-             "cam_col" = "deploymentID",
-             "timestamp_col" = "timestamp",
-             "obs_col" = "observationType")
-# Purposedly add NAs to chack rows are removed
-df$vernacularNames.en[9] <- NA
-df$timestamp[1] <- NA
+df <- data.frame(species = c("pigeon", "mouse", NA, "pigeon"), 
+                 type = c("animal", "animal", "blank", "animal"),
+                 stamp = Sys.time() + seq(60, length.out = 4, by = 60), 
+                 camera = c("A", "B", "C", NA))
+mapping <- list(spp_col = "species",
+                obs_col = "type",
+                timestamp_col = "stamp",
+                cam_col = "camera")
 remove_rows_with_NA(df, mapping)
 }

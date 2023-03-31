@@ -28,7 +28,7 @@ get_separator <- function(line, default = ",") {
 
 #' Get example mapping
 #' 
-#' Return the mapping for example datasets in a vector form
+#' Returns a vector of the mapping for example datasets
 #'
 #' @param df a dataframe with columns col and widget
 #' @param col the name of the column to extract example mapping from
@@ -45,13 +45,13 @@ get_example_mapping <- function(df, col) {
 
 #' Get named vector
 #'
-#' Get the named vector from a dataframe
+#' Get a vector named with values in column "widget" 
+#' from a dataframe
 #'
 #' @param df The dataframe. Must have a column named widget
 #' and a column named like col.
 #' @param col  The column of the dataframe to extract
 #' @param widget_values The widgets to get the vector for
-#' 
 #' 
 #' @return A named list containing the values of col, 
 #' names are the widget names
@@ -69,22 +69,38 @@ get_named_list <- function(df, col, widget_values) {
 #' Read data
 #'
 #' Reads data from a file path (either csv of json file), and 
-#' optionnally another csv file with camera data.
+#' optionally from another csv file (with camera data).
 #'
 #' @param records_path A valid file path for records.
 #' @param sep_records separator used for the records.
-#' @param sep_cameras separator used for the cameras (defaults to NULL).
-#' @param cameras_path A valid file path for cameras (defaults to NULL).
-#' @param NA_strings Vector of characters that should be considered NAs
+#' @param sep_cameras separator used for the cameras (defaults to `NULL`).
+#' @param cameras_path A valid file path for cameras (defaults to `NULL`).
+#' @param NA_strings Vector of characters that should be considered `NA`
 #' after import
 #'
-#' @return A list with 1 components or a camtrapDP list.
-#' If records_path is a json file, returns a captrapDP list.
-#' If records_path is a csv file, returns a list with 1 component:
-#'    $data: a list with 2 components: 
-#'        $observations (records)
-#'        $deployments (cameras: if no camera file, is NULL)
+#' @return A list with one component or a `datapackage` object.
+#' + if `records_path` is a json file, returns a `datapackage` object
+#' (inheriting list). The data is in the `$data` slot, 
+#' which is a list with 2 components: 
+#'    + `$deployments` (cameras)
+#'    + `$observations` (records)
+#' + if `records_path` is a csv file, returns a list with one component
+#' named `$data`, which is a list with 2 components: 
+#'    + `$deployments` (cameras: if no camera file was provided in `cameras_path`,
+#'     it is `NULL`)
+#'    + `$observations` (records)
+#'    
 #' @export
+#' @examples
+#' \dontrun{
+#' # Read only records
+#' read_data(records_path = "records.csv", sep_records = ",")
+#' # Read records and cameras
+#' read_data(records_path = "records.csv", sep_records = ",",
+#'           cameras_path = "cameras.csv", sep_cameras = ",")
+#' # Read a json file
+#' read_data(records_path = "datapackage.json")
+#' }
 read_data <- function(records_path,
                       sep_records, 
                       cameras_path = NULL,
@@ -94,23 +110,23 @@ read_data <- function(records_path,
   # Get file extension
   ext <- tools::file_ext(records_path)
   
-  if (ext == "csv") { # User uploaded a csv file
+  if (ext == "csv") { # The input is a csv file
     # Read csv
     res_records <- utils::read.csv(records_path, sep = sep_records,
                                    na.strings = NA_strings)
     
-    if (!is.null(cameras_path)) { # User wants to import a camera file
+    if (!is.null(cameras_path)) { # There is a camera file
       # Read csv
       res_cameras <- utils::read.csv(cameras_path, sep = sep_cameras,
                                      na.strings = NA_strings)
-    } else { # User doesn't want to import a camera file
+    } else { # There is no camera file
       res_cameras <- NULL
     }
     
     res <- list(data = list(observations = res_records,
                             deployments = res_cameras))
     
-  } else if (ext == "json") { #   CamtrapDP format
+  } else if (ext == "json") { # CamtrapDP format
     res <- camtraptor::read_camtrap_dp(records_path, media = FALSE)
   } else { # Unknown extension
     validate(need(ext == "csv" || ext == "json", 
@@ -124,26 +140,32 @@ read_data <- function(records_path,
 
 #' Find default colname
 #'
-#' Finds the column name to default to among colnames
+#' Finds a column name matching the given pattern among a vector 
+#' of column names given in argument.
 #' 
-#' @param pattern a regular expression to match against colnames
+#' @param pattern a regular expression to look for in `colnames`
 #' @param colnames a vector of column names
-#' @param empty_allowed is empty character allowed for this regex?
-#' @param empty_placeholder What is the empty placeholder?
+#' @param empty_placeholder a character to use as placeholder
+#' if there is no match for `pattern` in `columns`.
+#' @param empty_allowed logical; is it allowed to return 
+#' the character in `empty_placeholder` if there is no match?
 #'
-#' @return All matched columns names (if there was at least a match) 
-#' or the empty_placeholder (if empty_allowed and no match) or NULL
-#' (empty not allowed and no match)
-#' 
-#' @export
+#' @return
+#' + if there was at least a match: all matched columns names 
+#' + if there was no match:
+#'    + if `empty_allowed`, returns the empty placeholder
+#'    + else, returns `NULL`
 #' 
 #' @examples 
+#' # There is a match
 #' find_default_colname("species", 
 #'                      colnames = c("Species", "cameraID", "DateTime"), 
 #'                      empty_allowed = TRUE)
+#' # There is no match and empty is not allowed
 #' find_default_colname("foo", 
 #'                      colnames = c("Species", "cameraID", "DateTime"), 
 #'                      empty_allowed = FALSE)
+#' # There is no match but empty is allowed
 #' find_default_colname("foo", 
 #'                      colnames = c("Species", "cameraID", "DateTime"), 
 #'                      empty_allowed = TRUE)
@@ -171,27 +193,32 @@ find_default_colname <- function(pattern, colnames,
 
 #' Find default column names
 #'
-#' Finds the column names to default to among colnames
+#' Finds the column names to default to for each element of the 
+#' regular expression list among the column names given in argument.
 #' 
-#' @param regex_list a named list with names corresponding to those of 
-#' widgets and values are regular expressions used to find those widgets
-#' in colnames
+#' @param regex_list a named list where values are regular expressions 
+#' used to search in `colnames` and names are the same as the names
+#' of `empty_allowed_list`. In the Shiny app, this list's names are 
+#' the widget names.
 #' @param colnames a vector of column names
-#' @param empty_allowed_list a vector of allowed widgets that can be set
-#' to empty
-#' @param empty_placeholder the empty placeholder
+#' @param empty_allowed_list a list or vector 
+#' containing the names of the elements of `regex_list` that can
+#' return `NULL` if there is no match
+#' @param empty_placeholder  a character to use as placeholder
+#' if there is no match for some elements of `regex_list` in `colnames`.
 #'
-#' @return A named list containing either (the first) matched colname,
-#' NULL (no match and empty not allowed) 
-#' or the empty_placeholder (no match and empty allowed)
+#' @return A list with the same names as `regex_list`. 
+#' Each element is the first (or the only) matched column name 
+#' for the corresponding regular expression in `regex_list`.
+#' If there was no match for one element:
+#'    + if `empty_allowed`, returns the empty placeholder
+#'    + else, returns `NULL`
 #' 
 #' @export
 #'
 #' @examples
-#' library(camtraptor)
-#' data(mica)
-#' colnames <- colnames(mica$data$observations)
-#' regex <- c("^vernacularNames\\.en$|species", "station|deployment|camera",
+#' colnames <- c("speciesName", "CameraID", "Datetime")
+#' regex <- c("species", "station|deployment|camera",
 #'            "timestamp|datetime")
 #' names(regex) <-  c("spp_col", "cam_col", "timestamp_col")
 #' find_default_colnames(regex_list = regex,
@@ -213,7 +240,7 @@ find_default_colnames <- function(regex_list,
     w <- names(regex_list)[i]
     pat <- regex_list[[w]]
     
-    # Define empty_allowed boolean
+    # Define empty_allowed logical
     if (w %in% empty_allowed_list) {
       empty_allowed <- TRUE
     } else {
@@ -238,18 +265,20 @@ find_default_colnames <- function(regex_list,
 
 ## Clean data --------------------------------------------------------------
 
-#' Add tryFormats to cast list
+#' Add tryFormats
 #'
-#' This function adds a tryFormats attribute to some elements of castvec.
+#' Adds a `tryFormats` element to the specified elements of 
+#' `castlist`.
 #' 
 #' @param castlist A named list of types conversions to perform 
-#' @param formats The formats to add to tryFormats
-#' @param names_to_add The names of the list for which to add
-#' a tryFormats element
+#' @param formats The formats to add to `tryFormats`
+#' @param names_to_add The names of the elements of `castlist` 
+#' for which to add a `tryFormats` element
 #'
-#' @return The original castlist where elements names like in names_to_add
-#' have a new slot tryFormats = formats.
-#' Will not add tryFormats if the casting function is NULL.
+#' @return The original `castlist` where the specified elements
+#' have a new slot `tryFormats` which contains the `formats` vector.
+#' If the value of `castlist` to modify is `NULL`, will not add 
+#' `tryFormats` slot.
 add_tryformats <- function(castlist,
                            formats,
                            names_to_add) {
@@ -270,16 +299,26 @@ add_tryformats <- function(castlist,
 #' 
 #' Prepare the camera data for cleaning
 #'
-#' @param dat The data, a list with at least one component
-#' $data 
-#'    $deployments
-#'    $observations
-#' @param mapping_cameras The mapping for camera columns
+#' @param dat The data. It can be either a list with one component `$data`
+#' or a `datapackage` object (inheriting list). Either way, the data 
+#' are in the `$data` slot with two components: 
+#' + `$deployments` (cameras table)
+#' + `$observations` (records table)
+#' @param mapping_cameras The mapping list for columns in the cameras table 
+#' (`dat$data$deployments`). The names of the list indicate the
+#' the column type and the values indicate the relevant column names
+#' to consider.
 #' @param split should camera data be extracted from the records?
+#' If yes, a cameras table will be created and replace the value
+#' of `dat$data$deployments`.
 #'
-#' @return The dataset with "pre-cleaned" camera data, i.e.
-#'  if split = TRUE, dat$data$deployments is filled with data extracted from the recorde
-#'  the records are unique across the mapping column
+#' @return The dataset with "pre-cleaned" cameras data:
+#' + the cameras table is filtered to keep unique rows across 
+#' the columns indicated in `mapping_cameras`. This allows to filter 
+#' for instance between duplicated cameras names.
+#' + if `split` is `TRUE`, `dat$data$deployments` is replaced with 
+#' data extracted from `dat$data$observations` 
+#' (only the columns indicated in `mapping_cameras`).
 prepare_cameras <- function(dat, mapping_cameras, split = FALSE) {
   
   # Initialize results
@@ -293,7 +332,8 @@ prepare_cameras <- function(dat, mapping_cameras, split = FALSE) {
   }
   
   # Select unique rows for camera table
-  # We want rows to be unique across the used camera columns defined in mapping_cameras()$mapping
+  # We want rows to be unique across the used camera columns 
+  # defined in mapping_cameras
   res$data$deployments <- res$data$deployments %>%
     distinct(across(all_of(unname(unlist(mapping_cameras)))),
              .keep_all = TRUE)
@@ -301,25 +341,34 @@ prepare_cameras <- function(dat, mapping_cameras, split = FALSE) {
   return(res)
 }
 
-#' Cast columns to expected types
+#' Cast columns
+#' 
+#' Converts columns to a given format.
 #'
-#' @param df A dataframe containing the columns specified in col_mapping (values)
-#' @param cast_type A named list with the type conversion to perform.
-#' Names are the names of the columns to cast in df.
-#' Elements of this list can either be characters giving
-#' a valid function name to call, or a list with the first element as 
-#' the function to call and additional arguments (that can be named)
-#' being the arguments to pass to the function.
+#' @param df A dataframe containing the columns specified in 
+#' the names of `cast_type`.
+#' @param cast_type A named list containing the name of the 
+#' function to cast between types.
+#' The list's names are the names of the columns to cast in `df`.
+#' Elements of this list can be:
+#' + a character giving a valid function name to call
+#' + a list with the first element being the function to call (character)
+#' and additional arguments to the function call (that can be named as 
+#' the names of the functions' arguments).
 #'
-#' @return the df with casted columns
+#' @return the original dataframe with the specified columns
+#' casted with the type indicated in `cast_type`.
 #' 
 #' @export
 #' 
 #' @examples
 #' df <- data.frame(num = 1:10,
-#'                  char = letters[1:10])
+#'                  char = letters[1:10],
+#'                  date = rep("12/24/2020", 10))
 #' cast <- list(num = "as.character",
-#'              char = "as.factor")
+#'              char = "as.factor",
+#'              date = list("as.Date", 
+#'                          format = "%m/%d/%Y"))
 #' dfcast <- cast_columns(df, cast)
 cast_columns <- function(df, cast_type) {
   
@@ -355,34 +404,48 @@ cast_columns <- function(df, cast_type) {
   return(res)
 }
 
-#' Formats a dataframe
+#' Format table
 #' 
-#' Moves columns indicated in mapping to the beginning,
-#' casts those columns and removes rows where mapping columns
-#' have NA values.
+#' Casts columns as indicated in `cast_type` and 
+#' moves columns indicated in `mapping` to the beginning
+#' of the table.
 #'
-#' @param df The dataframe to clean
-#' @param mapping The mapping for columns in the dataframe.
-#' @param cast_type A named vector for which values are
-#' the functions names to apply for each corresponding column 
-#' of the vector name. Where mapping is NULL, the casting will not be
-#' performed for those columns and hence it is possible that cast_type
-#' contains only the non-null values of mapping.
+#' @param df The dataframe to format
+#' @param mapping The mapping list for columns in the dataframe.
+#' Names are the column types (common between `mapping` and
+#' `cast_type`). Values are the corresponding column names
+#' in the dataframe. 
+#' @param cast_type A named list containing the name of the 
+#' function to cast between types.
+#' The list's names are the names of the columns column types 
+#' (common between `mapping` and `cast_type`). 
+#' Elements of this list can be:
+#' + a character giving a valid function name to call
+#' + a list with the first element being the function to call (character)
+#' and additional arguments to the function call (that can be named as 
+#' the names of the functions' arguments).
 #'
-#' @return The dataframe df with cleaned columns.
+#' @return The dataframe df with reordered and casted columns.
 #' 
 #' @export
 #'
 #' @examples
-#' library(camtraptor)
-#' data(mica)
-#' mapping <- list("col_spp" = "vernacularNames.en",
-#'                 "cam_col" = "deploymentID",
-#'                 "timestamp_col" = "timestamp")
-#' type <- c("col_spp" = "as.character",
-#'           "cam_col" = "as.character",
-#'           "timestamp_col" = "as_datetime")
-#' format_table(mica$data$observations, mapping, type)
+#' # Create synthetic dataset
+#' df <- data.frame(camera = c("A", "B", "C"),
+#'                  lat = c("20.12", "20.22", "22.34"),
+#'                  lon = c("33.44", "33.45", "33.42"),
+#'                  setup = c("2022-01-01", "2022-01-01", "2022-01-02"))
+#' mapping <- list(cam_col = "camera",
+#'                 lat_col = "lat",
+#'                 lon_col = "lon",
+#'                 setup_col = "setup")
+#' type <- list(cam_col = "as.character",
+#'              lat_col = "as.numeric",
+#'              lon_col = "as.numeric",
+#'              setup_col = list("as.Date",
+#'                               format = "%Y-%m-%d"))
+#' # Format table
+#' format_table(df, mapping, type)
 format_table <- function(df, mapping, cast_type) {
   
   # Vector from list (NULL will be discarded)
@@ -418,41 +481,46 @@ format_table <- function(df, mapping, cast_type) {
   return(res)
 }
 
-#' Remove rows with NAs
+#' Remove rows with NA
 #'
-#' @param df The dataframe to clean
-#' @param mapping The mapping for columns in the dataframe.
-#'
-#' @return The dataframe where rows in mapping contain no NA values
-#' (except spp_col which is allowed to have NA values if obs_col is in mapping,
-#' when obs_col != 'animal')
+#' @param df The dataframe for which to remove NA
+#' @param mapping The mapping list for columns in the dataframe.
+#' Names are the column types. They are free, except the
+#' species column and the observation type column, which
+#' must be coded with respectively `obs_col` and `spp_col`
+#' (if they exist). If `obs_col` is present in the names,
+#' then `spp_col` is assumed to be present too.
+#' Values are the corresponding column names in the dataframe. 
+#' 
+#' @return The filtered dataframe, so that rows in `mapping` contain no 
+#' `NA` values. `NA` are allowed only in `spp_col` if `obs_col` 
+#' is in mapping is not `animal`.
 #' 
 #' @export
 #'
 #' @examples
-#' library(camtraptor)
-#' data(mica)
-#' df <- mica$data$observations
-#' mapping <- c("spp_col" = "vernacularNames.en",
-#'              "cam_col" = "deploymentID",
-#'              "timestamp_col" = "timestamp",
-#'              "obs_col" = "observationType")
-#' # Purposedly add NAs to chack rows are removed
-#' df$vernacularNames.en[9] <- NA
-#' df$timestamp[1] <- NA
+#' df <- data.frame(species = c("pigeon", "mouse", NA, "pigeon"), 
+#'                  type = c("animal", "animal", "blank", "animal"),
+#'                  stamp = Sys.time() + seq(60, length.out = 4, by = 60), 
+#'                  camera = c("A", "B", "C", NA))
+#' mapping <- list(spp_col = "species",
+#'                 obs_col = "type",
+#'                 timestamp_col = "stamp",
+#'                 cam_col = "camera")
 #' remove_rows_with_NA(df, mapping)
 remove_rows_with_NA <- function(df, mapping) {
   
   if ("obs_col" %in% names(mapping)) {
     # Authorize NA values in spp_col where obs_col is not "species"
-    spp_col_name <- mapping["spp_col"]
-    obs_col_name <- mapping["obs_col"]
+    spp_col_name <- mapping[["spp_col"]]
+    obs_col_name <- mapping[["obs_col"]]
     
     na_check <- mapping[mapping != spp_col_name]
+    na_check <- unlist(na_check)
     
     # Drop NA in all columns except spp_col
     res <- df %>%
-      drop_na(all_of(unname(na_check)))
+      tidyr::drop_na(all_of(unname(na_check)))
     
     obs_col <- res[[obs_col_name]]
     spp_col <- res[[spp_col_name]]
@@ -462,30 +530,48 @@ remove_rows_with_NA <- function(df, mapping) {
     if (length(spp_NA) != 0) {
       res <- res[-spp_NA,]
     }
-    
-  } else {
+  } else { # No obs_col
     # No NAs authorized in the mapping columns
     res <- df %>%
-      drop_na(all_of(unname(mapping)))
+      tidyr::drop_na(all_of(unname(mapping)))
   }
+  
   return(res)
 }
 
-#' Filter data to keep only cameras in both tables
+#' Filter cameras in both tables
 #'
-#' Selects rows where cameras are in both tables
+#' Filter data to keep only rows where cameras are in both tables
 #' 
 #' @param records Records dataframe
 #' @param cameras Cameras dataframe
-#' @param cam_col_records Name of the columns with camera values in records
-#' @param cam_col_cameras Name of the columns with camera values in cameras
+#' @param cam_col_records Name of the column with cameras names in records
+#' @param cam_col_cameras Name of the column with cameras names in cameras.
+#' If `NULL` will be assumed to be the same as `cam_col_records`. 
 #'
-#' @return A list of 2 dataframes with filtered values.
+#' @return A list of two dataframes with filtered values:
+#' + `$records` is the records dataframe
+#' + `$cameras` is the cameras dataframe
 #' 
 #' @export
+#' 
+#' @examples
+#' records <- data.frame(species = c("pigeon", "mouse", "pigeon", "mouse"),
+#'                       stamp = Sys.time() + seq(60, length.out = 4, by = 60),
+#'                       camera = c("A", "B", "C", "E"))
+#' cameras <- data.frame(camera = c("A", "B", "C", "D"), 
+#'                       lat = c(20.12, 20.22, 22.34, 21.35),
+#'                       lon = c(33.44, 33.45, 33.42, 33.53))
+#' filter_cameras_in_both_tables(records, cameras, 
+#'                               cam_col_records = "camera")
 filter_cameras_in_both_tables <- function(records, cameras, 
                                           cam_col_records, 
-                                          cam_col_cameras) {
+                                          cam_col_cameras = NULL) {
+  
+  # Set cam_col_cameras
+  if (is.null(cam_col_cameras)) {
+    cam_col_cameras <- cam_col_records
+  }
   
   # Get unique camera names
   ucam_records <- unique(records[[cam_col_records]])
@@ -510,56 +596,85 @@ filter_cameras_in_both_tables <- function(records, cameras,
 
 #' Clean data
 #'
-#' Cleans raw data by:
-#' + splitting data if needed
-#' + formatting cameras and records tables
-#' + (if only_shared_cameras): selecting the subset of cameras present in both datasets
+#' Cleans data by:
+#' + splitting records data in records and cameras (if needed)
+#' + formatting cameras and records tables: casting columns and
+#' moving the selected columns to the beginning
+#' + if `only_shared_cameras` is `TRUE`: selecting the subset of 
+#' cameras present in both records and cameras tables
 #'  
-#' @param dat The data ti clean
-#' @param mapping_cameras The mapping for columns in the cameras dataframe.
-#' Names are free except the camera column which must be identified with cam_col.
-#' They must only be the same names as in cam_type.
-#' @param cam_type A named list with the type conversion to perform.
-#' Must be a valid function name to call.
-#' Names are the names of the columns to cast in cameras df.
-#' @param mapping_records The mapping for columns in the records dataframe.
-#' Names are free except the camera column which must be identified with cam_col.
-#' They must only be the same names as in rec_type.
-#' @param rec_type A named vector with the type conversion to perform.
-#' Must be a valid function name to call.
-#' Names are the names of the columns to cast in records df.
-#' @param split Should the camera data be splitted from the records table?
-#' @param only_shared_cameras restrict cleaned data to shared cameras? (ie the
-#' cameras that are in data$deployments and in data$observations)
+#' @param dat The data to clean. It can be either a list with one component `$data`
+#' or a `datapackage` object (inheriting list). Either way, the data 
+#' are in the `$data` slot with two components: 
+#' + `$deployments` (cameras table)
+#' + `$observations` (records table)
+#' @param mapping_cameras The mapping list for columns in the cameras table.
+#' Names are the column types (common between `mapping_cameras` and `cam_type`). 
+#' Values are the corresponding column names in `dat$data$deployments`. 
+#' Names are free except the camera column which must be identified with `cam_col`.
+#' @param cam_type A named list containing the name of the 
+#' function to cast between types for the cameras table.
+#' The list's names are the names of `mapping_cameras` 
+#' corresponding to the columns to cast in `dat$data$deployments`.
+#' For details on the content of this list, see the documentation of 
+#' the `cast_columns` function.
+#' @param mapping_records The mapping list for columns in the cameras table.
+#' Names are the column types (common between `mapping_records` and `rec_type`). 
+#' Values are the corresponding column names in `dat$data$observations`. 
+#' Names are free except the camera column which must be identified with `cam_col`.
+#' @param rec_type A named list containing the name of the 
+#' function to cast between types for the records table.
+#' The list's names are the names of `mapping_records` 
+#' corresponding to the columns to cast in `dat$data$observations`. 
+#' For details on the content of this list, see the documentation of 
+#' the `cast_columns` function.
+#' @param split Logical; should the camera data be extracted from the 
+#' records table by splitting the data?
+#' @param only_shared_cameras Logical; restrict final data to shared cameras
+#' that are in `dat$data$deployments` and in `dat$data$observations`?
 #'
-#' @return The cleaned dataset
+#' @return An object of the same type as the original input,
+#' but where `dat$data$deployments` and `dat$data$observations` have been
+#' cleaned as described above.
 #' 
 #' @export
 #' 
 #' @examples
-#' data(recordTableSample, package = "camtrapR")
-#' data(camtraps, package = "camtrapR")
-#' dat <- list(data = list(observations = recordTableSample,
-#'                         deployments = camtraps))
-#' mapping_records <- list(cam_col = "Station",
-#' date_col = "Date",
-#' time_col = "Time")
-#' rec_type <- list(cam_col = "as.character",
+#' # Create synthetic dataset
+#' records <- data.frame(foo = 1:6,
+#'                       species = c("pigeon", "mouse", "pigeon", "mouse", "mouse", "pigeon"),
+#'                       date = c("2022-01-01", "2022-03-01", 
+#'                                "2022-01-02", "2022-01-12", "2022-01-22",
+#'                                "2022-01-03"),
+#'                       time = c("10:22:01", "22:12:01",
+#'                                "11:54:33", "07:14:38", "18:01:34", 
+#'                                "12:11:34"),
+#'                       camera = c("A", "A", "B", "B", "B", "C"))
+#' cameras <- data.frame(camera = c("A", "B", "C"),
+#'                       lat = c("20.12", "20.22", "22.34"),
+#'                       lon = c("33.44", "33.45", "33.42"))
+#' dat <- list(data = list(observations = records,
+#'                         deployments = cameras))
+#' mapping_records <- list(species_col = "species",
+#'                         date_col = "date",
+#'                         time_col = "time",
+#'                         cam_col = "camera")
+#' rec_type <- list(species_col = "as.character",
 #'                  date_col = list("as_date",
 #'                                  format = "%Y-%m-%d"),
-#'                  time_col = "times")
-#' 
-#' mapping_cameras <- list(cam_col = "Station",
-#'                         setup_col = "Setup_date",
-#'                         retrieval_col = "Retrieval_date")
+#'                  time_col = "times",
+#'                  cam_col = "as.character")
+#' mapping_cameras <- list(cam_col = "camera",
+#'                         lat_col = "lat",
+#'                         lon_col = "lon")
 #' cam_type <- list(cam_col = "as.character",
-#'                  setup_col = list("as_date",
-#'                                   format = "%d/%m/%Y"), 
-#'                  retrieval_col = list("as_date",
-#'                                       format = "%d/%m/%Y"))
-#' dat_clean <- clean_data(dat, 
-#'                         mapping_records = mapping_records, rec_type = rec_type,
-#'                         mapping_cameras = mapping_cameras, cam_type = cam_type)
+#'                  lat_col = "as.numeric",
+#'                  lon_col = "as.numeric")
+#' # Clean data converts columns to the appropriate types 
+#' # and reorders columns
+#' clean_data(dat,
+#'            mapping_records = mapping_records, rec_type = rec_type,
+#'            mapping_cameras = mapping_cameras, cam_type = cam_type)
 clean_data <- function(dat, 
                        mapping_cameras, 
                        cam_type,
@@ -605,19 +720,21 @@ clean_data <- function(dat,
 
 #' Get cameras not in
 #'
-#' From a records and a cameras dataframe, determine which cameras are in a file
-#' but not in the other
+#' Using two dataframes in input, determine which cameras 
+#' are in one of the tables but not in the other one.
 #'
 #' @param dfrecords records dataframe
 #' @param dfcameras cameras dataframe
 #' @param cam_col_records name of the cameras column in the records dataframe
 #' @param cam_col_cameras name of the cameras column in the cameras dataframe
 #'
-#' @return A named list with 2 components
-#' not_in_records: cameras from dfcameras that are not in dfrecords
-#' not_in_cameras: cameras from dfrecords that are not in dfcameras
-#' If the cameras are toe same in both files, the components of the list are 
-#' character vectors of length zero.
+#' @return A named list with two components
+#' + `$not_in_records`: cameras from `dfcameras` that are not in `dfrecords`.
+#' If all cameras from `dfcameras` are in `dfrecords`, this is a character vector 
+#' of length zero.
+#' + `$not_in_cameras`: cameras from `dfrecords` that are not in `dfcameras`
+#' If all cameras from `dfrecords` are in `dfcameras`, this is a character vector 
+#' of length zero.
 #'
 #' @export
 #'
@@ -648,13 +765,18 @@ get_cameras_not_in <- function(dfrecords,
 
 #' Print check cameras
 #' 
-#' Prints a message to describe cameras status
+#' Display a message to say which cameras are absent from the records or
+#' cameras dataframe.
 #'
 #' @param cameras character vector of camera names
-#' @param type type of message to print: not_in_records or not_in_cameras
+#' @param type type of message to print: allowed values are 
+#' `not_in_records` or `not_in_cameras`. Depending on this argument,
+#' the sentence will state that input cameras are not in the records 
+#' or in the cameras dataframe.
 #'
-#' @return A message describing which cameras are missing where, 
-#' the empty string of no cameras are missing
+#' @return A message describing which cameras are missing where. 
+#' If no cameras are missing (i.e. `cameras` is a vector of length
+#' zero), returns the empty string "".
 print_check_cameras <- function(cameras, 
                                 type = c("not_in_records", "not_in_cameras")) {
   
@@ -681,219 +803,75 @@ print_check_cameras <- function(cameras,
   
   return(msg)
 }
-#' Plot points
-#' 
-#' Plot occurrences points from a dataframe
-#'
-#' @param df The dataframe
-#' @param camera_col Name of the camera column
-#' @param spp_col Name of the species column
-#' @param timestamp_col Name of the timestamp column 
-#' (can be null if date_col and time_col are provided)
-#' @param date_col Name of the date column (can be NULL if timestamp_col is provided)
-#' @param time_col Name of the time column (can be NULL if timestamp_col is provided)
-#' @param interactive  Make the plot interactive?
-#'
-#' @details If date_col and time_col are provided along timestamp_col,
-#' they will be ignored.
-#' 
-#' @return A ggplot
-#'
-#' @export
-#'
-#' @examples
-#' library(camtrapR)
-#' data("recordTableSample")
-#' plot_points(recordTableSample, 
-#'             camera_col = "Station", 
-#'             timestamp_col = "DateTimeOriginal", 
-#'             spp_col = "Species")
-plot_points <- function(df, 
-                        camera_col,
-                        spp_col,
-                        timestamp_col,
-                        date_col = NULL,
-                        time_col = NULL,
-                        interactive = TRUE) {
-  
-  # Initialize plotting data
-  dfp <- df
-  
-  if (missing(timestamp_col) || is.null(timestamp_col)) { # no timestamp
-    if (is.null(date_col) | is.null(time_col)) {
-      stop("If timestamp_col is not provided, date_col and time_col must be provided.")
-    }
-  }
-  
-  if (missing(timestamp_col) || is.null(timestamp_col)) { # no timestamp
-    if("timestamp_col" %in% colnames(dfp)) {
-      warning("timestamp_col already exists and this might interfer with plotting")
-    }
-    # Create a composite timestamp
-    dfp$timestamp_col <- paste(as.character(dfp[[date_col]]), 
-                               as.character(dfp[[time_col]]))
-    
-    dfp$timestamp_col <- as.POSIXct(dfp$timestamp_col)
-    
-    # Change timestamp_col value
-    timestamp_col <- "timestamp_col"
-  }
-  
-  if (interactive) {
-    gg <- ggplot(dfp, aes(x = .data[[timestamp_col]], 
-                          y = .data[[camera_col]],
-                          col = .data[[spp_col]],
-                          tooltip = paste(.data[[spp_col]], 
-                                          .data[[timestamp_col]],
-                                          sep = ": "),
-                          data_id = .data[[camera_col]]
-                          )) +
-      geom_point_interactive(show.legend = FALSE)
-  } else {
-    gg <- ggplot(dfp, aes(x = .data[[timestamp_col]], 
-                          y = .data[[camera_col]],
-                          col = .data[[spp_col]])) +
-      geom_point(show.legend = FALSE)
-  }
-  
-  gg <- gg +
-    theme_linedraw() + 
-    xlab("Date") +
-    ylab("Camera")
-  
-  return(gg)
-}
-
-#' Plot species bars
-#'
-#' Plot the barplot of species abundance from a dataframe
-#'
-#' @param df The dataframe
-#' @param spp_col Name of the species column
-#' @param count_col Name of the count column
-#' @param obs_col Name of the observation type column
-#' @param interactive Make the plot interactive?
-#'
-#' @return A ggplot
-#' @export
-#'
-#' @examples
-#' library(camtrapR)
-#' data("recordTableSample")
-#' plot_species_bars(recordTableSample,
-#'                   spp_col = "Species")
-plot_species_bars <- function(df, 
-                              spp_col, 
-                              count_col = NULL,
-                              obs_col = NULL,
-                              interactive = TRUE) {
-  
-  # Initialize df plot
-  dfp <- df
-  
-  if (!is.null(obs_col)) {
-    # Get only the observations of type animal
-    dfp <- dfp %>% filter(.data[[obs_col]] == "animal")
-  }
-  
-  # Group by species
-  dfp <- dfp %>% group_by(.data[[spp_col]])
-  
-  if (is.null(count_col)) { # no count column
-    dfp <- dfp %>%
-      summarise(count = n())
-  } else { # count column
-    dfp <- dfp %>%
-      summarise(count = sum(.data[[count_col]]))
-  }
-   
-  if (interactive) {
-    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], count),
-                          y = count,
-                          tooltip = paste(.data[[spp_col]], count, 
-                                          sep = ": ")
-                          )) +
-      geom_col_interactive()
-  } else {
-    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], count),
-                          y = count)) +
-      geom_col()
-  }
-  gg <- gg +
-    coord_flip() +
-    theme_linedraw() +
-    ylab("Count") +
-    theme(axis.title.y = element_blank())
-  
-  return(gg)
-}
-
-#' Plot map
-#' 
-#' Plot a leaflet map of cameras
-#' 
-#' @param df A dataframe with latitude and longitude columns
-#' @param lat_col Name of the latitude column
-#' @param lon_col Name of the longitude column
-#' @param crs EPSG code for the coordinate reference system
-#' @param cam_col Name of the camera name column
-#' @param color color for the points
-
-#'
-#' @return a leaflet map
-#' @export
-plot_map <- function(df, 
-                     lat_col, lon_col, 
-                     crs = NULL,
-                     cam_col,
-                     color = "black") {
-  
-  if(!is.null(crs)) { # Specify the CRS
-    df_sf <- sf::st_as_sf(df, 
-                          coords = c(lon_col, lat_col),
-                          crs = as.numeric(crs))
-    # Reproject in WGS 84 (a.k.a. EPSG:4326)
-    df_sf <- sf::st_transform(df_sf, 4326)
-  } else { # Let leaflet choose the CRS
-    df_sf <- sf::st_as_sf(df, 
-                          coords = c(lon_col, lat_col))
-  }
-  
-  leaflet(df_sf) %>% 
-    addTiles() %>% 
-    addCircles(data = df_sf,
-               label = paste0("Camera: ", df_sf[[cam_col]]),
-               layerId = df_sf[[cam_col]],
-               popup = df_sf[[cam_col]],
-               color = color,
-               highlightOptions = highlightOptions(color = "red"))
-}
 
 #' Summarize cameras
 #' 
-#' Summarize camera trap data (records) by creating a start 
-#' and an retrieval date.
-#' If setup and retrieval date are provided via dfcam,
-#' then the dates used in setup and retrieval will be used instead of
-#' the first/last picture date.
+#' Summarize information about cameras activity from camera trap data.
 #' 
-#' @param df the dataframe
-#' @param cam_col name of the column containing camera IDs
-#' @param timestamp_col name of the column containing timestamps 
-#' (optional if date_col and time_col are provided)
-#' @param date_col name of the column containing date (optional if timestamp is provided)
-#' @param time_col name of the column containing hour (optional if timestamp is provided)
-#' @param dfcam the dataframe of cameras deployments (optional)
-#' @param cam_col_dfcam name of the column containing camera IDs in dfcam (optional if dfcam not provided)
-#' @param setup_col name of the column containing setup date/time in dfcam (optional if retrieval_col is provided)
-#' @param retrieval_col name of the column containing retrieval date/time in dfcam (optional if setup_col is provided)
+#' @param df the records dataframe: must contain the camera names and some
+#' infortmation on the pictures sampling time (date and time or datetime).
+#' @param cam_col name of the column containing the camera ID
+#' @param timestamp_col name of the column containing timestamps for the pictures
+#' (optional if `date_col` and `time_col` are provided)
+#' @param date_col name of the column containing date (optional if `timestamp_col` is provided)
+#' @param time_col name of the column containing time (optional if `timestamp_col` is provided)
+#' @param dfcam the dataframe of cameras deployments (optional). If it is provided,
+#' at least `setup_col` or `retrieval_col` must also be provided.
+#' @param cam_col_dfcam name of the column containing camera ID in `dfcam` 
+#' If `dfcam` is provided but `cam_col_dfcam` is `NULL`, it will be set to `cam_col`.
+#' @param setup_col name of the column containing setup date or datetime 
+#' in `dfcam` (optional if `retrieval_col` is provided)
+#' @param retrieval_col name of the column containing retrieval date or datetime 
+#' in `dfcam` (optional if `setup_col` is provided)
 #' 
-#' @return A summarized dataframe with one row per camera:
-#' cam_col (name of the camera column), setup, retrieval,
-#' setup_origin ("picture" or "setup_date") and
-#' retrieval_origin ("picture" or "retrieval_date")
+#' @details In the final dataframe, the start and the end of the sampling are
+#' computed as follows for each camera:
+#' + if setup and retrieval date are provided in `dfcam`, then these
+#' dates are used for the start and the end of the sampling in the summary.
+#' + for the cameras for which this information is not provided,
+#' it will be replaced with the date of the first or the last picture
+#' of the camera.
+#' The information on how the start and the end of the sampling 
+#' were computed is stored in `setup_origin` and `retrieval_origin`.
+#' + if setup and retrieval date are provided via `dfcam`, 
+#' `setup_origin` is `setup` and `retrieval_origin` is ``retrieval`.
+#' + else, these columns contain `picture`.
+#' As this function uses the `cameraOperation` function from 
+#' the `camtrapR` package, the camera names may not contain 
+#' `Cam` as it is a reserved name in this function.
+#' 
+#' @return The summary is returned as a dataframe with the following columns:
+#' + a column named as `cam_col` containing the camera ID.
+#' + `setup` containing the start of the sampling for each camera.
+#' + `retrieval` containing the end of the sampling for each camera.
+#' + `setup_origin` containing the method used to determine the
+#' start of the sampling (`picture` or `setup`)
+#' + `retrieval_origin` containing the method used to determine the
+#' end of the sampling (`picture` or `retrieval`)
+#' + `sampling_length` length of the sampling period in days (computed
+#' with the `cameraOperation` function from the `camtrapR` package).
 #' 
 #' @export
+#' 
+#' @examples
+#' # Create synthetic data
+#' records <- data.frame(species = c("pigeon", "mouse", "pigeon", "mouse", "mouse"),
+#'                       stamp = as.POSIXct(c("2022-01-01 10:22:01", "2022-03-01 22:12:01",
+#'                                            "2022-01-02 11:54:33", "2022-01-12 07:14:38", 
+#'                                            "2022-01-22 18:01:34")),
+#'                       camera = c("A", "A", "B", "B", "B"))
+#' cameras <- data.frame(camera = c("A", "B", "C"),
+#'                       setup = as.Date(c(NA, "2021-12-01", "2021-12-01")),
+#'                       retrieval = as.Date(c("2022-03-01", "2022-03-01", NA)))
+#' # Summarize cameras
+#' summarize_cameras(records, 
+#'                   cam_col = "camera", timestamp_col = "stamp", 
+#'                   dfcam = cameras, 
+#'                   setup_col = "setup", retrieval_col = "retrieval")
+#' # Since camera A had no setup date, the first picture is used.
+#' # For camera B, setup and retrieval are taken from dfcam.
+#' # For camera C, as it is present only on dfcam and has no retrieval date,
+#' # only a setup date is indicated.
 summarize_cameras <- function(df, cam_col, 
                               timestamp_col,
                               date_col = NULL, time_col = NULL,
@@ -918,8 +896,8 @@ summarize_cameras <- function(df, cam_col,
   
   # Check that some columns are provided when dfcam is provided
   if (!is.null(dfcam)) {
-    if (is.null(cam_col_dfcam)) {
-      stop("If dfcam is not NULL, then cam_col_dfcam must be provided.")
+    if (is.null(cam_col_dfcam)) { # Set cam_col_dfcam to cam_col
+      cam_col_dfcam <- cam_col
     }
     if (is.null(setup_col) & is.null(retrieval_col)) {
       stop("If dfcam is not NULL, then setup_col or retrieval_col must be provided.")
@@ -1024,6 +1002,9 @@ summarize_cameras <- function(df, cam_col,
   
   # Get sampling length per camera
   sampling_length <- rowSums(mat, na.rm = TRUE)
+  # Remove added suffix Camxx
+  names(sampling_length) <- gsub(names(sampling_length),
+                                 pattern = "Cam\\d+$", replacement = "")
   sampling_length <- sampling_length[match(camsum[[cam_col]], names(sampling_length))]
   # (will set the cameras of camsum without sampling_length
   # to NA which is what we want)
@@ -1033,3 +1014,223 @@ summarize_cameras <- function(df, cam_col,
   
   return(camsum)
 }
+
+
+# Plotting functions ------------------------------------------------------
+
+
+#' Plot points
+#' 
+#' Plot species occurrences at cameras as points
+#'
+#' @param df The dataframe
+#' @param camera_col Name of the camera column
+#' @param spp_col Name of the species column
+#' @param timestamp_col Name of the timestamp column. If it
+#' is a datetime, it must be of class POSIXct. It can be `NULL` 
+#' if `date_col` and `time_col` are provided.
+#' @param date_col Name of the date column. It is assumed
+#' to be of class `Date` (else, results are not guaranteed). 
+#' It can be `NULL` if `timestamp_col` is provided.
+#' @param time_col Name of the time column. It is assumed
+#' to be of class `times` (else, results are not guaranteed). 
+#' It can be `NULL` if `timestamp_col` is provided.
+#' @param interactive Logical; make the plot interactive with `ggiraph`?
+#'
+#' @details If `date_col` and `time_col` are provided along with
+#' `timestamp_col`, they will be ignored.
+#' 
+#' @return A `ggplot` object representing time on the x-axis
+#' and cameras on the y-axis. Colors of the points correspond to 
+#' different species.
+#'
+#' @export
+#'
+#' @examples
+#' data("recordTableSample", package = "camtrapR")
+#' recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal)
+#' plot_points(recordTableSample, 
+#'             camera_col = "Station", 
+#'             timestamp_col = "DateTimeOriginal", 
+#'             spp_col = "Species")
+plot_points <- function(df, 
+                        camera_col,
+                        spp_col,
+                        timestamp_col,
+                        date_col = NULL,
+                        time_col = NULL,
+                        interactive = TRUE) {
+  
+  # Initialize plotting data
+  dfp <- df
+  
+  if (missing(timestamp_col) || is.null(timestamp_col)) { # no timestamp
+    if (is.null(date_col) | is.null(time_col)) {
+      stop("If timestamp_col is not provided, date_col and time_col must be provided.")
+    }
+  }
+  
+  if (missing(timestamp_col) || is.null(timestamp_col)) { # no timestamp
+    if("timestamp_col" %in% colnames(dfp)) {
+      warning("timestamp_col already exists and this might interfer with plotting")
+    }
+    # Create a composite timestamp
+    dfp$timestamp_col <- paste(as.character(dfp[[date_col]]), 
+                               as.character(dfp[[time_col]]))
+    
+    dfp$timestamp_col <- as.POSIXct(dfp$timestamp_col)
+    
+    # Change timestamp_col value
+    timestamp_col <- "timestamp_col"
+  }
+  
+  if (interactive) {
+    gg <- ggplot(dfp, aes(x = .data[[timestamp_col]], 
+                          y = .data[[camera_col]],
+                          col = .data[[spp_col]],
+                          tooltip = paste(.data[[spp_col]], 
+                                          .data[[timestamp_col]],
+                                          sep = ": "),
+                          data_id = .data[[camera_col]]
+                          )) +
+      geom_point_interactive(show.legend = FALSE)
+  } else {
+    gg <- ggplot(dfp, aes(x = .data[[timestamp_col]], 
+                          y = .data[[camera_col]],
+                          col = .data[[spp_col]])) +
+      geom_point(show.legend = FALSE)
+  }
+  
+  gg <- gg +
+    theme_linedraw() + 
+    xlab("Date") +
+    ylab("Camera")
+  
+  return(gg)
+}
+
+#' Plot species bars
+#'
+#' Plot the barplot of species abundance
+#'
+#' @param df The dataframe
+#' @param spp_col Name of the species column
+#' @param count_col Name of the count column (optional). If missing,
+#' it will be assumed to be 1 for all observations.
+#' @param obs_col Name of the observation type column (optional).
+#' If it is present, the function will plot only the observations
+#' for which `obs_col` is "animal". 
+#' @param interactive Logical; make the plot interactive with `ggiraph`?
+#'
+#' @return A `ggplot` object representing horizontal bars of species
+#' count. The x-axis is the observed number of individuals and the y-axis
+#' are the different species.
+#' 
+#' @export
+#'
+#' @examples
+#' data("recordTableSample", package = "camtrapR")
+#' plot_species_bars(recordTableSample,
+#'                   spp_col = "Species")
+plot_species_bars <- function(df, 
+                              spp_col, 
+                              count_col = NULL,
+                              obs_col = NULL,
+                              interactive = TRUE) {
+  
+  # Initialize df plot
+  dfp <- df
+  
+  if (!is.null(obs_col)) {
+    # Get only the observations of type animal
+    dfp <- dfp %>% filter(.data[[obs_col]] == "animal")
+  }
+  
+  # Group by species
+  dfp <- dfp %>% group_by(.data[[spp_col]])
+  
+  if (is.null(count_col)) { # no count column
+    dfp <- dfp %>%
+      summarise(count = n())
+  } else { # count column
+    dfp <- dfp %>%
+      summarise(count = sum(.data[[count_col]]))
+  }
+   
+  if (interactive) {
+    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], count),
+                          y = count,
+                          tooltip = paste(.data[[spp_col]], count, 
+                                          sep = ": ")
+                          )) +
+      geom_col_interactive()
+  } else {
+    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], count),
+                          y = count)) +
+      geom_col()
+  }
+  gg <- gg +
+    coord_flip() +
+    theme_linedraw() +
+    ylab("Count") +
+    theme(axis.title.y = element_blank())
+  
+  return(gg)
+}
+
+#' Plot map
+#' 
+#' Plot a leaflet map representing cameras' coordinates as points.
+#' 
+#' @param df A dataframe containing cameras information
+#' @param lat_col Name of the latitude (or the projected y-coordinate) 
+#' column
+#' @param lon_col Name of the longitude (or the projected y-coordinate) 
+#' column
+#' @param crs EPSG code for the coordinate reference system (CRS)
+#' Defaults to EPSG:4326, which is the code for WGS84 standard.
+#' @param cam_col Name of the camera name column
+#' @param color color for the points
+#'
+#' @return a `leaflet` map representing cameras as points.
+#' If the CRS of the input data is different from EPSG:4326 (WGS84), 
+#' data are re-projected using WGS84.
+#' When hovering over a camera, it becomes red and its name is shown.
+#' When clicking on a camera, a popup displaying the camera name appears.
+#' 
+#' @export
+#' 
+#' @examples
+#' data(camtraps, package = "camtrapR")
+#' plot_map(camtraps,
+#'          lat_col = "utm_y", 
+#'          lon_col = "utm_x",
+#'          crs = 32650, # Here we use the EPSG code for UTM zone 50N
+#'          cam_col = "Station")
+plot_map <- function(df, 
+                     lat_col, lon_col, 
+                     crs = 4326,
+                     cam_col,
+                     color = "black") {
+  
+  if(!is.null(crs)) { # Specify the CRS
+    df_sf <- sf::st_as_sf(df, 
+                          coords = c(lon_col, lat_col),
+                          crs = as.numeric(crs))
+    # Reproject in WGS84 (a.k.a. EPSG:4326)
+    df_sf <- sf::st_transform(df_sf, 4326)
+  } else { # Let leaflet choose the CRS
+    df_sf <- sf::st_as_sf(df, 
+                          coords = c(lon_col, lat_col))
+  }
+  
+  leaflet(df_sf) %>% 
+    addTiles() %>% 
+    addCircles(data = df_sf,
+               label = paste0("Camera: ", df_sf[[cam_col]]),
+               layerId = df_sf[[cam_col]],
+               popup = df_sf[[cam_col]],
+               color = color,
+               highlightOptions = highlightOptions(color = "red"))
+}
+

@@ -2,37 +2,53 @@
 % Please edit documentation in R/server_functions.R
 \name{format_table}
 \alias{format_table}
-\title{Formats a dataframe}
+\title{Format table}
 \usage{
 format_table(df, mapping, cast_type)
 }
 \arguments{
-\item{df}{The dataframe to clean}
+\item{df}{The dataframe to format}
 
-\item{mapping}{The mapping for columns in the dataframe.}
+\item{mapping}{The mapping list for columns in the dataframe.
+Names are the column types (common between \code{mapping} and
+\code{cast_type}). Values are the corresponding column names
+in the dataframe.}
 
-\item{cast_type}{A named vector for which values are
-the functions names to apply for each corresponding column
-of the vector name. Where mapping is NULL, the casting will not be
-performed for those columns and hence it is possible that cast_type
-contains only the non-null values of mapping.}
+\item{cast_type}{A named list containing the name of the
+function to cast between types.
+The list's names are the names of the columns column types
+(common between \code{mapping} and \code{cast_type}).
+Elements of this list can be:
+\itemize{
+\item a character giving a valid function name to call
+\item a list with the first element being the function to call (character)
+and additional arguments to the function call (that can be named as
+the names of the functions' arguments).
+}}
 }
 \value{
-The dataframe df with cleaned columns.
+The dataframe df with reordered and casted columns.
 }
 \description{
-Moves columns indicated in mapping to the beginning,
-casts those columns and removes rows where mapping columns
-have NA values.
+Casts columns as indicated in \code{cast_type} and
+moves columns indicated in \code{mapping} to the beginning
+of the table.
 }
 \examples{
-library(camtraptor)
-data(mica)
-mapping <- list("col_spp" = "vernacularNames.en",
-                "cam_col" = "deploymentID",
-                "timestamp_col" = "timestamp")
-type <- c("col_spp" = "as.character",
-          "cam_col" = "as.character",
-          "timestamp_col" = "as_datetime")
-format_table(mica$data$observations, mapping, type)
+# Create synthetic dataset
+df <- data.frame(camera = c("A", "B", "C"),
+                 lat = c("20.12", "20.22", "22.34"),
+                 lon = c("33.44", "33.45", "33.42"),
+                 setup = c("2022-01-01", "2022-01-01", "2022-01-02"))
+mapping <- list(cam_col = "camera",
+                lat_col = "lat",
+                lon_col = "lon",
+                setup_col = "setup")
+type <- list(cam_col = "as.character",
+             lat_col = "as.numeric",
+             lon_col = "as.numeric",
+             setup_col = list("as.Date",
+                              format = "\%Y-\%m-\%d"))
+# Format table
+format_table(df, mapping, type)
 }

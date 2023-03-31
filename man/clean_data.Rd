@@ -15,62 +15,93 @@ clean_data(
 )
 }
 \arguments{
-\item{dat}{The data ti clean}
+\item{dat}{The data to clean. It can be either a list with one component \verb{$data}
+or a \code{datapackage} object (inheriting list). Either way, the data
+are in the \verb{$data} slot with two components:
+\itemize{
+\item \verb{$deployments} (cameras table)
+\item \verb{$observations} (records table)
+}}
 
-\item{mapping_cameras}{The mapping for columns in the cameras dataframe.
-Names are free except the camera column which must be identified with cam_col.
-They must only be the same names as in cam_type.}
+\item{mapping_cameras}{The mapping list for columns in the cameras table.
+Names are the column types (common between \code{mapping_cameras} and \code{cam_type}).
+Values are the corresponding column names in \code{dat$data$deployments}.
+Names are free except the camera column which must be identified with \code{cam_col}.}
 
-\item{cam_type}{A named list with the type conversion to perform.
-Must be a valid function name to call.
-Names are the names of the columns to cast in cameras df.}
+\item{cam_type}{A named list containing the name of the
+function to cast between types for the cameras table.
+The list's names are the names of \code{mapping_cameras}
+corresponding to the columns to cast in \code{dat$data$deployments}.
+For details on the content of this list, see the documentation of
+the \code{cast_columns} function.}
 
-\item{mapping_records}{The mapping for columns in the records dataframe.
-Names are free except the camera column which must be identified with cam_col.
-They must only be the same names as in rec_type.}
+\item{mapping_records}{The mapping list for columns in the cameras table.
+Names are the column types (common between \code{mapping_records} and \code{rec_type}).
+Values are the corresponding column names in \code{dat$data$observations}.
+Names are free except the camera column which must be identified with \code{cam_col}.}
 
-\item{rec_type}{A named vector with the type conversion to perform.
-Must be a valid function name to call.
-Names are the names of the columns to cast in records df.}
+\item{rec_type}{A named list containing the name of the
+function to cast between types for the records table.
+The list's names are the names of \code{mapping_records}
+corresponding to the columns to cast in \code{dat$data$observations}.
+For details on the content of this list, see the documentation of
+the \code{cast_columns} function.}
 
-\item{only_shared_cameras}{restrict cleaned data to shared cameras? (ie the
-cameras that are in data$deployments and in data$observations)}
+\item{only_shared_cameras}{Logical; restrict final data to shared cameras
+that are in \code{dat$data$deployments} and in \code{dat$data$observations}?}
 
-\item{split}{Should the camera data be splitted from the records table?}
+\item{split}{Logical; should the camera data be extracted from the
+records table by splitting the data?}
 }
 \value{
-The cleaned dataset
+An object of the same type as the original input,
+but where \code{dat$data$deployments} and \code{dat$data$observations} have been
+cleaned as described above.
 }
 \description{
-Cleans raw data by:
+Cleans data by:
 \itemize{
-\item splitting data if needed
-\item formatting cameras and records tables
-\item (if only_shared_cameras): selecting the subset of cameras present in both datasets
+\item splitting records data in records and cameras (if needed)
+\item formatting cameras and records tables: casting columns and
+moving the selected columns to the beginning
+\item if \code{only_shared_cameras} is \code{TRUE}: selecting the subset of
+cameras present in both records and cameras tables
 }
 }
 \examples{
-data(recordTableSample, package = "camtrapR")
-data(camtraps, package = "camtrapR")
-dat <- list(data = list(observations = recordTableSample,
-                        deployments = camtraps))
-mapping_records <- list(cam_col = "Station",
-date_col = "Date",
-time_col = "Time")
-rec_type <- list(cam_col = "as.character",
+# Create synthetic dataset
+records <- data.frame(foo = 1:6,
+                      species = c("pigeon", "mouse", "pigeon", "mouse", "mouse", "pigeon"),
+                      date = c("2022-01-01", "2022-03-01", 
+                               "2022-01-02", "2022-01-12", "2022-01-22",
+                               "2022-01-03"),
+                      time = c("10:22:01", "22:12:01",
+                               "11:54:33", "07:14:38", "18:01:34", 
+                               "12:11:34"),
+                      camera = c("A", "A", "B", "B", "B", "C"))
+cameras <- data.frame(camera = c("A", "B", "C"),
+                      lat = c("20.12", "20.22", "22.34"),
+                      lon = c("33.44", "33.45", "33.42"))
+dat <- list(data = list(observations = records,
+                        deployments = cameras))
+mapping_records <- list(species_col = "species",
+                        date_col = "date",
+                        time_col = "time",
+                        cam_col = "camera")
+rec_type <- list(species_col = "as.character",
                  date_col = list("as_date",
                                  format = "\%Y-\%m-\%d"),
-                 time_col = "times")
-
-mapping_cameras <- list(cam_col = "Station",
-                        setup_col = "Setup_date",
-                        retrieval_col = "Retrieval_date")
+                 time_col = "times",
+                 cam_col = "as.character")
+mapping_cameras <- list(cam_col = "camera",
+                        lat_col = "lat",
+                        lon_col = "lon")
 cam_type <- list(cam_col = "as.character",
-                 setup_col = list("as_date",
-                                  format = "\%d/\%m/\%Y"), 
-                 retrieval_col = list("as_date",
-                                      format = "\%d/\%m/\%Y"))
-dat_clean <- clean_data(dat, 
-                        mapping_records = mapping_records, rec_type = rec_type,
-                        mapping_cameras = mapping_cameras, cam_type = cam_type)
+                 lat_col = "as.numeric",
+                 lon_col = "as.numeric")
+# Clean data converts columns to the appropriate types 
+# and reorders columns
+clean_data(dat,
+           mapping_records = mapping_records, rec_type = rec_type,
+           mapping_cameras = mapping_cameras, cam_type = cam_type)
 }

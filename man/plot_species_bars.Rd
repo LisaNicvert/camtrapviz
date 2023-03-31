@@ -17,21 +17,25 @@ plot_species_bars(
 
 \item{spp_col}{Name of the species column}
 
-\item{count_col}{Name of the count column}
+\item{count_col}{Name of the count column (optional). If missing,
+it will be assumed to be 1 for all observations.}
 
-\item{obs_col}{Name of the observation type column}
+\item{obs_col}{Name of the observation type column (optional).
+If it is present, the function will plot only the observations
+for which \code{obs_col} is "animal".}
 
-\item{interactive}{Make the plot interactive?}
+\item{interactive}{Logical; make the plot interactive with \code{ggiraph}?}
 }
 \value{
-A ggplot
+A \code{ggplot} object representing horizontal bars of species
+count. The x-axis is the observed number of individuals and the y-axis
+are the different species.
 }
 \description{
-Plot the barplot of species abundance from a dataframe
+Plot the barplot of species abundance
 }
 \examples{
-library(camtrapR)
-data("recordTableSample")
+data("recordTableSample", package = "camtrapR")
 plot_species_bars(recordTableSample,
                   spp_col = "Species")
 }

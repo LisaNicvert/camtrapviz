@@ -2,23 +2,25 @@
 % Please edit documentation in R/server_functions.R
 \name{add_tryformats}
 \alias{add_tryformats}
-\title{Add tryFormats to cast list}
+\title{Add tryFormats}
 \usage{
 add_tryformats(castlist, formats, names_to_add)
 }
 \arguments{
 \item{castlist}{A named list of types conversions to perform}
 
-\item{formats}{The formats to add to tryFormats}
+\item{formats}{The formats to add to \code{tryFormats}}
 
-\item{names_to_add}{The names of the list for which to add
-a tryFormats element}
+\item{names_to_add}{The names of the elements of \code{castlist}
+for which to add a \code{tryFormats} element}
 }
 \value{
-The original castlist where elements names like in names_to_add
-have a new slot tryFormats = formats.
-Will not add tryFormats if the casting function is NULL.
+The original \code{castlist} where the specified elements
+have a new slot \code{tryFormats} which contains the \code{formats} vector.
+If the value of \code{castlist} to modify is \code{NULL}, will not add
+\code{tryFormats} slot.
 }
 \description{
-This function adds a tryFormats attribute to some elements of castvec.
+Adds a \code{tryFormats} element to the specified elements of
+\code{castlist}.
 }

@@ -2,30 +2,39 @@
 % Please edit documentation in R/server_functions.R
 \name{cast_columns}
 \alias{cast_columns}
-\title{Cast columns to expected types}
+\title{Cast columns}
 \usage{
 cast_columns(df, cast_type)
 }
 \arguments{
-\item{df}{A dataframe containing the columns specified in col_mapping (values)}
+\item{df}{A dataframe containing the columns specified in
+the names of \code{cast_type}.}
 
-\item{cast_type}{A named list with the type conversion to perform.
-Names are the names of the columns to cast in df.
-Elements of this list can either be characters giving
-a valid function name to call, or a list with the first element as
-the function to call and additional arguments (that can be named)
-being the arguments to pass to the function.}
+\item{cast_type}{A named list containing the name of the
+function to cast between types.
+The list's names are the names of the columns to cast in \code{df}.
+Elements of this list can be:
+\itemize{
+\item a character giving a valid function name to call
+\item a list with the first element being the function to call (character)
+and additional arguments to the function call (that can be named as
+the names of the functions' arguments).
+}}
 }
 \value{
-the df with casted columns
+the original dataframe with the specified columns
+casted with the type indicated in \code{cast_type}.
 }
 \description{
-Cast columns to expected types
+Converts columns to a given format.
 }
 \examples{
 df <- data.frame(num = 1:10,
-                 char = letters[1:10])
+                 char = letters[1:10],
+                 date = rep("12/24/2020", 10))
 cast <- list(num = "as.character",
-             char = "as.factor")
+             char = "as.factor",
+             date = list("as.Date", 
+                         format = "\%m/\%d/\%Y"))
 dfcast <- cast_columns(df, cast)
 }

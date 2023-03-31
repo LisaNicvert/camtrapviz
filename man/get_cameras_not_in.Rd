@@ -16,15 +16,19 @@ get_cameras_not_in(dfrecords, dfcameras, cam_col_records, cam_col_cameras)
 \item{cam_col_cameras}{name of the cameras column in the cameras dataframe}
 }
 \value{
-A named list with 2 components
-not_in_records: cameras from dfcameras that are not in dfrecords
-not_in_cameras: cameras from dfrecords that are not in dfcameras
-If the cameras are toe same in both files, the components of the list are
-character vectors of length zero.
+A named list with two components
+\itemize{
+\item \verb{$not_in_records}: cameras from \code{dfcameras} that are not in \code{dfrecords}.
+If all cameras from \code{dfcameras} are in \code{dfrecords}, this is a character vector
+of length zero.
+\item \verb{$not_in_cameras}: cameras from \code{dfrecords} that are not in \code{dfcameras}
+If all cameras from \code{dfrecords} are in \code{dfcameras}, this is a character vector
+of length zero.
+}
 }
 \description{
-From a records and a cameras dataframe, determine which cameras are in a file
-but not in the other
+Using two dataframes in input, determine which cameras
+are in one of the tables but not in the other one.
 }
 \examples{
 dfrecords <- data.frame(camID = letters[2:7])

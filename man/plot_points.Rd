@@ -21,28 +21,35 @@ plot_points(
 
 \item{spp_col}{Name of the species column}
 
-\item{timestamp_col}{Name of the timestamp column
-(can be null if date_col and time_col are provided)}
+\item{timestamp_col}{Name of the timestamp column. If it
+is a datetime, it must be of class POSIXct. It can be \code{NULL}
+if \code{date_col} and \code{time_col} are provided.}
 
-\item{date_col}{Name of the date column (can be NULL if timestamp_col is provided)}
+\item{date_col}{Name of the date column. It is assumed
+to be of class \code{Date} (else, results are not guaranteed).
+It can be \code{NULL} if \code{timestamp_col} is provided.}
 
-\item{time_col}{Name of the time column (can be NULL if timestamp_col is provided)}
+\item{time_col}{Name of the time column. It is assumed
+to be of class \code{times} (else, results are not guaranteed).
+It can be \code{NULL} if \code{timestamp_col} is provided.}
 
-\item{interactive}{Make the plot interactive?}
+\item{interactive}{Logical; make the plot interactive with \code{ggiraph}?}
 }
 \value{
-A ggplot
+A \code{ggplot} object representing time on the x-axis
+and cameras on the y-axis. Colors of the points correspond to
+different species.
 }
 \description{
-Plot occurrences points from a dataframe
+Plot species occurrences at cameras as points
 }
 \details{
-If date_col and time_col are provided along timestamp_col,
-they will be ignored.
+If \code{date_col} and \code{time_col} are provided along with
+\code{timestamp_col}, they will be ignored.
 }
 \examples{
-library(camtrapR)
-data("recordTableSample")
+data("recordTableSample", package = "camtrapR")
+recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal)
 plot_points(recordTableSample, 
             camera_col = "Station", 
             timestamp_col = "DateTimeOriginal", 

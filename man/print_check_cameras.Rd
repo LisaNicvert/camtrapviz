@@ -9,12 +9,17 @@ print_check_cameras(cameras, type = c("not_in_records", "not_in_cameras"))
 \arguments{
 \item{cameras}{character vector of camera names}
 
-\item{type}{type of message to print: not_in_records or not_in_cameras}
+\item{type}{type of message to print: allowed values are
+\code{not_in_records} or \code{not_in_cameras}. Depending on this argument,
+the sentence will state that input cameras are not in the records
+or in the cameras dataframe.}
 }
 \value{
-A message describing which cameras are missing where,
-the empty string of no cameras are missing
+A message describing which cameras are missing where.
+If no cameras are missing (i.e. \code{cameras} is a vector of length
+zero), returns the empty string "".
 }
 \description{
-Prints a message to describe cameras status
+Display a message to say which cameras are absent from the records or
+cameras dataframe.
 }

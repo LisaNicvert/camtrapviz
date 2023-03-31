@@ -17,35 +17,83 @@ summarize_cameras(
 )
 }
 \arguments{
-\item{df}{the dataframe}
+\item{df}{the records dataframe: must contain the camera names and some
+infortmation on the pictures sampling time (date and time or datetime).}
 
-\item{cam_col}{name of the column containing camera IDs}
+\item{cam_col}{name of the column containing the camera ID}
 
-\item{timestamp_col}{name of the column containing timestamps
-(optional if date_col and time_col are provided)}
+\item{timestamp_col}{name of the column containing timestamps for the pictures
+(optional if \code{date_col} and \code{time_col} are provided)}
 
-\item{date_col}{name of the column containing date (optional if timestamp is provided)}
+\item{date_col}{name of the column containing date (optional if \code{timestamp_col} is provided)}
 
-\item{time_col}{name of the column containing hour (optional if timestamp is provided)}
+\item{time_col}{name of the column containing time (optional if \code{timestamp_col} is provided)}
 
-\item{dfcam}{the dataframe of cameras deployments (optional)}
+\item{dfcam}{the dataframe of cameras deployments (optional). If it is provided,
+at least \code{setup_col} or \code{retrieval_col} must also be provided.}
 
-\item{cam_col_dfcam}{name of the column containing camera IDs in dfcam (optional if dfcam not provided)}
+\item{cam_col_dfcam}{name of the column containing camera ID in \code{dfcam}
+If \code{dfcam} is provided but \code{cam_col_dfcam} is \code{NULL}, it will be set to \code{cam_col}.}
 
-\item{setup_col}{name of the column containing setup date/time in dfcam (optional if retrieval_col is provided)}
+\item{setup_col}{name of the column containing setup date or datetime
+in \code{dfcam} (optional if \code{retrieval_col} is provided)}
 
-\item{retrieval_col}{name of the column containing retrieval date/time in dfcam (optional if setup_col is provided)}
+\item{retrieval_col}{name of the column containing retrieval date or datetime
+in \code{dfcam} (optional if \code{setup_col} is provided)}
 }
 \value{
-A summarized dataframe with one row per camera:
-cam_col (name of the camera column), setup, retrieval,
-setup_origin ("picture" or "setup_date") and
-retrieval_origin ("picture" or "retrieval_date")
+The summary is returned as a dataframe with the following columns:
+\itemize{
+\item a column named as \code{cam_col} containing the camera ID.
+\item \code{setup} containing the start of the sampling for each camera.
+\item \code{retrieval} containing the end of the sampling for each camera.
+\item \code{setup_origin} containing the method used to determine the
+start of the sampling (\code{picture} or \code{setup})
+\item \code{retrieval_origin} containing the method used to determine the
+end of the sampling (\code{picture} or \code{retrieval})
+\item \code{sampling_length} length of the sampling period in days (computed
+with the \code{cameraOperation} function from the \code{camtrapR} package).
+}
 }
 \description{
-Summarize camera trap data (records) by creating a start
-and an retrieval date.
-If setup and retrieval date are provided via dfcam,
-then the dates used in setup and retrieval will be used instead of
-the first/last picture date.
+Summarize information about cameras activity from camera trap data.
+}
+\details{
+In the final dataframe, the start and the end of the sampling are
+computed as follows for each camera:
+\itemize{
+\item if setup and retrieval date are provided in \code{dfcam}, then these
+dates are used for the start and the end of the sampling in the summary.
+\item for the cameras for which this information is not provided,
+it will be replaced with the date of the first or the last picture
+of the camera.
+The information on how the start and the end of the sampling
+were computed is stored in \code{setup_origin} and \code{retrieval_origin}.
+\item if setup and retrieval date are provided via \code{dfcam},
+\code{setup_origin} is \code{setup} and \code{retrieval_origin} is ``retrieval`.
+\item else, these columns contain \code{picture}.
+As this function uses the \code{cameraOperation} function from
+the \code{camtrapR} package, the camera names may not contain
+\code{Cam} as it is a reserved name in this function.
+}
+}
+\examples{
+# Create synthetic data
+records <- data.frame(species = c("pigeon", "mouse", "pigeon", "mouse", "mouse"),
+                      stamp = as.POSIXct(c("2022-01-01 10:22:01", "2022-03-01 22:12:01",
+                                           "2022-01-02 11:54:33", "2022-01-12 07:14:38", 
+                                           "2022-01-22 18:01:34")),
+                      camera = c("A", "A", "B", "B", "B"))
+cameras <- data.frame(camera = c("A", "B", "C"),
+                      setup = as.Date(c(NA, "2021-12-01", "2021-12-01")),
+                      retrieval = as.Date(c("2022-03-01", "2022-03-01", NA)))
+# Summarize cameras
+summarize_cameras(records, 
+                  cam_col = "camera", timestamp_col = "stamp", 
+                  dfcam = cameras, 
+                  setup_col = "setup", retrieval_col = "retrieval")
+# Since camera A had no setup date, the first picture is used.
+# For camera B, setup and retrieval are taken from dfcam.
+# For camera C, as it is present only on dfcam and has no retrieval date,
+# only a setup date is indicated.
 }

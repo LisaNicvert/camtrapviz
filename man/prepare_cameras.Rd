@@ -7,19 +7,33 @@
 prepare_cameras(dat, mapping_cameras, split = FALSE)
 }
 \arguments{
-\item{dat}{The data, a list with at least one component
-$data
-$deployments
-$observations}
+\item{dat}{The data. It can be either a list with one component \verb{$data}
+or a \code{datapackage} object (inheriting list). Either way, the data
+are in the \verb{$data} slot with two components:
+\itemize{
+\item \verb{$deployments} (cameras table)
+\item \verb{$observations} (records table)
+}}
 
-\item{mapping_cameras}{The mapping for camera columns}
+\item{mapping_cameras}{The mapping list for columns in the cameras table
+(\code{dat$data$deployments}). The names of the list indicate the
+the column type and the values indicate the relevant column names
+to consider.}
 
-\item{split}{should camera data be extracted from the records?}
+\item{split}{should camera data be extracted from the records?
+If yes, a cameras table will be created and replace the value
+of \code{dat$data$deployments}.}
 }
 \value{
-The dataset with "pre-cleaned" camera data, i.e.
-if split = TRUE, dat$data$deployments is filled with data extracted from the recorde
-the records are unique across the mapping column
+The dataset with "pre-cleaned" cameras data:
+\itemize{
+\item the cameras table is filtered to keep unique rows across
+the columns indicated in \code{mapping_cameras}. This allows to filter
+for instance between duplicated cameras names.
+\item if \code{split} is \code{TRUE}, \code{dat$data$deployments} is replaced with
+data extracted from \code{dat$data$observations}
+(only the columns indicated in \code{mapping_cameras}).
+}
 }
 \description{
 Prepare the camera data for cleaning

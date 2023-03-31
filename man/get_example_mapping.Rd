@@ -15,5 +15,5 @@ get_example_mapping(df, col)
 A named character vector, excluding NA values in col
 }
 \description{
-Return the mapping for example datasets in a vector form
+Returns a vector of the mapping for example datasets
 }

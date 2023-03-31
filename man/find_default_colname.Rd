@@ -12,29 +12,40 @@ find_default_colname(
 )
 }
 \arguments{
-\item{pattern}{a regular expression to match against colnames}
+\item{pattern}{a regular expression to look for in \code{colnames}}
 
 \item{colnames}{a vector of column names}
 
-\item{empty_allowed}{is empty character allowed for this regex?}
+\item{empty_allowed}{logical; is it allowed to return
+the character in \code{empty_placeholder} if there is no match?}
 
-\item{empty_placeholder}{What is the empty placeholder?}
+\item{empty_placeholder}{a character to use as placeholder
+if there is no match for \code{pattern} in \code{columns}.}
 }
 \value{
-All matched columns names (if there was at least a match)
-or the empty_placeholder (if empty_allowed and no match) or NULL
-(empty not allowed and no match)
+\itemize{
+\item if there was at least a match: all matched columns names
+\item if there was no match:
+\itemize{
+\item if \code{empty_allowed}, returns the empty placeholder
+\item else, returns \code{NULL}
+}
+}
 }
 \description{
-Finds the column name to default to among colnames
+Finds a column name matching the given pattern among a vector
+of column names given in argument.
 }
 \examples{
+# There is a match
 find_default_colname("species", 
                      colnames = c("Species", "cameraID", "DateTime"), 
                      empty_allowed = TRUE)
+# There is no match and empty is not allowed
 find_default_colname("foo", 
                      colnames = c("Species", "cameraID", "DateTime"), 
                      empty_allowed = FALSE)
+# There is no match but empty is allowed
 find_default_colname("foo", 
                      colnames = c("Species", "cameraID", "DateTime"), 
                      empty_allowed = TRUE)

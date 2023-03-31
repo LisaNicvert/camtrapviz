@@ -4,24 +4,39 @@
 \alias{plot_map}
 \title{Plot map}
 \usage{
-plot_map(df, lat_col, lon_col, crs = NULL, cam_col, color = "black")
+plot_map(df, lat_col, lon_col, crs = 4326, cam_col, color = "black")
 }
 \arguments{
-\item{df}{A dataframe with latitude and longitude columns}
+\item{df}{A dataframe containing cameras information}
 
-\item{lat_col}{Name of the latitude column}
+\item{lat_col}{Name of the latitude (or the projected y-coordinate)
+column}
 
-\item{lon_col}{Name of the longitude column}
+\item{lon_col}{Name of the longitude (or the projected y-coordinate)
+column}
 
-\item{crs}{EPSG code for the coordinate reference system}
+\item{crs}{EPSG code for the coordinate reference system (CRS)
+Defaults to EPSG:4326, which is the code for WGS84 standard.}
 
 \item{cam_col}{Name of the camera name column}
 
 \item{color}{color for the points}
 }
 \value{
-a leaflet map
+a \code{leaflet} map representing cameras as points.
+If the CRS of the input data is different from EPSG:4326 (WGS84),
+data are re-projected using WGS84.
+When hovering over a camera, it becomes red and its name is shown.
+When clicking on a camera, a popup displaying the camera name appears.
 }
 \description{
-Plot a leaflet map of cameras
+Plot a leaflet map representing cameras' coordinates as points.
+}
+\examples{
+data(camtraps, package = "camtrapR")
+plot_map(camtraps,
+         lat_col = "utm_y", 
+         lon_col = "utm_x",
+         crs = 32650, # Here we use the EPSG code for UTM zone 50N
+         cam_col = "Station")
 }

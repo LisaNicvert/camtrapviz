@@ -12,30 +12,37 @@ find_default_colnames(
 )
 }
 \arguments{
-\item{regex_list}{a named list with names corresponding to those of
-widgets and values are regular expressions used to find those widgets
-in colnames}
+\item{regex_list}{a named list where values are regular expressions
+used to search in \code{colnames} and names are the same as the names
+of \code{empty_allowed_list}. In the Shiny app, this list's names are
+the widget names.}
 
 \item{colnames}{a vector of column names}
 
-\item{empty_allowed_list}{a vector of allowed widgets that can be set
-to empty}
+\item{empty_allowed_list}{a list or vector
+containing the names of the elements of \code{regex_list} that can
+return \code{NULL} if there is no match}
 
-\item{empty_placeholder}{the empty placeholder}
+\item{empty_placeholder}{a character to use as placeholder
+if there is no match for some elements of \code{regex_list} in \code{colnames}.}
 }
 \value{
-A named list containing either (the first) matched colname,
-NULL (no match and empty not allowed)
-or the empty_placeholder (no match and empty allowed)
+A list with the same names as \code{regex_list}.
+Each element is the first (or the only) matched column name
+for the corresponding regular expression in \code{regex_list}.
+If there was no match for one element:
+\itemize{
+\item if \code{empty_allowed}, returns the empty placeholder
+\item else, returns \code{NULL}
+}
 }
 \description{
-Finds the column names to default to among colnames
+Finds the column names to default to for each element of the
+regular expression list among the column names given in argument.
 }
 \examples{
-library(camtraptor)
-data(mica)
-colnames <- colnames(mica$data$observations)
-regex <- c("^vernacularNames\\\\.en$|species", "station|deployment|camera",
+colnames <- c("speciesName", "CameraID", "Datetime")
+regex <- c("species", "station|deployment|camera",
            "timestamp|datetime")
 names(regex) <-  c("spp_col", "cam_col", "timestamp_col")
 find_default_colnames(regex_list = regex,

@@ -19,5 +19,6 @@ A named list containing the values of col,
 names are the widget names
 }
 \description{
-Get the named vector from a dataframe
+Get a vector named with values in column "widget"
+from a dataframe
 }

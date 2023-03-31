@@ -128,7 +128,6 @@
 #' @importFrom shinymeta outputCodeButton
 #' @importFrom shinymeta withMetaMode
 #' @importFrom tibble column_to_rownames
-#' @importFrom tidyr drop_na
 #' @importFrom tidyselect all_of
 #' @importFrom tidyselect everything
 ## usethis namespace: end
