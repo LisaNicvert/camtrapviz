@@ -4,16 +4,6 @@ allspeciesUI <- function(id) {
         
 # Diversity map -----------------------------------------------------------
       h2("All species analyses"),
-      h3("Choose species"),
-      fluidRow(
-        column(width = 12,
-               selectizeInput(NS(id, "species"), 
-                              label = "Species to exclude from the analysis",
-                              choices = letters[1:10],
-                              multiple = TRUE
-                              )
-               )
-      ),
       h3("Diversity map"),
       fluidRow(
         column(width = 4,
