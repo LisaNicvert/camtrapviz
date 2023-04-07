@@ -6,7 +6,7 @@
 \alias{camtrapviz-package}
 \title{camtrapviz: Vizualise Camera Trap Data}
 \description{
-This package implements several functions to vizualise common descriptors and graphics for camera trap data. It also implements a Shiny app allowing to do so interactively and without any code.
+Compute and visualize common descriptors for camera trap data. A Shiny app allowing to do so interactively and without any code is also implemented.
 }
 \author{
 \strong{Maintainer}: Lisa Nicvert \email{lisa.nicvert@univ-lyon1.fr}

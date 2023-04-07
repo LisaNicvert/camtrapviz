@@ -38,15 +38,7 @@ of column names given in argument.
 }
 \examples{
 # There is a match
-find_default_colname("species", 
-                     colnames = c("Species", "cameraID", "DateTime"), 
-                     empty_allowed = TRUE)
-# There is no match and empty is not allowed
-find_default_colname("foo", 
-                     colnames = c("Species", "cameraID", "DateTime"), 
-                     empty_allowed = FALSE)
-# There is no match but empty is allowed
-find_default_colname("foo", 
-                     colnames = c("Species", "cameraID", "DateTime"), 
-                     empty_allowed = TRUE)
+camtrapviz:::find_default_colname("species",
+                                  colnames = c("Species", "cameraID", "DateTime"),
+                                  empty_allowed = TRUE)
 }
