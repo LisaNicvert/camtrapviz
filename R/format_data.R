@@ -138,7 +138,7 @@ prepare_cameras <- function(dat, mapping_cameras, split = FALSE) {
   
   if (split) { # Manual file input
     # Split data
-    cameras <- dat$data$observations %>%
+    cameras <- dat$data$observations |>
       dplyr::select(all_of(unname(unlist(mapping_cameras))))
     res$data$deployments <- cameras
   }
@@ -146,7 +146,7 @@ prepare_cameras <- function(dat, mapping_cameras, split = FALSE) {
   # Select unique rows for camera table
   # We want rows to be unique across the used camera columns 
   # defined in mapping_cameras
-  res$data$deployments <- res$data$deployments %>%
+  res$data$deployments <- res$data$deployments |>
     distinct(across(all_of(unname(unlist(mapping_cameras)))),
              .keep_all = TRUE)
   
@@ -215,7 +215,7 @@ format_table <- function(df, mapping, cast_type) {
     stop("all non-null columns listed in mapping must be in cast_type")
   }
   
-  res <- df %>%
+  res <- df |>
     select(all_of(unname(vec)),
            everything())
   
@@ -275,10 +275,10 @@ filter_cameras_in_both_tables <- function(records, cameras,
                         ucam_cameras)
   
   # Restrict data to shared cameras
-  records <- records %>%
+  records <- records |>
     filter(.data[[cam_col_records]] %in% cam_both)
   
-  cameras <- cameras %>%
+  cameras <- cameras |>
     filter(.data[[cam_col_cameras]] %in% cam_both)
   
   res <- list(records = records,
@@ -454,7 +454,7 @@ remove_rows_with_NA <- function(df, mapping) {
     na_check <- unlist(na_check)
     
     # Drop NA in all columns except spp_col
-    res <- df %>%
+    res <- df |>
       tidyr::drop_na(all_of(unname(na_check)))
     
     obs_col <- res[[obs_col_name]]
@@ -467,7 +467,7 @@ remove_rows_with_NA <- function(df, mapping) {
     }
   } else { # No obs_col
     # No NAs authorized in the mapping columns
-    res <- df %>%
+    res <- df |>
       tidyr::drop_na(all_of(unname(mapping)))
   }
   

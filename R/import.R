@@ -355,32 +355,32 @@ importServer <- function(id) {
                      TRUE)
       )
     
-    cameras_widgets <- records_widgets %>% 
-      dplyr::filter(widget == "cam_col" | type == "cameras") %>%
+    cameras_widgets <- records_widgets |> 
+      dplyr::filter(widget == "cam_col" | type == "cameras") |>
       mutate(widget = paste(widget, "cov", sep = "_"))
     
     # Set default camera columns for mica
-    cameras_widgets <- cameras_widgets %>%
+    cameras_widgets <- cameras_widgets |>
       mutate(mica = ifelse(widget == "crs_col_cov", 
-                           4326, mica)) %>%
+                           4326, mica)) |>
       mutate(mica = ifelse(widget == "lat_col_cov", 
-                           "latitude", mica)) %>%
+                           "latitude", mica)) |>
       mutate(mica = ifelse(widget == "lon_col_cov", 
-                           "longitude", mica)) %>%
+                           "longitude", mica)) |>
       mutate(mica = ifelse(widget == "setup_col_cov", 
-                           "start", mica)) %>%
+                           "start", mica)) |>
       mutate(mica = ifelse(widget == "retrieval_col_cov", 
                            "end", mica))
     # Set default camera columns for recordTableSample
-    cameras_widgets <- cameras_widgets %>%
+    cameras_widgets <- cameras_widgets |>
       mutate(recordTableSample = ifelse(widget == "crs_col_cov", 
-                                        32650, recordTableSample)) %>%
+                                        32650, recordTableSample)) |>
       mutate(recordTableSample = ifelse(widget == "lat_col_cov", 
-                                        "utm_y", recordTableSample)) %>%
+                                        "utm_y", recordTableSample)) |>
       mutate(recordTableSample = ifelse(widget == "lon_col_cov", 
-                                        "utm_x", recordTableSample)) %>%
+                                        "utm_x", recordTableSample)) |>
       mutate(recordTableSample = ifelse(widget == "setup_col_cov", 
-                                        "Setup_date", recordTableSample)) %>%
+                                        "Setup_date", recordTableSample)) |>
       mutate(recordTableSample = ifelse(widget == "retrieval_col_cov", 
                                         "Retrieval_date", recordTableSample))
     
@@ -400,39 +400,39 @@ importServer <- function(id) {
 # Useful variables from widgets df ----------------------------------------
     
     # Get CRS spec
-    crs_records <- records_widgets %>%
+    crs_records <- records_widgets |>
       filter(in_columns == FALSE)
-    crs_cameras <- cameras_widgets %>%
+    crs_cameras <- cameras_widgets |>
       filter(in_columns == FALSE)
     
     # Get widgets that correspond to columns
-    records_widgets <- records_widgets %>%
+    records_widgets <- records_widgets |>
       filter(in_columns == TRUE)
-    cameras_widgets <- cameras_widgets %>%
+    cameras_widgets <- cameras_widgets |>
       filter(in_columns == TRUE)
     
     # Get time widgets
-    time_widgets <- records_widgets %>% 
-      dplyr::filter(type %in% c("date_time", "timestamp")) %>%
-      extract2("widget")
+    time_widgets <- records_widgets |> 
+      dplyr::filter(type %in% c("date_time", "timestamp"))
+    time_widgets <- time_widgets$widget
     
     # All widgets
     all_records_widgets <- records_widgets$widget
     all_cameras_widgets <- cameras_widgets$widget
     
     # Define columns for which empty is allowed
-    allowed_records <- records_widgets %>%
-      filter(empty_allowed == TRUE) %>% 
-      extract2("widget")
-    allowed_cameras <- cameras_widgets %>%
-      filter(empty_allowed == TRUE) %>% 
-      extract2("widget")
+    allowed_records <- records_widgets |>
+      filter(empty_allowed == TRUE)
+    allowed_records <- allowed_records$widget
+    allowed_cameras <- cameras_widgets |>
+      filter(empty_allowed == TRUE)
+    allowed_records <- allowed_cameras$widget
     empty_allowed <- c(allowed_records, 
                        allowed_cameras)
     
     # Define camera columns
-    cameras_to_update <- cameras_widgets %>%
-      extract2("widget")
+    cameras_to_update <- cameras_widgets
+    cameras_to_update <- cameras_to_update$widget
     
     # Define example mappings
     example_mapping_records <- list(mica = get_example_mapping(records_widgets, 
@@ -457,27 +457,27 @@ importServer <- function(id) {
 
 # Create records widgets ----------------------------------------------------------
     # Create mandatory selecters
-    mandatory <- records_widgets %>%
-      dplyr::filter(type == "records") %>%
+    mandatory <- records_widgets |>
+      dplyr::filter(type == "records") |>
       dplyr::filter(empty_allowed == FALSE)
     mandatory_widgets <- create_widget_list(mandatory)
     
     # Create timestamp selecter
-    timestamp <- records_widgets %>%
+    timestamp <- records_widgets |>
       dplyr::filter(type == "timestamp")
     timestamp_widgets <- create_widget_list(timestamp)
     
     # Create date/time selecters
-    datetime <- records_widgets %>%
+    datetime <- records_widgets |>
       dplyr::filter(type == "date_time")
     datetime_widgets <- create_widget_list(datetime)
     
     # Crete camera selecters
-    cov <- records_widgets %>%
+    cov <- records_widgets |>
       dplyr::filter(type == "cameras")
-    mandatory_cov <- cov %>% 
+    mandatory_cov <- cov |> 
       dplyr::filter(empty_allowed == FALSE)
-    optional_cov <- cov %>% 
+    optional_cov <- cov |> 
       dplyr::filter(empty_allowed == TRUE)
 
     mandatory_widgets_cov <- create_widget_list(mandatory_cov)
@@ -497,8 +497,8 @@ importServer <- function(id) {
                          server = TRUE)
     
     # Create optional selecters
-    optional <- records_widgets %>%
-      dplyr::filter(type == "records") %>%
+    optional <- records_widgets |>
+      dplyr::filter(type == "records") |>
       dplyr::filter(empty_allowed == TRUE)
     optional_widgets <- create_widget_list(optional)
     
@@ -512,9 +512,9 @@ importServer <- function(id) {
     
 
 # Create cameras widgets --------------------------------------------------
-    mandatory_cam <- cameras_widgets %>% 
+    mandatory_cam <- cameras_widgets |> 
       dplyr::filter(empty_allowed == FALSE)
-    optional_cam <- cameras_widgets %>% 
+    optional_cam <- cameras_widgets |> 
       dplyr::filter(empty_allowed == TRUE)
     
     mandatory_widgets_cam <- create_widget_list(mandatory_cam)
@@ -683,17 +683,17 @@ importServer <- function(id) {
       
       if (input$datetime_or_timestamp == 'timestamp') {
         # Filter out date/time
-        widget_df <- widget_df %>% 
+        widget_df <- widget_df |> 
           dplyr::filter(type != "date_time")
       } else if (input$datetime_or_timestamp == 'date_time') {
         # Filter out timestamp
-        widget_df <- widget_df %>% 
+        widget_df <- widget_df |> 
           dplyr::filter(type != "timestamp")
       }
       
       if (input$import_cameras) { 
         # User wants to import a camera file
-        widget_df <- widget_df %>% 
+        widget_df <- widget_df |> 
           dplyr::filter(type != "cameras")
       }
       widgets <- widget_df$widget
@@ -781,10 +781,9 @@ importServer <- function(id) {
                          example_mapping = example_mapping_records)
       
       # Get the mapping corresponding to cameras in records
-      widget_cam <- records_widgets %>%
-        dplyr::filter(type == "cameras") %>%
-        extract2("widget")
-      
+      widget_cam <- records_widgets |>
+        dplyr::filter(type == "cameras")
+      widget_cam <- widget_cam$widget
       res <- res[-which(names(res) %in% widget_cam)]
       
       res  
@@ -873,9 +872,9 @@ importServer <- function(id) {
         names(res) <- gsub("_cov$", "", names(res))
         
         # Get the mapping corresponding to cameras in records
-        widget_cam <- records_widgets %>%
-          dplyr::filter(type == "cameras") %>%
-          extract2("widget")
+        widget_cam <- records_widgets |>
+          dplyr::filter(type == "cameras")
+        widget_cam <- widget_cam$widget
         # Add cam_col
         widgets_to_look_at <- c(widget_cam, "cam_col")
         if (input$input_type != 1) {
@@ -969,7 +968,7 @@ importServer <- function(id) {
       }
       
       # Add options to casting for dates
-      dates_cast <- records_widgets %>%
+      dates_cast <- records_widgets |>
         filter(cast == "as.Date")
       dates_cast <- dates_cast$widget
       
@@ -1040,7 +1039,7 @@ importServer <- function(id) {
       DT::datatable(dat()$data$observations,
                     filter = "none",
                     selection = "none",
-                    options = list(scrollX = TRUE)) %>%
+                    options = list(scrollX = TRUE)) |>
         DT::formatStyle(unname(unlist(mapping_records())),
                         backgroundColor = '#F5EE9E')
     })
@@ -1049,7 +1048,7 @@ importServer <- function(id) {
       DT::datatable(dat()$data$deployments,
                     filter = "none",
                     selection = "none",
-                    options = list(scrollX = TRUE)) %>%
+                    options = list(scrollX = TRUE)) |>
         DT::formatStyle(unname(unlist(mapping_cameras()$mapping)),
                         backgroundColor = '#F5EE9E')
     })

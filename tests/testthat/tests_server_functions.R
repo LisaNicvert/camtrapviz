@@ -86,7 +86,7 @@ test_that("Summarize cameras (no dfcam)", {
   expect_equal(rep("picture", nrow(res)), res$setup_origin)
   expect_equal(rep("picture", nrow(res)), res$retrieval_origin)
   # Test duration
-  len <- mica$data$observations %>% group_by(deploymentID) %>%
+  len <- mica$data$observations |> group_by(deploymentID) |>
     summarize(len = as.numeric(max(timestamp) - min(timestamp), "days"))
   expect_equal(res$sampling_length, len$len, tolerance = 10e-3)
   
@@ -104,8 +104,8 @@ test_that("Summarize cameras (no dfcam)", {
   expect_true(all(res$setup < res$retrieval))
   expect_equal(rep("picture", nrow(res)), res$setup_origin)
   expect_equal(rep("picture", nrow(res)), res$retrieval_origin)
-  len <- kga %>% group_by(cameraID) %>%
-    mutate(timestamp = as.POSIXct(paste(eventDate, eventTime))) %>%
+  len <- kga |> group_by(cameraID) |>
+    mutate(timestamp = as.POSIXct(paste(eventDate, eventTime))) |>
     summarize(len = as.numeric(max(timestamp) - min(timestamp), "days"))
   expect_equal(res$sampling_length, len$len, tolerance = 10e-3)
 })
@@ -138,7 +138,7 @@ test_that("Summarize cameras with camera df", {
 })
 
 test_that("Summarize cameras with different cameras name", {
-  kga_test <- kga %>% rename("cam" = "cameraID")
+  kga_test <- kga |> rename("cam" = "cameraID")
   res <- summarize_cameras(kga_test, 
                            cam_col = "cam", 
                            time_col = "eventTime",
@@ -162,14 +162,15 @@ test_that("Summarize cameras with NA in setup/retrieval", {
                            dfcam = kga_cameras_test,
                            cam_col_dfcam = "cameraID", 
                            setup_col = "Setup.Date")
-  expected <- kga %>% filter(cameraID == "KGA_A01") %>% 
-    mutate(dtime = as.POSIXct(paste(eventDate, eventTime))) %>%
-    summarise(mintime = min(dtime)) %>%
-    magrittr::extract2("mintime")
+  expected <- kga |> filter(cameraID == "KGA_A01") |> 
+    mutate(dtime = as.POSIXct(paste(eventDate, eventTime))) |>
+    summarise(mintime = min(dtime))
+  expected <- expected$mintime
+  
   expect_equal(res$setup[res$cameraID == "KGA_A01"], expected)
   
   # Missing camera in setup
-  kga_cameras_test <- kga_cameras %>% filter(cameraID != "KGA_A01")
+  kga_cameras_test <- kga_cameras |> filter(cameraID != "KGA_A01")
   
   res <- summarize_cameras(kga, 
                            cam_col = "cameraID", 
@@ -181,7 +182,7 @@ test_that("Summarize cameras with NA in setup/retrieval", {
   expect_equal(res$setup[res$cameraID == "KGA_A01"], expected)
   
   # Missing camera in data
-  kga_test <- kga %>% filter(cameraID != "KGA_A01")
+  kga_test <- kga |> filter(cameraID != "KGA_A01")
   res <- summarize_cameras(kga_test, 
                            cam_col = "cameraID", 
                            time_col = "eventTime",
@@ -194,8 +195,8 @@ test_that("Summarize cameras with NA in setup/retrieval", {
   expect_true(is.na(res$retrieval[res$cameraID == "KGA_A01"]))
   
   # Missing camera in data and in setup
-  kga_test2 <- kga %>% filter(cameraID != "KGA_A02")
-  kga_cameras_test <- kga_cameras %>% filter(cameraID != "KGA_A01")
+  kga_test2 <- kga |> filter(cameraID != "KGA_A02")
+  kga_cameras_test <- kga_cameras |> filter(cameraID != "KGA_A01")
   res <- summarize_cameras(kga_test2, 
                            cam_col = "cameraID", 
                            time_col = "eventTime",
@@ -203,8 +204,8 @@ test_that("Summarize cameras with NA in setup/retrieval", {
                            dfcam = kga_cameras_test,
                            cam_col_dfcam = "cameraID", 
                            setup_col = "Setup.Date")
-  expected <- kga_test2 %>% filter(cameraID == "KGA_A01") %>% 
-    mutate(dtime = as.POSIXct(paste(eventDate, eventTime))) %>%
+  expected <- kga_test2 |> filter(cameraID == "KGA_A01") |> 
+    mutate(dtime = as.POSIXct(paste(eventDate, eventTime))) |>
     summarise(mintime = min(dtime),
               maxtime = max(dtime))
   expect_equal(res$setup[res$cameraID == "KGA_A01"], expected$mintime)
@@ -230,7 +231,7 @@ test_that("Get cameras not in", {
   expect_equal(res$not_in_cameras, character(0))
   
   # Missing in cameras
-  dfcam2 <- dfcam %>% filter(cameras != "a")
+  dfcam2 <- dfcam |> filter(cameras != "a")
   res <- get_cameras_not_in(dfrecords = dfrecords, 
                             dfcameras = dfcam2,
                             cam_col_records = "camrec",
@@ -239,7 +240,7 @@ test_that("Get cameras not in", {
   expect_equal(res$not_in_cameras, "a")
   
   # Missing in records
-  dfrecords2 <- dfrecords %>% filter(camrec != "a")
+  dfrecords2 <- dfrecords |> filter(camrec != "a")
   res <- get_cameras_not_in(dfrecords = dfrecords2, 
                             dfcameras = dfcam,
                             cam_col_records = "camrec",
@@ -248,8 +249,8 @@ test_that("Get cameras not in", {
   expect_equal(res$not_in_cameras,  character(0))
   
   # Missing in both
-  dfrecords2 <- dfrecords %>% filter(camrec != "a")
-  dfcam2 <- dfcam %>% filter(!(cameras %in% c("b", "c")))
+  dfrecords2 <- dfrecords |> filter(camrec != "a")
+  dfcam2 <- dfcam |> filter(!(cameras %in% c("b", "c")))
   res <- get_cameras_not_in(dfrecords = dfrecords2, 
                             dfcameras = dfcam2,
                             cam_col_records = "camrec",

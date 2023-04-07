@@ -214,8 +214,8 @@ summaryServer <- function(id,
       lat <- camdf[[mapping_cameras()$lat_col]][camdf[[mapping_cameras()$cam_col]] == clicked_point]
       lon <- camdf[[mapping_cameras()$lon_col]][camdf[[mapping_cameras()$cam_col]] == clicked_point]
 
-      leafletProxy(mapId = "plot_map", session) %>% 
-        removeMarker(layerId = clicked_point) %>%
+      leafletProxy(mapId = "plot_map", session) |> 
+        removeMarker(layerId = clicked_point) |>
         addCircles(lng = lon,
                    lat = lat,
                    layerId = clicked_point,

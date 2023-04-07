@@ -327,8 +327,8 @@ summarize_cameras <- function(df, cam_col,
   }
   
   # Summarize with timestamp
-  camsum <- camsum %>%
-    group_by(.data[[cam_col]]) %>%
+  camsum <- camsum |>
+    group_by(.data[[cam_col]]) |>
     summarise(setup = min(.data[[timestamp_col]]),
               retrieval = max(.data[[timestamp_col]]),
               setup_origin = "picture",
@@ -352,7 +352,7 @@ summarize_cameras <- function(df, cam_col,
       setup_df <- dfcam
       
       # Get non-NA setup
-      setup_df <- setup_df %>%
+      setup_df <- setup_df |>
         filter(!is.na(.data[[setup_col]]))
       
       # Cast to POSIX
@@ -373,7 +373,7 @@ summarize_cameras <- function(df, cam_col,
       retrieval_df <- dfcam
       
       # Get non-NA retrieval
-      retrieval_df <- retrieval_df %>%
+      retrieval_df <- retrieval_df |>
         filter(!is.na(.data[[retrieval_col]]))
       
       # Get indices to replace in camsum
@@ -393,8 +393,8 @@ summarize_cameras <- function(df, cam_col,
   
   # Get rows where setup and retrieval are not NA (can't compute sampling length without
   # setup and retrieval)
-  camsum_sampling_time <- camsum %>%
-    filter(!is.na(setup)) %>%
+  camsum_sampling_time <- camsum |>
+    filter(!is.na(setup)) |>
     filter(!is.na(retrieval))
   
   # Cast to character

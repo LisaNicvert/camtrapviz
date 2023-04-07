@@ -40,7 +40,7 @@ get_separator <- function(line, default = ",") {
 #' @return A named character vector, excluding NA values in col
 get_example_mapping <- function(df, col) {
   
-  res_df <- df %>% 
+  res_df <- df |> 
     dplyr::filter(!is.na(.data[[col]]))
   res <- res_df[[col]]
   names(res) <- res_df$widget
@@ -61,10 +61,9 @@ get_example_mapping <- function(df, col) {
 #' names are the widget names
 get_named_list <- function(df, col, widget_values) {
   
-  res_df <- df %>%
+  res_df <- df |>
     filter(widget %in% widget_values) 
-  res <- res_df %>%
-    extract2(col)
+  res <- res_df[[col]]
   res <- as.list(res)
   names(res) <- res_df$widget
   return(res)

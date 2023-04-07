@@ -131,17 +131,17 @@ plot_species_bars <- function(df,
   
   if (!is.null(obs_col)) {
     # Get only the observations of type animal
-    dfp <- dfp %>% filter(.data[[obs_col]] == "animal")
+    dfp <- dfp |> filter(.data[[obs_col]] == "animal")
   }
   
   # Group by species
-  dfp <- dfp %>% group_by(.data[[spp_col]])
+  dfp <- dfp |> group_by(.data[[spp_col]])
   
   if (is.null(count_col)) { # no count column
-    dfp <- dfp %>%
+    dfp <- dfp |>
       summarise(count = n())
   } else { # count column
-    dfp <- dfp %>%
+    dfp <- dfp |>
       summarise(count = sum(.data[[count_col]]))
   }
   
@@ -212,8 +212,8 @@ plot_map <- function(df,
                           coords = c(lon_col, lat_col))
   }
   
-  leaflet(df_sf) %>% 
-    addTiles() %>% 
+  leaflet(df_sf) |> 
+    addTiles() |> 
     addCircles(data = df_sf,
                label = paste0("Camera: ", df_sf[[cam_col]]),
                layerId = df_sf[[cam_col]],
