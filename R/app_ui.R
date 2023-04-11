@@ -18,8 +18,7 @@ ui <- function() {
                  icon = icon("dashboard")),
         menuItem("All species", tabName = "all",
                  icon = icon("puzzle-piece")),
-        menuItem("One species", tabName = "one"),
-        menuItem("Two species", tabName = "two")
+        menuItem("One species", tabName = "one")
       )
     ),
     dashboardBody(
