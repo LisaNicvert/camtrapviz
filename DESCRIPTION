@@ -30,7 +30,8 @@ Imports:
     leaflet,
     shinyAce,
     rgdal,
-    sf
+    sf,
+    shinyWidgets
 Suggests: 
     knitr,
     rmarkdown

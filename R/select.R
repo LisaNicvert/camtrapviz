@@ -39,18 +39,15 @@ selectServer <- function(id,
         spp_col <- mapping_records()$spp_col
         spp <- camtrap_data()$data$observations[[spp_col]]
         
-        # sort(unique(spp), na.last = TRUE)
-        sort(unique(spp))
+        sort(unique(spp), na.last = TRUE)
       })
       
 # Update selectInput ------------------------------------------------------
       
-      observeEvent(species(), {
-        spp_val <- species()
-        updateSelectizeInput(session = session,
-                             NS("spp_select"),
-                             choices = spp_val,
-                             server = TRUE)
+      observe({
+        shinyWidgets::updatePickerInput(session = session,
+                                        "spp_select",
+                                        choices = species())
       })
       
       

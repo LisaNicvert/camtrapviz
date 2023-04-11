@@ -85,9 +85,12 @@ select_values <- function(prefix, item) {
                             )
                      ),
     column(width = 12,
-           selectizeInput(paste(prefix, "select", sep = "_"),
-                          paste("Select", item), 
+           shinyWidgets::pickerInput(paste(prefix, "select", sep = "_"),
+                                     paste("Select", item), 
                           multiple = TRUE,
+                          options = list(
+                            `actions-box` = TRUE,
+                            `dropup-auto` = FALSE),
                           choices = NULL)
     )
   )
