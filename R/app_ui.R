@@ -14,6 +14,7 @@ ui <- function() {
       sidebarMenu(
         menuItem("Data import", tabName = "dataimport", 
                  icon = icon("th-list")),
+        menuItem("Select data", tabName = "selectdata"),
         menuItem("Data overview", tabName = "summary",
                  icon = icon("dashboard")),
         menuItem("All species", tabName = "all",
@@ -30,6 +31,14 @@ ui <- function() {
         tabItem(tabName = "dataimport",
                 fluidRow(
                   importUI("import")
+                )
+        ),
+
+# Select data -------------------------------------------------------------
+
+        tabItem(tabName = "selectdata",
+                fluidRow(
+                  selectUI("select")
                 )
         ),
 

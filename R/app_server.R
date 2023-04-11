@@ -23,6 +23,12 @@ server <- function(input, output, session) {
   #         paste(import_val$mapping_cameras()))
   # })
   
+  # Select data reactives
+  selectServer("select",
+                camtrap_data = import_val$camtrap_data,
+                mapping_records = import_val$mapping_records,
+                mapping_cameras = import_val$mapping_cameras)
+  
   # Summary reactives
   summaryServer("summary",
                 camtrap_data = import_val$camtrap_data,

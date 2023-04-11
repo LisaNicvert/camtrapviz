@@ -48,3 +48,47 @@ create_dashboard <- function(tagList,
   )
   
 }
+
+
+#' Select values
+#' 
+#' Function to create a set of widgets used to select
+#' values based on a column or based o the values of another column
+#'
+#' @param prefix the prefix to use for radioButtons and select(ize)Input
+#' widgets
+#' @param item The item name to display in the widgets labels
+#'
+#' @return A taglist of widgets
+select_values <- function(prefix, item) {
+  
+  tagList(
+    radioButtons(paste(prefix, "manually", sep = "_"), 
+                 label = paste0("How to choose ", item, "?"), 
+                 choices = c("Manually" = "manually",
+                             "Other column" = "other_col"), 
+                 inline = TRUE),
+    # Here to access the value of the radioButtons we use another JS way to access a value
+    # usually we use input.val but here we use input['val'] because of the modules namespace
+    # that will modify prefix -> ns-prefix
+    conditionalPanel(condition = paste0("input['", prefix, "_manually'] == 'other_col'"), 
+                     column(width = 6,
+                            selectizeInput(paste(prefix, "col", sep = "_"),
+                                           "Choose a column", 
+                                           choices = NULL)
+                            ),
+                     column(width = 6,
+                            selectizeInput(paste(prefix, "col_val", sep = "_"),
+                                           "Which value(s)?", 
+                                           multiple = TRUE,
+                                           choices = NULL)
+                            )
+                     ),
+    column(width = 12,
+           selectizeInput(paste(prefix, "select", sep = "_"),
+                          paste("Select", item), 
+                          multiple = TRUE,
+                          choices = NULL)
+    )
+  )
+}
