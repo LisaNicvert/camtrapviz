@@ -54,28 +54,21 @@ To write
 ### Clean csv records and table
 
 ```{r}
-mapping_records <- list(cam_col = "Station",
-                        date_col = "Date",
-                        time_col = "Time",
-                        timestamp_col = "DateTimeOriginal")
-rec_type <- list(cam_col = "as.character",
-                 date_col = list("as_date",
-                                 format = "%Y-%m-%d"),
-                 time_col = "times",
-                 timestamp_col = "as.POSIXct")
+rec_type <- list(Station = "as.character",
+                 Date = list("as_date",
+                             format = "%Y-%m-%d"),
+                 Time = "times",
+                 DateTimeOriginal = "as.POSIXct")
 
-mapping_cameras <- list(cam_col = "Station",
-                        setup_col = "Setup_date",
-                        retrieval_col = "Retrieval_date")
-cam_type <- list(cam_col = "as.character",
-                 setup_col = list("as_date",
-                                  format = "%d/%m/%Y"), 
-                 retrieval_col = list("as_date",
-                                      format = "%d/%m/%Y"))
+cam_type <- list(Station = "as.character",
+                 Setup_date = list("as.Date",
+                                   format = "%d/%m/%Y"), 
+                 Retrieval_date = list("as.Date",
+                                       format = "%d/%m/%Y"))
 
 dat_clean <- clean_data(dat, 
-                        mapping_records = mapping_records, rec_type = rec_type,
-                        mapping_cameras = mapping_cameras, cam_type = cam_type)
+                        rec_type = rec_type,
+                        cam_type = cam_type)
 ```
 
 ### Read a unique csv file with camera info

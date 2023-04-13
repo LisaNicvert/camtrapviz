@@ -6,11 +6,11 @@
 \usage{
 clean_data(
   dat,
-  mapping_cameras,
   cam_type,
-  mapping_records,
   rec_type,
   only_shared_cameras = FALSE,
+  cam_col_records,
+  cam_col_cameras = NULL,
   split = FALSE
 )
 }
@@ -23,32 +23,29 @@ are in the \verb{$data} slot with two components:
 \item \verb{$observations} (records table)
 }}
 
-\item{mapping_cameras}{The mapping list for columns in the cameras table.
-Names are the column types (common between \code{mapping_cameras} and \code{cam_type}).
-Values are the corresponding column names in \code{dat$data$deployments}.
-Names are free except the camera column which must be identified with \code{cam_col}.}
-
 \item{cam_type}{A named list containing the name of the
 function to cast between types for the cameras table.
-The list's names are the names of \code{mapping_cameras}
-corresponding to the columns to cast in \code{dat$data$deployments}.
+The list's names are the names of the columns to cast
+in \code{dat$data$deployments}.
 For details on the content of this list, see the documentation of
 the \code{cast_columns} function.}
 
-\item{mapping_records}{The mapping list for columns in the cameras table.
-Names are the column types (common between \code{mapping_records} and \code{rec_type}).
-Values are the corresponding column names in \code{dat$data$observations}.
-Names are free except the camera column which must be identified with \code{cam_col}.}
-
 \item{rec_type}{A named list containing the name of the
 function to cast between types for the records table.
-The list's names are the names of \code{mapping_records}
-corresponding to the columns to cast in \code{dat$data$observations}.
+The list's names are the names of the columns to cast
+in \code{dat$data$observations}.
 For details on the content of this list, see the documentation of
 the \code{cast_columns} function.}
 
 \item{only_shared_cameras}{Logical; restrict final data to shared cameras
 that are in \code{dat$data$deployments} and in \code{dat$data$observations}?}
+
+\item{cam_col_records}{Name of the column with cameras names in
+records (needed only of \code{only_shared_cameras} is \code{TRUE})}
+
+\item{cam_col_cameras}{Name of the column with cameras names in
+cameras (needed only of \code{only_shared_cameras} is \code{TRUE}).
+If \code{NULL} will be assumed to be the same as \code{cam_col_records}.}
 
 \item{split}{Logical; should the camera data be extracted from the
 records table by splitting the data?}
@@ -84,24 +81,17 @@ cameras <- data.frame(camera = c("A", "B", "C"),
                       lon = c("33.44", "33.45", "33.42"))
 dat <- list(data = list(observations = records,
                         deployments = cameras))
-mapping_records <- list(species_col = "species",
-                        date_col = "date",
-                        time_col = "time",
-                        cam_col = "camera")
-rec_type <- list(species_col = "as.character",
-                 date_col = list("as_date",
+rec_type <- list(species = "as.character",
+                 date = list("as.Date",
                                  format = "\%Y-\%m-\%d"),
-                 time_col = "times",
-                 cam_col = "as.character")
-mapping_cameras <- list(cam_col = "camera",
-                        lat_col = "lat",
-                        lon_col = "lon")
-cam_type <- list(cam_col = "as.character",
-                 lat_col = "as.numeric",
-                 lon_col = "as.numeric")
+                 time = "times",
+                 camera = "as.character")
+cam_type <- list(camera = "as.character",
+                 lat = "as.numeric",
+                 lon = "as.numeric")
 # Clean data converts columns to the appropriate types 
 # and reorders columns
 clean_data(dat,
-           mapping_records = mapping_records, rec_type = rec_type,
-           mapping_cameras = mapping_cameras, cam_type = cam_type)
+           rec_type = rec_type,
+           cam_type = cam_type)
 }

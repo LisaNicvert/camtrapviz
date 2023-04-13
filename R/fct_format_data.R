@@ -65,8 +65,11 @@ cast_columns <- function(df, cast_type) {
     
     col <- names(cast_type)[[i]]
     
-    res[[col]] <- do.call(castfunc, 
-                          args)
+    res[[col]] <- tryCatch(do.call(castfunc, args),
+                           error = function(e) {
+                             e
+                             return(NA)
+                           })
     
   }
   
@@ -116,22 +119,24 @@ add_tryformats <- function(castlist,
 #' are in the `$data` slot with two components: 
 #' + `$deployments` (cameras table)
 #' + `$observations` (records table)
-#' @param mapping_cameras The mapping list for columns in the cameras table 
-#' (`dat$data$deployments`). The names of the list indicate the
-#' the column type and the values indicate the relevant column names
-#' to consider.
+#' @param cam_columns A list of columns names that indicate 
+#' relevant colums to consider for the deployments data. 
+#' These columns are moved to the beginning of the cameras table
+#' (`dat$data$deployments`).
+#' If `split` is `TRUE`, these names are also extracted from
+#' `dat$data$observations` to create the cameras table. 
 #' @param split should camera data be extracted from the records?
 #' If yes, a cameras table will be created and replace the value
 #' of `dat$data$deployments`.
 #'
 #' @return The dataset with "pre-cleaned" cameras data:
 #' + the cameras table is filtered to keep unique rows across 
-#' the columns indicated in `mapping_cameras`. This allows to filter 
+#' the columns indicated in `cam_columns`. This allows to filter 
 #' for instance between duplicated cameras names.
 #' + if `split` is `TRUE`, `dat$data$deployments` is replaced with 
 #' data extracted from `dat$data$observations` 
-#' (only the columns indicated in `mapping_cameras`).
-prepare_cameras <- function(dat, mapping_cameras, split = FALSE) {
+#' (only the columns indicated in `cam_columns`).
+prepare_cameras <- function(dat, cam_columns, split = FALSE) {
   
   # Initialize results
   res <- dat
@@ -139,98 +144,20 @@ prepare_cameras <- function(dat, mapping_cameras, split = FALSE) {
   if (split) { # Manual file input
     # Split data
     cameras <- dat$data$observations |>
-      dplyr::select(all_of(unname(unlist(mapping_cameras))))
+      dplyr::select(all_of(unname(unlist(cam_columns))))
     res$data$deployments <- cameras
   }
   
   # Select unique rows for camera table
   # We want rows to be unique across the used camera columns 
-  # defined in mapping_cameras
+  # defined in cam_columns
   res$data$deployments <- res$data$deployments |>
-    distinct(across(all_of(unname(unlist(mapping_cameras)))),
+    distinct(across(all_of(unname(unlist(cam_columns)))),
              .keep_all = TRUE)
   
   return(res)
 }
 
-
-
-#' Format table
-#' 
-#' Casts columns as indicated in `cast_type` and 
-#' moves columns indicated in `mapping` to the beginning
-#' of the table.
-#'
-#' @param df The dataframe to format
-#' @param mapping The mapping list for columns in the dataframe.
-#' Names are the column types (common between `mapping` and
-#' `cast_type`). Values are the corresponding column names
-#' in the dataframe. 
-#' @param cast_type A named list containing the name of the 
-#' function to cast between types.
-#' The list's names are the names of the columns column types 
-#' (common between `mapping` and `cast_type`). 
-#' Elements of this list can be:
-#' + a character giving a valid function name to call
-#' + a list with the first element being the function to call (character)
-#' and additional arguments to the function call (that can be named as 
-#' the names of the functions' arguments).
-#'
-#' @return The dataframe df with reordered and casted columns.
-#' 
-#' @export
-#'
-#' @examples
-#' # Create synthetic dataset
-#' df <- data.frame(camera = c("A", "B", "C"),
-#'                  lat = c("20.12", "20.22", "22.34"),
-#'                  lon = c("33.44", "33.45", "33.42"),
-#'                  setup = c("2022-01-01", "2022-01-01", "2022-01-02"))
-#' mapping <- list(cam_col = "camera",
-#'                 lat_col = "lat",
-#'                 lon_col = "lon",
-#'                 setup_col = "setup")
-#' type <- list(cam_col = "as.character",
-#'              lat_col = "as.numeric",
-#'              lon_col = "as.numeric",
-#'              setup_col = list("as.Date",
-#'                               format = "%Y-%m-%d"))
-#' # Format table
-#' format_table(df, mapping, type)
-format_table <- function(df, mapping, cast_type) {
-  
-  # Vector from list (NULL will be discarded)
-  vec <- unlist(mapping)
-  
-  # Check arguments are named
-  if (is.null(names(mapping)) || is.null(names(cast_type))) {
-    stop("mapping and cast_type must be named")
-  }
-  # Check all cast_types are in mapping
-  if ( !all(names(cast_type) %in% names(mapping)) ) {
-    stop("all columns listed in cast_type must be in mapping")
-  }
-  # Check all non-null mapping are in cast_type
-  if ( !all(names(vec) %in% names(cast_type)) ) {
-    stop("all non-null columns listed in mapping must be in cast_type")
-  }
-  
-  res <- df |>
-    select(all_of(unname(vec)),
-           everything())
-  
-  # Cast columns
-  # Reorder
-  castval <- cast_type[names(vec)]
-  names(castval) <- vec
-  res <- cast_columns(res,
-                      castval)
-  
-  # Drop NA
-  # res <- remove_rows_with_NA(res, vec)
-  
-  return(res)
-}
 
 #' Filter cameras in both tables
 #'
@@ -304,31 +231,28 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #' are in the `$data` slot with two components: 
 #' + `$deployments` (cameras table)
 #' + `$observations` (records table)
-#' @param mapping_cameras The mapping list for columns in the cameras table.
-#' Names are the column types (common between `mapping_cameras` and `cam_type`). 
-#' Values are the corresponding column names in `dat$data$deployments`. 
-#' Names are free except the camera column which must be identified with `cam_col`.
 #' @param cam_type A named list containing the name of the 
 #' function to cast between types for the cameras table.
-#' The list's names are the names of `mapping_cameras` 
-#' corresponding to the columns to cast in `dat$data$deployments`.
+#' The list's names are the names of the columns to cast 
+#' in `dat$data$deployments`.
 #' For details on the content of this list, see the documentation of 
 #' the `cast_columns` function.
-#' @param mapping_records The mapping list for columns in the cameras table.
-#' Names are the column types (common between `mapping_records` and `rec_type`). 
-#' Values are the corresponding column names in `dat$data$observations`. 
-#' Names are free except the camera column which must be identified with `cam_col`.
 #' @param rec_type A named list containing the name of the 
 #' function to cast between types for the records table.
-#' The list's names are the names of `mapping_records` 
-#' corresponding to the columns to cast in `dat$data$observations`. 
+#' The list's names are the names of the columns to cast 
+#' in `dat$data$observations`. 
 #' For details on the content of this list, see the documentation of 
 #' the `cast_columns` function.
 #' @param split Logical; should the camera data be extracted from the 
 #' records table by splitting the data?
 #' @param only_shared_cameras Logical; restrict final data to shared cameras
 #' that are in `dat$data$deployments` and in `dat$data$observations`?
-#'
+#' @param cam_col_records Name of the column with cameras names in 
+#' records (needed only of `only_shared_cameras` is `TRUE`)
+#' @param cam_col_cameras Name of the column with cameras names in 
+#' cameras (needed only of `only_shared_cameras` is `TRUE`).
+#' If `NULL` will be assumed to be the same as `cam_col_records`. 
+#' 
 #' @return An object of the same type as the original input,
 #' but where `dat$data$deployments` and `dat$data$observations` have been
 #' cleaned as described above.
@@ -351,55 +275,55 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #'                       lon = c("33.44", "33.45", "33.42"))
 #' dat <- list(data = list(observations = records,
 #'                         deployments = cameras))
-#' mapping_records <- list(species_col = "species",
-#'                         date_col = "date",
-#'                         time_col = "time",
-#'                         cam_col = "camera")
-#' rec_type <- list(species_col = "as.character",
-#'                  date_col = list("as_date",
+#' rec_type <- list(species = "as.character",
+#'                  date = list("as.Date",
 #'                                  format = "%Y-%m-%d"),
-#'                  time_col = "times",
-#'                  cam_col = "as.character")
-#' mapping_cameras <- list(cam_col = "camera",
-#'                         lat_col = "lat",
-#'                         lon_col = "lon")
-#' cam_type <- list(cam_col = "as.character",
-#'                  lat_col = "as.numeric",
-#'                  lon_col = "as.numeric")
+#'                  time = "times",
+#'                  camera = "as.character")
+#' cam_type <- list(camera = "as.character",
+#'                  lat = "as.numeric",
+#'                  lon = "as.numeric")
 #' # Clean data converts columns to the appropriate types 
 #' # and reorders columns
 #' clean_data(dat,
-#'            mapping_records = mapping_records, rec_type = rec_type,
-#'            mapping_cameras = mapping_cameras, cam_type = cam_type)
+#'            rec_type = rec_type,
+#'            cam_type = cam_type)
 clean_data <- function(dat, 
-                       mapping_cameras, 
                        cam_type,
-                       mapping_records,
                        rec_type,
                        only_shared_cameras = FALSE,
+                       cam_col_records,
+                       cam_col_cameras = NULL,
                        split = FALSE) {
   
   # Prepare cameras ---
+  cameras_colnames <- as.list(names(cam_type))
   res <- prepare_cameras(dat, 
-                         mapping_cameras = mapping_cameras, 
+                         cam_columns = cameras_colnames, 
                          split = split)
   
   # Records ---
-  res$data$observations <- format_table(res$data$observations,
-                                        mapping = mapping_records,
+  # Cast
+  res$data$observations <- cast_columns(res$data$observations,
                                         cast_type = rec_type)
+  # Reorder
+  res$data$observations <- res$data$observations |>
+    select(all_of(names(rec_type)),
+           everything())
   
   # Cameras ---
-  res$data$deployments <- format_table(res$data$deployments,
-                                       mapping = mapping_cameras,
+  # Cast
+  res$data$deployments <- cast_columns(res$data$deployments,
                                        cast_type = cam_type)
+  # Reorder
+  res$data$deployments <- res$data$deployments |>
+    select(all_of(names(cam_type)),
+           everything())
+  
   
   # Both data ---
   if (only_shared_cameras) {
     # Restrict data to shared cameras
-    # Get column names ---
-    cam_col_records <- mapping_records[["cam_col"]]
-    cam_col_cameras <- mapping_cameras[["cam_col"]]
     bothcam <- filter_cameras_in_both_tables(res$data$observations,
                                              res$data$deployments, 
                                              cam_col_records,

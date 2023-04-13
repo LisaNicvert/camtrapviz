@@ -17,3 +17,5 @@ kga_cameras <- read.csv("/home/lnicvert/test_camtrap_data/csv_comma/kga_metadata
                         sep = ",")
 kga_cameras$Setup.Date <- as_date(kga_cameras$Setup.Date,
                                   format = "%m/%d/%Y")
+
+kga_all <- read.csv("/home/lnicvert/test_camtrap_data/records_cameras/records_cameras_comma.csv")

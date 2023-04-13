@@ -333,7 +333,7 @@ importServer <- function(id) {
                 "as.character",
                 "as.Date",
                 "times",
-                "as_datetime",
+                "as.POSIXct",
                 "as.character",
                 "as.numeric",
                 "as.numeric",
@@ -941,17 +941,37 @@ importServer <- function(id) {
       
       # Get casting types ---
       # Records
+      non_null_rec <- unlist(mapping_records())
+      non_null_names <- names(non_null_rec)
       castval_rec <- get_named_list(records_widgets,
                                     col = "cast",
-                                    widget_values = names(mapping_records()))
+                                    widget_values = non_null_names)
+      castval_rec <- castval_rec[non_null_names] # Reorder values
+      names(castval_rec) <- unname(non_null_rec) # Rename with table column names
+      
+      # cat("-------------------\n")
+      # cat(paste(names(castval_rec)))
+      # cat("\n")
+      # cat(paste(castval_rec))
+      # cat("\n")
       
       # Cameras
       # /!\ Here we choose to look in the records table,
       # because the cast types should be the same in both tables
       # and mapping_cameras was renamed to remove the _col suffix
+      non_null_cam <- unlist(mapping_cameras()$mapping)
+      non_null_names <- names(non_null_cam)
       castval_cam <- get_named_list(records_widgets,
                                     col = "cast",
-                                    widget_values = names(mapping_cameras()$mapping))
+                                    widget_values = non_null_names)
+      castval_cam <- castval_cam[non_null_names] # Reorder values
+      names(castval_cam) <- unname(non_null_cam) # Rename with table column names
+      
+      # cat("-------------------\n")
+      # cat(paste(names(castval_cam)))
+      # cat("\n")
+      # cat(paste(castval_cam))
+      # cat("\n")
       
       # Fine-tune date format
       if (input$input_type == 1) { # Example files (known date format)
@@ -971,7 +991,10 @@ importServer <- function(id) {
       dates_cast <- records_widgets |>
         filter(cast == "as.Date")
       dates_cast <- dates_cast$widget
-      
+      # Get column names
+      dates_cast <- c(unname(unlist(mapping_records()[dates_cast])),
+                      unname(unlist(mapping_cameras()$mapping[dates_cast]))) 
+
       # Add a casting type only if relevant
       if (!all(is.null(fmt_rec))) {
         castval_rec <- add_tryformats(castval_rec,
@@ -984,25 +1007,21 @@ importServer <- function(id) {
                                       names_to_add = dates_cast)
       }
       
-      
-      
-      
       metaExpr({
-        # Get mapping ---
-        mapping_cameras <- ..(mapping_cameras()$mapping)
-        mapping_records <- ..(mapping_records())
-        
         # Casting types variables ---
         castval_rec <- ..(castval_rec)
         castval_cam <- ..(castval_cam)
         
-        clean_data(dat = ..(dat_raw()), 
-                   mapping_cameras = mapping_cameras, 
-                   cam_type = castval_cam,
-                   mapping_records = mapping_records,
-                   rec_type = castval_rec,
-                   split = ..(split))
+        # Camera column ---
+        cam_col <- ..(unname(mapping_cameras()$mapping[["cam_col"]]))
+        rec_col <- ..(unname(mapping_records()[["cam_col"]]))
         
+        clean_data(dat = ..(dat_raw()), 
+                   cam_type = castval_cam,
+                   rec_type = castval_rec,
+                   split = ..(split),
+                   cam_col_cameras = cam_col,
+                   cam_col_records = rec_col)
       }, bindToReturn = TRUE)
       
     }, varname = "dat")
@@ -1040,7 +1059,7 @@ importServer <- function(id) {
                     filter = "none",
                     selection = "none",
                     options = list(scrollX = TRUE)) |>
-        DT::formatStyle(unname(unlist(mapping_records())),
+        DT::formatStyle(columns = unname(unlist(mapping_records())),
                         backgroundColor = '#F5EE9E')
     })
     
@@ -1049,7 +1068,7 @@ importServer <- function(id) {
                     filter = "none",
                     selection = "none",
                     options = list(scrollX = TRUE)) |>
-        DT::formatStyle(unname(unlist(mapping_cameras()$mapping)),
+        DT::formatStyle(columns = unname(unlist(mapping_cameras()$mapping)),
                         backgroundColor = '#F5EE9E')
     })
     

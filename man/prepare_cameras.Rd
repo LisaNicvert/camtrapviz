@@ -4,7 +4,7 @@
 \alias{prepare_cameras}
 \title{Prepare cameras}
 \usage{
-prepare_cameras(dat, mapping_cameras, split = FALSE)
+prepare_cameras(dat, cam_columns, split = FALSE)
 }
 \arguments{
 \item{dat}{The data. It can be either a list with one component \verb{$data}
@@ -15,10 +15,12 @@ are in the \verb{$data} slot with two components:
 \item \verb{$observations} (records table)
 }}
 
-\item{mapping_cameras}{The mapping list for columns in the cameras table
-(\code{dat$data$deployments}). The names of the list indicate the
-the column type and the values indicate the relevant column names
-to consider.}
+\item{cam_columns}{A list of columns names that indicate
+relevant colums to consider for the deployments data.
+These columns are moved to the beginning of the cameras table
+(\code{dat$data$deployments}).
+If \code{split} is \code{TRUE}, these names are also extracted from
+\code{dat$data$observations} to create the cameras table.}
 
 \item{split}{should camera data be extracted from the records?
 If yes, a cameras table will be created and replace the value
@@ -28,11 +30,11 @@ of \code{dat$data$deployments}.}
 The dataset with "pre-cleaned" cameras data:
 \itemize{
 \item the cameras table is filtered to keep unique rows across
-the columns indicated in \code{mapping_cameras}. This allows to filter
+the columns indicated in \code{cam_columns}. This allows to filter
 for instance between duplicated cameras names.
 \item if \code{split} is \code{TRUE}, \code{dat$data$deployments} is replaced with
 data extracted from \code{dat$data$observations}
-(only the columns indicated in \code{mapping_cameras}).
+(only the columns indicated in \code{cam_columns}).
 }
 }
 \description{
