@@ -21,6 +21,8 @@ library(dplyr)
 
 This vignette demonstrates how this package can be used to summarize camera trap data.
 
+# Import and prepare data
+
 ```{r}
 data(recordTableSample, package = "camtrapR")
 data(camtraps, package = "camtrapR")

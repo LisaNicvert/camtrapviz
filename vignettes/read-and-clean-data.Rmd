@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(camtrapviz)
+# library(jsonlite)
 ```
 
 This vignette demonstrates how the functions included in this package can be used to read and clean different data formats.
@@ -23,11 +24,16 @@ This vignette demonstrates how the functions included in this package can be use
 ## Write data in tempfile
 
 ```{r}
+# csv files ------------------------------------------
 data(recordTableSample, package = "camtrapR")
 data(camtraps, package = "camtrapR")
 
-recordfile <- paste0(tempdir(), "/records.csv")
-camtrapfile <- paste0(tempdir(), "/camtraps.csv")
+# Create subfolder
+dir.create(paste0(tempdir(), "/csv"))
+
+# Write files
+recordfile <- paste0(tempdir(), "/csv/records.csv")
+camtrapfile <- paste0(tempdir(), "/csv/camtraps.csv")
 
 write.csv(recordTableSample, recordfile, 
           row.names = FALSE)
@@ -35,9 +41,63 @@ write.csv(camtraps, camtrapfile,
           row.names = FALSE)
 ```
 
-## Read data
 
-### Read csv files
+```{r}
+# csv camera ------------------------------------------
+# Create file
+recordcam <- recordTableSample |>
+  dplyr::left_join(camtraps, by = "Station")
+
+# Create subfolder
+dir.create(paste0(tempdir(), "/csvcam"))
+
+# Write file
+recordcamfile <- paste0(tempdir(), "/csvcam/recordcam.csv")
+write.csv(recordcam, recordcamfile, 
+          row.names = FALSE)
+```
+
+
+```{r}
+# camtrapDP ------------------------------------------
+# data(mica, package = "camtraptor")
+# 
+# # Create subfolder
+# dir.create(paste0(tempdir(), "/DP"))
+# 
+# # Convert to JSON
+# jsonlist <- mica[names(mica) != "data"]
+# jsoncontent <- jsonlite::toJSON(jsonlist)
+# 
+# # Write files
+# recordfileDP <- paste0(tempdir(), "/DP/observations.csv")
+# camtrapfileDP <- paste0(tempdir(), "/DP/deployments.csv")
+# mediafileDP <- paste0(tempdir(), "/DP/media.csv")
+# jsonfile <- paste0(tempdir(), "/DP/datapackage.json")
+# 
+# obs <- mica$data$observations
+# obs$timestamp <- as.character(obs$timestamp, 
+#                               format = "%Y-%m-%dT%H:%M:%S%z")
+# obs$classificationTimestamp <- as.character(obs$classificationTimestamp, 
+#                                             format = "%Y-%m-%dT%H:%M:%S%z")
+# write.csv(obs, recordfileDP, 
+#           row.names = FALSE, 
+#           na = "",
+#           quote = FALSE)
+# write.csv(mica$data$deployments, camtrapfileDP, 
+#           row.names = FALSE, 
+#           na = "",
+#           quote = FALSE)
+# write.csv(mica$data$media, mediafileDP, 
+#           row.names = FALSE, 
+#           na = "",
+#           quote = FALSE)
+# write(jsoncontent, jsonfile)
+```
+
+## Records and cameras in separate csv files (2 csv files)
+
+### Read data
 
 ```{r}
 dat <- read_data(records_path = recordfile,
@@ -45,13 +105,14 @@ dat <- read_data(records_path = recordfile,
                  sep_records = ",", sep_cameras = ",")
 ```
 
-### Read camtrapDP json file
+The imported file is a list with one component `$data` containing 2 dataframes:
 
-To write
++ `$observations` contains the records
++ `$deployments` contains the cameras information
 
-## Clean data
+### Clean data
 
-### Clean csv records and table
+This step ensures all columns have the desired type.
 
 ```{r}
 rec_type <- list(Station = "as.character",
@@ -71,10 +132,47 @@ dat_clean <- clean_data(dat,
                         cam_type = cam_type)
 ```
 
-### Read a unique csv file with camera info
+## Records and cameras in the same csv (1 csv file)
 
-To write
+### Read data
 
-### Read a camtrapDP json file
+```{r}
+dat <- read_data(records_path = recordcamfile,
+                 sep_records = ",")
+```
 
-To write
+Again the imported file is a list with one component `$data`:
+
++ `$data$observations` contains the cameras and records information
++ `$data$deployments` is `NULL`
+
+### Clean data
+
+Here this step will spilt the information between cameras and records. It will move all columns listed in `cam_type` in the cameras file.
+
+```{r}
+cam_type2 <- list(Station = "as.character",
+                  Setup_date = list("as.Date",
+                                    format = "%d/%m/%Y"), 
+                  Retrieval_date = list("as.Date",
+                                        format = "%d/%m/%Y"),
+                  utm_y = "as.numeric",
+                  utm_x = "as.numeric",
+                  Problem1_from = list("as.Date",
+                                       format = "%d/%m/%Y"),
+                  Problem1_to = list("as.Date",
+                                     format = "%d/%m/%Y"))
+
+dat_clean <- clean_data(dat, 
+                        rec_type = rec_type,
+                        cam_type = cam_type2,
+                        cam_col_records = "Station",
+                        split = TRUE)
+```
+
+## CamtrapDP format (json file)
+
+### Read data
+
+### Clean data
+
