@@ -1,128 +1,128 @@
+# UI ----------------------------------------------------------------------
+
 importUI <- function(id) {
   # Create namespace variable
   ns <- NS(id)
   tagList(
-    box(h2("Data import"),
-        width = 12,
-
 # Input type --------------------------------------------------------------
-        radioButtons(NS(id, "input_type"),
-                     label = h3("Input type"),
-                     choices = list("Load example file" = 1,
-                                    "Upload file" = 2),
-                     inline = TRUE,
-                     selected = 1),
+    radioButtons(NS(id, "input_type"),
+                 label = h3("Input type"),
+                 choices = list("Load example file" = 1,
+                                "Upload file" = 2),
+                 inline = TRUE,
+                 selected = 1),
 
 # Example files widgets ---------------------------------------------------
 
-        conditionalPanel(condition = "input.input_type == 1", ns = ns,
-                         fluidRow(column(4,
-                                         selectInput(NS(id, "example_file"), "Dataset",
-                                                     choices = c("mica", "recordTableSample"))),
-                                  column(8,
-                                         style = "margin-top: 25px;", # To align with selectInput
-                                         textOutput(NS(id, "dyntext")))
-                         )
-        ),
+    conditionalPanel(condition = "input.input_type == 1", ns = ns,
+                     fluidRow(column(4,
+                                     selectInput(NS(id, "example_file"), "Dataset",
+                                                 choices = c("mica", "recordTableSample"))),
+                              column(8,
+                                     style = "margin-top: 25px;", # To align with selectInput
+                                     textOutput(NS(id, "dyntext")))
+                     )
+    ),
 
 # Upload files widgets ----------------------------------------------------
 
-    conditionalPanel(condition = "input.input_type == 2", ns = ns,
-                     h4("Records table"),
-                     fluidRow(column(4,
-                                     shinyFilesButton(NS(id, 'records_input'), 
-                                                      style = "margin-bottom: 25px",
-                                                      label = 'Choose records table', 
-                                                      title = 'Choose file',
-                                                      multiple = FALSE),
-                                     conditionalPanel(condition = "output.records_extension !== 'json'", ns = ns,
-                                                      separator_widget(NS(id, "records")))
-                                     ),
-                              column(8,
-                                     uiOutput(NS(id, "mandatory_records_col")),
-                                     radioButtons(NS(id, "datetime_or_timestamp"),
-                                                  "Date / time column(s)",
-                                                  choices = c("Date and time" = "date_time",
-                                                              "Timestamp" = "timestamp"), 
-                                                  inline = TRUE),
-                                     conditionalPanel(condition = "input.datetime_or_timestamp == 'date_time'", ns = ns,
-                                                      uiOutput(NS(id, "datetime_records_col"))
-                                                      ),
-                                     conditionalPanel(condition = "input.datetime_or_timestamp == 'timestamp'", ns = ns,
-                                                      uiOutput(NS(id, "timestamp_records_col"))
-                                     ),
-                                     conditionalPanel(condition = "!input.import_cameras && output.records_extension !== 'json'",
-                                                      ns = ns,
-                                                      uiOutput(NS(id, "mandatory_widgets_cov_col_records")),
-                                                      uiOutput(NS(id, "ui_crs_col_records")),
-                                                      uiOutput(NS(id, "optional_widgets_cov_col_records"))
-                                                      ),
-                                     uiOutput(NS(id, "optional_records_col"))
-                                     ) # End column for records selectInput
-                              ), # End fluidRow
-                     br(),
-                     h4("Cameras table"),
-                     conditionalPanel(condition = "output.records_extension !== 'json'",
-                                      ns = ns,
-                                      checkboxInput(NS(id, "import_cameras"),
-                                                    "Import cameras table")
-                                      ),
-                     conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
-                                      ns = ns,
-                                      # Display if user wants to import a camera or if it is a json file
-                                      fluidRow(column(4,
-                                                      conditionalPanel(condition = "output.records_extension !== 'json'",
-                                                                       ns = ns,
-                                                                       # Display only if not json file
-                                                                       shinyFilesButton(NS(id, "cameras_input"), 
-                                                                                        style = "margin-bottom: 25px",
-                                                                                        label = 'Choose cameras table', 
-                                                                                        title = 'Choose file',
-                                                                                        multiple = FALSE),
-                                                                       separator_widget(NS(id, "cameras")))
-                                                      ),
-                                                      column(8,
-                                                             uiOutput(NS(id, "mandatory_cameras_col")),
-                                                             uiOutput(NS(id, "ui_crs_col")),
-                                                             uiOutput(NS(id, "optional_cameras_col"))
-                                                             ))
-                                      ) # conditional cameras table panel
-                     ), # conditionalPanel upload file widgets
+conditionalPanel(condition = "input.input_type == 2", ns = ns,
+                 h4("Records table"),
+                 fluidRow(column(4,
+                                 shinyFilesButton(NS(id, 'records_input'), 
+                                                  style = "margin-bottom: 25px",
+                                                  label = 'Choose records table', 
+                                                  title = 'Choose file',
+                                                  multiple = FALSE),
+                                 conditionalPanel(condition = "output.records_extension !== 'json'", ns = ns,
+                                                  separator_widget(NS(id, "records")))
+                                 ),
+                          column(8,
+                                 uiOutput(NS(id, "mandatory_records_col")),
+                                 radioButtons(NS(id, "datetime_or_timestamp"),
+                                              "Date / time column(s)",
+                                              choices = c("Date and time" = "date_time",
+                                                          "Timestamp" = "timestamp"), 
+                                              inline = TRUE),
+                                 conditionalPanel(condition = "input.datetime_or_timestamp == 'date_time'", ns = ns,
+                                                  uiOutput(NS(id, "datetime_records_col"))
+                                                  ),
+                                 conditionalPanel(condition = "input.datetime_or_timestamp == 'timestamp'", ns = ns,
+                                                  uiOutput(NS(id, "timestamp_records_col"))
+                                 ),
+                                 conditionalPanel(condition = "!input.import_cameras && output.records_extension !== 'json'",
+                                                  ns = ns,
+                                                  uiOutput(NS(id, "mandatory_widgets_cov_col_records")),
+                                                  uiOutput(NS(id, "ui_crs_col_records")),
+                                                  uiOutput(NS(id, "optional_widgets_cov_col_records"))
+                                                  ),
+                                 uiOutput(NS(id, "optional_records_col"))
+                                 ) # End column for records selectInput
+                          ), # End fluidRow
+                 br(),
+                 h4("Cameras table"),
+                 conditionalPanel(condition = "output.records_extension !== 'json'",
+                                  ns = ns,
+                                  checkboxInput(NS(id, "import_cameras"),
+                                                "Import cameras table")
+                                  ),
+                 conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
+                                  ns = ns,
+                                  # Display if user wants to import a camera or if it is a json file
+                                  fluidRow(column(4,
+                                                  conditionalPanel(condition = "output.records_extension !== 'json'",
+                                                                   ns = ns,
+                                                                   # Display only if not json file
+                                                                   shinyFilesButton(NS(id, "cameras_input"), 
+                                                                                    style = "margin-bottom: 25px",
+                                                                                    label = 'Choose cameras table', 
+                                                                                    title = 'Choose file',
+                                                                                    multiple = FALSE),
+                                                                   separator_widget(NS(id, "cameras")))
+                                                  ),
+                                                  column(8,
+                                                         uiOutput(NS(id, "mandatory_cameras_col")),
+                                                         uiOutput(NS(id, "ui_crs_col")),
+                                                         uiOutput(NS(id, "optional_cameras_col"))
+                                                         ))
+                                  ) # conditional cameras table panel
+                 ), # conditionalPanel upload file widgets
 
 # File previews -----------------------------------------------------------
 
-                     tabsetPanel(
-                       tabPanel("Raw data preview",
-                                conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
-                                                 ns = ns,
-                                                 h4("Records table"),
-                                                 dataTableOutput(NS(id, "raw_records")),
-                                                 conditionalPanel(condition = "input.input_type == 1 || input.import_cameras || output.records_extension === 'json'",
-                                                                  ns = ns,
-                                                                  h4("Cameras table"),
-                                                                  dataTableOutput(NS(id, "raw_cameras"))
-                                                 )
-                                )
-                       ),
-                       tabPanel("Cleaned data preview",
-                                conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
-                                                 ns = ns,
-                                                 actionButton(NS(id, "code_import"), 
-                                                              "Show data cleaning code", icon("code"),
-                                                              style = "margin-top: 25px; margin-bottom: 15px;"),
-                                                 h4("Records table"),
-                                                 dataTableOutput(NS(id, "records")),
-                                                 h4("Cameras table"),
-                                                 dataTableOutput(NS(id, "cameras")),
-                                                 downloadButton(NS(id, "downolad_cleaned_data"),
-                                                                label = "Downolad cleaned data")
-                                )
-                       )
-                     ) # End tabsetPanel
-        ) # End box
+                 tabsetPanel(
+                   tabPanel("Raw data preview",
+                            conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
+                                             ns = ns,
+                                             h4("Records table"),
+                                             dataTableOutput(NS(id, "raw_records")),
+                                             conditionalPanel(condition = "input.input_type == 1 || input.import_cameras || output.records_extension === 'json'",
+                                                              ns = ns,
+                                                              h4("Cameras table"),
+                                                              dataTableOutput(NS(id, "raw_cameras"))
+                                             )
+                            )
+                   ),
+                   tabPanel("Cleaned data preview",
+                            conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
+                                             ns = ns,
+                                             actionButton(NS(id, "code_import"), 
+                                                          "Show data cleaning code", icon("code"),
+                                                          style = "margin-top: 25px; margin-bottom: 15px;"),
+                                             h4("Records table"),
+                                             dataTableOutput(NS(id, "records")),
+                                             h4("Cameras table"),
+                                             dataTableOutput(NS(id, "cameras")),
+                                             downloadButton(NS(id, "downolad_cleaned_data"),
+                                                            label = "Downolad cleaned data")
+                            )
+                   )
+                 ) # End tabsetPanel
     ) # End taglist
 }
 
+
+# Server ------------------------------------------------------------------
 
 importServer <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -1111,7 +1111,7 @@ importServer <- function(id) {
 
 # Return values -----------------------------------------------------------
     return(
-      list(camtrap_data = reactive(dat()),
+      list(camtrap_data = dat,
            mapping_records = reactive(mapping_records()),
            mapping_cameras = reactive(mapping_cameras()$mapping),
            crs = reactive(crs())

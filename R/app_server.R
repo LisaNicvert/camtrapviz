@@ -9,7 +9,8 @@
 #' @export
 server <- function(input, output, session) {
   
-  # Import reactives
+
+  # Import reactives --------------------------------------------------------
   import_val <- importServer("import")
   
   # Test
@@ -23,23 +24,42 @@ server <- function(input, output, session) {
   #         paste(import_val$mapping_cameras()))
   # })
   
-  # Select data reactives
+
+  # Select data reactives ---------------------------------------------------
   selectServer("select",
                 camtrap_data = import_val$camtrap_data,
                 mapping_records = import_val$mapping_records,
                 mapping_cameras = import_val$mapping_cameras)
   
-  # Summary reactives
+
+  # Summary reactives -------------------------------------------------------
   summaryServer("summary",
                 camtrap_data = import_val$camtrap_data,
                 mapping_records = import_val$mapping_records,
                 mapping_cameras = import_val$mapping_cameras,
                 crs = import_val$crs)
   
-  # All species
+
+  # All species -------------------------------------------------------------
   allspeciesServer("allspecies",
                    camtrap_data = import_val$camtrap_data,
                    mapping_records = import_val$mapping_records,
                    mapping_cameras = import_val$mapping_cameras,
                    crs = import_val$crs) 
+  
+  # Download handler --------------------------------------------------------
+  
+  output$download_script <- downloadHandler(
+    filename = "camtrapviz.zip", 
+    content = function(file) {
+      ec <- shinymeta::newExpansionContext()
+      shinymeta::buildRmdBundle(
+        "R/report.Rmd", 
+        file, 
+        vars = list(data_cleaning = expandChain(import_val$camtrap_data(), 
+                                                .expansionContext = ec)),
+        render_args = list(output_format = "html_document")
+      )
+    }
+  )
 }

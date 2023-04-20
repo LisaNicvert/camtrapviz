@@ -30,7 +30,10 @@ ui <- function() {
         
         tabItem(tabName = "dataimport",
                 fluidRow(
-                  importUI("import")
+                  box(h2("Data import"),
+                      width = 12,
+                      importUI("import")
+                      )
                 )
         ),
 
@@ -38,7 +41,10 @@ ui <- function() {
 
         tabItem(tabName = "selectdata",
                 fluidRow(
-                  selectUI("select")
+                  box(h2("Select data"),
+                      width = 12,
+                      selectUI("select")
+                  )
                 )
         ),
 
@@ -46,14 +52,21 @@ ui <- function() {
 
         tabItem(tabName = "summary",
                 fluidRow(
-                  # verbatimTextOutput("mapping_records"),
-                  # verbatimTextOutput("mapping_cameras")
-                  summaryUI("summary")
+                  box(width = 12,
+                      h2("Survey summary"),
+                      summaryUI("summary"),
+                      # Download
+                      downloadButton("download_script", 
+                                     "Download script")
+                  )
                 )
         ),
         tabItem(tabName = "all",
                 fluidRow(
-                  allspeciesUI("allspecies")
+                  box(h2("All species analyses"),
+                      width = 12,
+                      allspeciesUI("allspecies")
+                      )
                 )
         ),
         tabItem(tabName = "one",

@@ -1,20 +1,16 @@
 selectUI <- function(id) {
   ns <- NS(id)
   tagList(
-    box(h2("Select data"),
-        width = 12,
-        column(width = 6,
-               h3("Species"),
-               select_values(prefix = NS(id, "spp"),
-                             item = "species")
-               ),
-        column(width = 6,
-               h3("Cameras"),
-               select_values(prefix = NS(id, "cam"),
-                             item = "cameras")
-        ),
-        ) # End module box
-    
+    column(width = 6,
+           h3("Species"),
+           select_values(prefix = NS(id, "spp"),
+                         item = "species")
+           ),
+    column(width = 6,
+           h3("Cameras"),
+           select_values(prefix = NS(id, "cam"),
+                         item = "cameras")
+    )
   )
 }
 
@@ -28,7 +24,7 @@ selectServer <- function(id,
 
 # Test reactive input -----------------------------------------------------
       
-      stopifnot(is.reactive(camtrap_data))
+      # stopifnot(is.reactive(camtrap_data))
       stopifnot(is.reactive(mapping_records))
       stopifnot(is.reactive(mapping_cameras))
       

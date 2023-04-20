@@ -1,60 +1,61 @@
+# UI ----------------------------------------------------------------------
+
 summaryUI <- function(id) {
   tagList(
 
 # Info box ----------------------------------------------------------------
-
-    box(width = 12,
-        h2("Survey summary"),
-        h3("Overview"),
-        fluidRow(infoBox("Cameras", 
-                         icon = icon("camera"),
-                         color = 'aqua',
-                         value = textOutput(NS(id, "ncameras")),
-                         width = 6
-                         ),
-                 infoBox("Species", 
-                         icon = icon("paw"),
-                         color = 'teal',
-                         value = textOutput(NS(id, "nspecies")),
-                         width = 6
-                         )
-                 ),
-        fluidRow(infoBox("Trapping nights", 
-                         icon = icon("clock"),
-                         color = 'fuchsia',
-                         value = textOutput(NS(id, "sampling_length")),
-                         width = 6
-                         ),
-                 infoBox("Active", 
-                         icon = icon("calendar"),
-                         color = 'purple',
-                         value = textOutput(NS(id, "daterange")),
-                         width = 6
-                         )
-                 ),
-        br(),
+    h3("Overview"),
+    fluidRow(infoBox("Cameras", 
+                     icon = icon("camera"),
+                     color = 'aqua',
+                     value = textOutput(NS(id, "ncameras")),
+                     width = 6
+                     ),
+             infoBox("Species", 
+                     icon = icon("paw"),
+                     color = 'teal',
+                     value = textOutput(NS(id, "nspecies")),
+                     width = 6
+                     )
+             ),
+    fluidRow(infoBox("Trapping nights", 
+                     icon = icon("clock"),
+                     color = 'fuchsia',
+                     value = textOutput(NS(id, "sampling_length")),
+                     width = 6
+                     ),
+             infoBox("Active", 
+                     icon = icon("calendar"),
+                     color = 'purple',
+                     value = textOutput(NS(id, "daterange")),
+                     width = 6
+                     )
+             ),
+    br(),
 
 # Plots -------------------------------------------------------------------
 
-        # textOutput(NS(id, "sel")),
-        h3("Map"),
-        outputCodeButton(leafletOutput(NS(id, "plot_map"),
-                                       height = "500px")),
-        h3("Camera activity"),
-        outputCodeButton(girafeOutput(NS(id, "plot_occurrences"),
-                                      height = "500px")),
+    # textOutput(NS(id, "sel")),
+    h3("Map"),
+    outputCodeButton(leafletOutput(NS(id, "plot_map"),
+                                   height = "500px")),
+    h3("Camera activity"),
+    outputCodeButton(girafeOutput(NS(id, "plot_occurrences"),
+                                  height = "500px")),
 
 # Tables ------------------------------------------------------------------
 
-        h3("Cameras summary"),
-        textOutput(NS(id, "check_cameras_records")),
-        textOutput(NS(id, "check_cameras_cameras")),
-        dataTableOutput(NS(id, "cameras_table")),
-        verbatimTextOutput(NS(id, "code_cameras_table"))
-        )
-    )
+    h3("Cameras summary"),
+    textOutput(NS(id, "check_cameras_records")),
+    textOutput(NS(id, "check_cameras_cameras")),
+    dataTableOutput(NS(id, "cameras_table")),
+    verbatimTextOutput(NS(id, "code_cameras_table"))
+    ) # end tagList
     
 }
+
+
+# Server ------------------------------------------------------------------
 
 summaryServer <- function(id, 
                           camtrap_data, 
@@ -64,7 +65,7 @@ summaryServer <- function(id,
   moduleServer(id, function(input, output, session) {
     
 # Test reactive input -----------------------------------------------------
-    stopifnot(is.reactive(camtrap_data))
+    # stopifnot(is.reactive(camtrap_data))
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     stopifnot(is.reactive(crs))

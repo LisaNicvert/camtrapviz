@@ -1,35 +1,33 @@
 allspeciesUI <- function(id) {
   tagList(
-    box(width = 12,
         
 # Diversity map -----------------------------------------------------------
-      h2("All species analyses"),
-      h3("Diversity map"),
-      fluidRow(
-        column(width = 4,
-               selectInput(NS(id, "divtype"), 
-                           label = "Diversity index",
-                           choices = c("Number of species (richness)",
-                                       "Shannon diversity",
-                                       "Simpson diversity"))
-        ),
-        column(width = 8,
-               # outputCodeButton(leafletOutput(NS(id, "plot_map"),
-               #                                height = "400px"))
-        )
+
+    h3("Diversity map"),
+    fluidRow(
+      column(width = 4,
+             selectInput(NS(id, "divtype"), 
+                         label = "Diversity index",
+                         choices = c("Number of species (richness)",
+                                     "Shannon diversity",
+                                     "Simpson diversity"))
       ),
-      
+      column(width = 8,
+             # outputCodeButton(leafletOutput(NS(id, "plot_map"),
+             #                                height = "400px"))
+      )
+    ),
+    
 # Counts per species ------------------------------------------------------
-      h3("Species count"),
-      fluidRow(
-        column(width = 4,
-               selectInput(NS(id, "facet"), 
-                           label = "Facetting variable",
-                           choices = NULL)
-        ),
-        column(width = 8,
-               outputCodeButton(girafeOutput(NS(id, "plot_species")))
-        )
+    h3("Species count"),
+    fluidRow(
+      column(width = 4,
+             selectInput(NS(id, "facet"), 
+                         label = "Facetting variable",
+                         choices = NULL)
+      ),
+      column(width = 8,
+             outputCodeButton(girafeOutput(NS(id, "plot_species")))
       )
     )
   )
@@ -43,7 +41,7 @@ allspeciesServer <- function(id,
   moduleServer(id, function(input, output, session) {
     
 # Test reactive input -----------------------------------------------------
-    stopifnot(is.reactive(camtrap_data))
+    # stopifnot(is.reactive(camtrap_data))
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     stopifnot(is.reactive(crs))
