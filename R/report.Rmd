@@ -19,3 +19,8 @@ library(camtrapviz)
 ```{r}
 {{data_cleaning}}
 ```
+
+## Data summary
+```{r}
+{{camtable}}
+```

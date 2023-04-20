@@ -105,10 +105,6 @@ summaryServer <- function(id,
     
     cameras_values <- metaReactive2({
       
-      # Create intermediate variables
-      df_records <- camtrap_data()$data$observations
-      df_cam <- camtrap_data()$data$deployments
-      
       mapping_records <- mapping_records()
       mapping_cameras <- mapping_cameras()
       
@@ -116,7 +112,7 @@ summaryServer <- function(id,
       if (is.null(mapping_cameras$setup_col) && is.null(mapping_cameras$retrieval_col)) { 
         # Don't use dfcam in function call
         metaExpr({
-          summarize_cameras(df_records, 
+          summarize_cameras(..(camtrap_data())$data$observations, 
                             cam_col = ..(mapping_records$cam_col),
                             timestamp_col = ..(mapping_records$timestamp_col),
                             date_col = ..(mapping_records$date_col),
@@ -124,12 +120,12 @@ summaryServer <- function(id,
         })
       } else {
         metaExpr({
-          summarize_cameras(df_records, 
+          summarize_cameras(..(camtrap_data())$data$observations, 
                             cam_col = ..(mapping_records$cam_col),
                             timestamp_col = ..(mapping_records$timestamp_col),
                             date_col = ..(mapping_records$date_col),
                             time_col = ..(mapping_records$time_col),
-                            dfcam = df_cam, 
+                            dfcam = ..(camtrap_data())$data$deployments, 
                             cam_col_dfcam = ..(mapping_cameras$cam_col),
                             setup_col = ..(mapping_cameras$setup_col),
                             retrieval_col = ..(mapping_cameras$retrieval_col))
@@ -137,7 +133,7 @@ summaryServer <- function(id,
       }
       
       
-    })
+    }, varname = "camvalues")
     
 
 # Check cameras -----------------------------------------------------------
@@ -183,11 +179,11 @@ summaryServer <- function(id,
     })
     
 # Tables ------------------------------------------------------------------
-    output$cameras_table <- renderDataTable({
-      DT::datatable(cameras_values(),
-                    filter = "none",
-                    selection = "none",
-                    options = list(scrollX = TRUE))
+    output$cameras_table <- metaRender(renderDataTable, {
+        DT::datatable(..(cameras_values()),
+                      filter = "none",
+                      selection = "none",
+                      options = list(scrollX = TRUE))
     })
     
 # Plots -------------------------------------------------------------------
@@ -287,6 +283,11 @@ summaryServer <- function(id,
     output$code_cameras_table <- renderPrint({
       expandChain(cameras_values())
     })
+    
+
+# Return values -----------------------------------------------------------
+
+  list(camtable = output$cameras_table)    
     
   })
 }

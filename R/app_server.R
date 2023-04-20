@@ -33,11 +33,11 @@ server <- function(input, output, session) {
   
 
   # Summary reactives -------------------------------------------------------
-  summaryServer("summary",
-                camtrap_data = import_val$camtrap_data,
-                mapping_records = import_val$mapping_records,
-                mapping_cameras = import_val$mapping_cameras,
-                crs = import_val$crs)
+  summary_val <- summaryServer("summary",
+                               camtrap_data = import_val$camtrap_data,
+                               mapping_records = import_val$mapping_records,
+                               mapping_cameras = import_val$mapping_cameras,
+                               crs = import_val$crs)
   
 
   # All species -------------------------------------------------------------
@@ -56,8 +56,10 @@ server <- function(input, output, session) {
       shinymeta::buildRmdBundle(
         "R/report.Rmd", 
         file, 
-        vars = list(data_cleaning = expandChain(import_val$camtrap_data(), 
-                                                .expansionContext = ec)),
+        vars = list(data_cleaning = expandChain(invisible(import_val$camtrap_data()), 
+                                                .expansionContext = ec),
+                    camtable = expandChain(summary_val$camtable(),
+                                           .expansionContext = ec)),
         render_args = list(output_format = "html_document")
       )
     }
