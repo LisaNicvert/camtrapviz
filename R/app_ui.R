@@ -5,7 +5,15 @@
 #' @export
 ui <- function() {
   dashboardPage(
-    dashboardHeader(title = "Camtrapviz"),
+    # title = "camtrapviz",
+    skin = "black",
+    dashboardHeader(
+      title = "Camtrapviz"
+      # title = box(
+      #   tags$p("Camtrapviz"),
+      #   tags$img(src='www/photo.png')
+      # )
+      ),
     dashboardSidebar(
 
 # Sidebar -----------------------------------------------------------------
@@ -23,6 +31,10 @@ ui <- function() {
       )
     ),
     dashboardBody(
+      htmltools::tags$head(htmltools::includeCSS("www/theme.css")
+        # tags$link(rel = "stylesheet", 
+        #           type = "text/css", href = "R/www/theme.css")
+      ),
       tabItems(
 
 # Data import -------------------------------------------------------------

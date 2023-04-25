@@ -4,3 +4,4 @@ rstudio
 preliminary_tests/*
 docs/to_do_Shiny.ods
 inst/doc
+docs/.~*

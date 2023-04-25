@@ -31,7 +31,8 @@ Imports:
     shinyAce,
     rgdal,
     sf,
-    shinyWidgets
+    shinyWidgets,
+    htmltools
 Suggests: 
     knitr,
     rmarkdown
