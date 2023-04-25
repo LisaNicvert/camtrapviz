@@ -39,22 +39,37 @@ selectServer <- function(id,
 
 # Get species and cameras -------------------------------------------------
       
-      species <- reactive({
+      species_df <- reactive({
+        # Get column names
         spp_col <- mapping_records()$spp_col
         obs_col <- mapping_records()$obs_col
         
-        spp <- camtrap_data()$data$observations[[spp_col]]
-        
         if (!is.null(obs_col)) {
-          # Get type
-          obs <- camtrap_data()$data$observations[[obs_col]]
+          # Get (unique) species ---
+          spp_df <- camtrap_data()$data$observations[c(obs_col, spp_col)] |>
+            distinct(.keep_all = TRUE)
           
-          # Replace NAs with type
-          non_animal <- obs[obs != "animal"]
-          spp[obs != "animal"] <- non_animal
+          # Replace values with not animal ---
+          # Get non-animals
+          is_non_animal <- spp_df[[obs_col]] != "animal"
+          spp_df[[spp_col]][is_non_animal] <- spp_df[[obs_col]][is_non_animal]
+          
+          # Arrange with non-animal last ---
+          # Get factor levels
+          levels <- unique(spp_df[[obs_col]], na.last = TRUE)
+          levels <- c("animal", levels[levels != "animal"])
+          
+          spp_df[[obs_col]] <- factor(spp_df[[obs_col]], 
+                                      levels = levels)
+          spp_df <- spp_df |> arrange(spp_df[[obs_col]],
+                                      spp_df[[spp_col]])
+        } else {
+          spp_df <- camtrap_data()$data$observations[spp_col] |>
+            distinct(.keep_all = TRUE)
+          spp_df <- spp_df |> arrange(spp_df[[spp_col]])
         }
         
-        sort(unique(spp, NA.last = TRUE), na.last = TRUE)
+        return(spp_df)
       })
       
       cameras <- reactive({
@@ -69,11 +84,20 @@ selectServer <- function(id,
       
 # Update selectInput ------------------------------------------------------
       
+      default_species <- reactive({
+        if (is.null( mapping_records()$obs_col)) {
+          # All species selected
+          default <- species_df()[[mapping_records()$spp_col]]
+        } else {
+          default <- species_df()[[mapping_records()$spp_col]][species_df()[[mapping_records()$obs_col]] == "animal"]
+        }
+      })
+      
       observe({
         shinyWidgets::updatePickerInput(session = session,
                                         "spp_select",
-                                        choices = species(),
-                                        selected = species())
+                                        choices = species_df()[[mapping_records()$spp_col]],
+                                        selected = default_species())
       })
       
       observe({
@@ -83,7 +107,15 @@ selectServer <- function(id,
                                         selected = cameras())
       })
       
-      
+
+# Filter tables -----------------------------------------------------------
+
+      dat_filtered <- reactive({
+        dat_filtered <- camtrap_data()
+        
+        # Filter species
+        
+      })      
     }
   )
 }
