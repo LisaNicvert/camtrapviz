@@ -20,6 +20,11 @@ library(camtrapviz)
 {{data_cleaning}}
 ```
 
+## Data filtering
+```{r}
+{{data_filtering}}
+```
+
 ## Data summary
 ```{r}
 {{camtable}}

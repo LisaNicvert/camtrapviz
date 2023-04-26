@@ -26,15 +26,15 @@ server <- function(input, output, session) {
   
 
   # Select data reactives ---------------------------------------------------
-  selectServer("select",
-                camtrap_data = import_val$camtrap_data,
-                mapping_records = import_val$mapping_records,
-                mapping_cameras = import_val$mapping_cameras)
+  select_val <- selectServer("select",
+                             camtrap_data = import_val$camtrap_data,
+                             mapping_records = import_val$mapping_records,
+                             mapping_cameras = import_val$mapping_cameras)
   
 
   # Summary reactives -------------------------------------------------------
   summary_val <- summaryServer("summary",
-                               camtrap_data = import_val$camtrap_data,
+                               camtrap_data = select_val$camtrap_data,
                                mapping_records = import_val$mapping_records,
                                mapping_cameras = import_val$mapping_cameras,
                                crs = import_val$crs)
@@ -42,7 +42,7 @@ server <- function(input, output, session) {
 
   # All species -------------------------------------------------------------
   allspeciesServer("allspecies",
-                   camtrap_data = import_val$camtrap_data,
+                   camtrap_data = select_val$camtrap_data,
                    mapping_records = import_val$mapping_records,
                    mapping_cameras = import_val$mapping_cameras,
                    crs = import_val$crs) 
@@ -58,6 +58,8 @@ server <- function(input, output, session) {
         file, 
         vars = list(data_cleaning = expandChain(invisible(import_val$camtrap_data()), 
                                                 .expansionContext = ec),
+                    data_filtering = expandChain(invisible(select_val$camtrap_data()),
+                                                 .expansionContext = ec),
                     camtable = expandChain(summary_val$camtable(),
                                            .expansionContext = ec)),
         render_args = list(output_format = "html_document")

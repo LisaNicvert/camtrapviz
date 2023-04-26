@@ -20,7 +20,8 @@ selectUI <- function(id) {
                          item = "cameras"),
            textOutput(NS(id, "cameras_list"))
            ),
-
+    verbatimTextOutput(NS(id, "code")),
+    dataTableOutput(NS(id, "test")),
 # Preview -----------------------------------------------------------------
     column(width = 12,
            h3("Filtered data preview"),
@@ -100,12 +101,15 @@ selectServer <- function(id,
           
           spp_df[[obs_col()]] <- factor(spp_df[[obs_col()]], 
                                       levels = levels)
-          spp_df <- spp_df |> dplyr::arrange(spp_df[[obs_col()]],
-                                             spp_df[[spp_col()]])
+          spp_df <- spp_df |> dplyr::arrange(.data[[obs_col()]],
+                                             .data[[spp_col()]])
+          # Convert back to character
+          spp_df[[obs_col()]] <- as.character(spp_df[[obs_col()]])
+          
         } else {
           spp_df <- camtrap_data()$data$observations[spp_col()] |>
             distinct(.keep_all = TRUE)
-          spp_df <- spp_df |> dplyr::arrange(spp_df[[spp_col()]])
+          spp_df <- spp_df |> dplyr::arrange(.data[[spp_col()]])
         }
         
         # Add ID
@@ -130,7 +134,11 @@ selectServer <- function(id,
 
     output$species_list <- renderText({
       species <- species_df()[input$spp_select, ]
-      species <- species[[spp_col()]]
+
+      if (is.data.frame(species)) {
+        species <- species[[spp_col()]]
+      }
+      
       paste("Selected species:", paste(species, collapse = ", "))
     })
       
@@ -171,39 +179,74 @@ selectServer <- function(id,
 
 # Filter tables -----------------------------------------------------------
 
-      dat_filtered <- reactive({
-        dat_filtered <- camtrap_data()
-        
-        # Filter species
-        selected <- input$spp_select
-        
+      dat_filtered <- metaReactive2({
+        # Get values to filter on ---
         # Get rows corresponding to selected obs_col
-        if (is.null(obs_col())) {
-          obs_filter <- species_df()[input$spp_select, ]
-          obs_filter <- obs_filter[[obs_col()]]
+        has_type <- !is.null(obs_col())
+        
+        if (has_type) {
+          # Get all selected values
+          all_filter <- species_df()[input$spp_select, ]
           
-          dat_filtered$data$observations <- dat_filtered$data$observations |>
-            dplyr::filter(.data[[obs_col()]] %in% obs_filter)
+          # Get species values
+          spp_filter <- all_filter[all_filter[[obs_col()]] == "animal", ]
+          spp_filter <- spp_filter[[spp_col()]]
+          
+          # Get obs type values
+          obs_filter <- all_filter[all_filter[[obs_col()]] != "animal", ]
+          obs_filter <- obs_filter[[obs_col()]]
+        } else {
+          # Obs filter is NULL
+          obs_filter <- NULL
+          # spp filter is all species
+          spp_filter <- species_df()[input$spp_select, ]
         }
         
-        # Get rows corresponding to selected spp_col
-        spp_filter <- species_df()[input$spp_select, ]
-        spp_filter <- spp_filter[[spp_col()]]
+        # Get rows corresponding to selected cam_col
+        cam_filter <- input$cam_select
         
-        dat_filtered$data$observations <- dat_filtered$data$observations |>
-          dplyr::filter(.data[[spp_col()]] %in% spp_filter)
+        metaExpr({
+          # Define has_type variable
+          has_type <- ..(has_type)
+          
+          "# Get filters ---"
+          spp_filter <- ..(spp_filter)
+          cam_filter <- ..(cam_filter)
+          obs_filter <- ..(obs_filter)
+          
+          "# Initialize result ---"
+          dat_filtered <- ..(camtrap_data())
+          
+          "# Filter ---"
+          # Filter obs_col
+          # Check has type and length != 0, 
+          # in case there were only animals selected
+          if (has_type & (length(obs_filter) != 0)) {
+            dat_filtered$data$observations <- dat_filtered$data$observations |>
+              dplyr::filter(.data[[..(obs_col())]] %in% obs_filter)
+          }
+          # Filter spp_col
+          dat_filtered$data$observations <- dat_filtered$data$observations |>
+            dplyr::filter(.data[[..(spp_col())]] %in% spp_filter)
+          # Filter cameras_col
+          dat_filtered$data$observations <- dat_filtered$data$observations |>
+            dplyr::filter(.data[[..(cam_col_rec())]] %in% cam_filter)
+          dat_filtered$data$deployments <- dat_filtered$data$deployments |>
+            dplyr::filter(.data[[..(cam_col_cam())]] %in% cam_filter)
+          
+          dat_filtered
+        }, bindToReturn = TRUE, localize = FALSE)
         
-        # Get rows corresponding to cameras_col
-        dat_filtered$data$observations <- dat_filtered$data$observations |>
-          dplyr::filter(.data[[cam_col_rec()]] %in% input$cam_select)
-        dat_filtered$data$deployments <- dat_filtered$data$deployments |>
-          dplyr::filter(.data[[cam_col_cam()]] %in% input$cam_select)
-        
-        
-        return(dat_filtered)
+      }, varname = "dat_filtered")
+      
+      output$test <- renderDataTable({
+        species_df()
       })
       
-
+      output$code <- renderPrint({
+        expandChain(dat_filtered())
+      })
+      
 # Data preview ------------------------------------------------------------
       output$rec_filter_preview <- renderDataTable({
         DT::datatable(dat_filtered()$data$observations,
