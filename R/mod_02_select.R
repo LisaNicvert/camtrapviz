@@ -8,12 +8,14 @@ selectUI <- function(id) {
     column(width = 6,
            h3("Species"),
            select_values(prefix = NS(id, "spp"),
-                         item = "species")
+                         item = "species"),
+           textOutput(NS(id, "species_list"))
            ),
     column(width = 6,
            h3("Cameras"),
            select_values(prefix = NS(id, "cam"),
-                         item = "cameras")
+                         item = "cameras"),
+           textOutput(NS(id, "cameras_list"))
     )
   )
 }
@@ -61,12 +63,12 @@ selectServer <- function(id,
           
           spp_df[[obs_col]] <- factor(spp_df[[obs_col]], 
                                       levels = levels)
-          spp_df <- spp_df |> arrange(spp_df[[obs_col]],
-                                      spp_df[[spp_col]])
+          spp_df <- spp_df |> dplyr::arrange(spp_df[[obs_col]],
+                                             spp_df[[spp_col]])
         } else {
           spp_df <- camtrap_data()$data$observations[spp_col] |>
             distinct(.keep_all = TRUE)
-          spp_df <- spp_df |> arrange(spp_df[[spp_col]])
+          spp_df <- spp_df |> dplyr::arrange(spp_df[[spp_col]])
         }
         
         return(spp_df)
@@ -81,6 +83,17 @@ selectServer <- function(id,
         
         return(cam)
       })
+      
+
+# Display species and cameras ---------------------------------------------
+
+    output$species_list <- renderText({
+      paste("Selected species:", paste(input$spp_select, collapse = ", "))
+    })
+      
+    output$cameras_list <- renderText({
+      paste("Selected cameras:", paste(input$cam_select, collapse = ", "))
+    })
       
 # Update selectInput ------------------------------------------------------
       
