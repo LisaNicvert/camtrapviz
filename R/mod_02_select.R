@@ -7,6 +7,9 @@ selectUI <- function(id) {
   tagList(
     column(width = 6,
            h3("Species"),
+
+# Select values -----------------------------------------------------------
+
            select_values(prefix = NS(id, "spp"),
                          item = "species"),
            textOutput(NS(id, "species_list"))
@@ -16,7 +19,26 @@ selectUI <- function(id) {
            select_values(prefix = NS(id, "cam"),
                          item = "cameras"),
            textOutput(NS(id, "cameras_list"))
-    )
+           ),
+
+# Preview -----------------------------------------------------------------
+    column(width = 12,
+           h3("Filtered data preview"),
+           tabsetPanel(
+             tabPanel("Records",
+                      br(),
+                      column(width = 12,
+                             dataTableOutput(NS(id, "rec_filter_preview"))
+                             )
+                      ),
+             tabPanel("Cameras",
+                      br(),
+                      column(width = 12,
+                             dataTableOutput(NS(id, "cam_filter_preview"))
+                             )
+                      )
+             )
+           )
   )
 }
 
@@ -39,45 +61,64 @@ selectServer <- function(id,
       stopifnot(is.reactive(mapping_cameras))
       
 
+# Create column names reactives -------------------------------------------
+
+  obs_col <- reactive({
+    mapping_records()$obs_col
+  })
+      
+  spp_col <- reactive({
+    mapping_records()$spp_col
+  })
+  
+  cam_col_cam <- reactive({
+    mapping_cameras()$cam_col
+  })
+  
+  cam_col_rec <- reactive({
+    mapping_records()$cam_col
+  })
+  
 # Get species and cameras -------------------------------------------------
       
       species_df <- reactive({
-        # Get column names
-        spp_col <- mapping_records()$spp_col
-        obs_col <- mapping_records()$obs_col
         
-        if (!is.null(obs_col)) {
+        if (!is.null(obs_col())) {
           # Get (unique) species ---
-          spp_df <- camtrap_data()$data$observations[c(obs_col, spp_col)] |>
+          spp_df <- camtrap_data()$data$observations[c(obs_col(), spp_col())] |>
             distinct(.keep_all = TRUE)
           
           # Replace values with not animal ---
           # Get non-animals
-          is_non_animal <- spp_df[[obs_col]] != "animal"
-          spp_df[[spp_col]][is_non_animal] <- spp_df[[obs_col]][is_non_animal]
+          is_non_animal <- spp_df[[obs_col()]] != "animal"
+          spp_df[[spp_col()]][is_non_animal] <- spp_df[[obs_col()]][is_non_animal]
           
           # Arrange with non-animal last ---
           # Get factor levels
-          levels <- unique(spp_df[[obs_col]], na.last = TRUE)
+          levels <- unique(spp_df[[obs_col()]], na.last = TRUE)
           levels <- c("animal", levels[levels != "animal"])
           
-          spp_df[[obs_col]] <- factor(spp_df[[obs_col]], 
+          spp_df[[obs_col()]] <- factor(spp_df[[obs_col()]], 
                                       levels = levels)
-          spp_df <- spp_df |> dplyr::arrange(spp_df[[obs_col]],
-                                             spp_df[[spp_col]])
+          spp_df <- spp_df |> dplyr::arrange(spp_df[[obs_col()]],
+                                             spp_df[[spp_col()]])
         } else {
-          spp_df <- camtrap_data()$data$observations[spp_col] |>
+          spp_df <- camtrap_data()$data$observations[spp_col()] |>
             distinct(.keep_all = TRUE)
-          spp_df <- spp_df |> dplyr::arrange(spp_df[[spp_col]])
+          spp_df <- spp_df |> dplyr::arrange(spp_df[[spp_col()]])
         }
+        
+        # Add ID
+        spp_df <- as.data.frame(spp_df)
+        rownames(spp_df) <- paste("ID", 1:nrow(spp_df), sep = "_")
         
         return(spp_df)
       })
       
       cameras <- reactive({
         
-        cam_cam <- camtrap_data()$data$deployments[[mapping_cameras()$cam_col]]
-        cam_rec <- unique(camtrap_data()$data$observations[[mapping_records()$cam_col]])
+        cam_cam <- camtrap_data()$data$deployments[[cam_col_cam()]]
+        cam_rec <- unique(camtrap_data()$data$observations[[cam_col_rec()]])
         
         cam <- get_cameras(cam_cam, cam_rec)
         
@@ -88,7 +129,9 @@ selectServer <- function(id,
 # Display species and cameras ---------------------------------------------
 
     output$species_list <- renderText({
-      paste("Selected species:", paste(input$spp_select, collapse = ", "))
+      species <- species_df()[input$spp_select, ]
+      species <- species[[spp_col()]]
+      paste("Selected species:", paste(species, collapse = ", "))
     })
       
     output$cameras_list <- renderText({
@@ -98,18 +141,23 @@ selectServer <- function(id,
 # Update selectInput ------------------------------------------------------
       
       default_species <- reactive({
-        if (is.null( mapping_records()$obs_col)) {
+        if (is.null(obs_col())) {
           # All species selected
-          default <- species_df()[[mapping_records()$spp_col]]
+          default <- rownames(species_df())
         } else {
-          default <- species_df()[[mapping_records()$spp_col]][species_df()[[mapping_records()$obs_col]] == "animal"]
+          # Get animal species only
+          is_animal <- species_df()[[obs_col()]] == "animal"
+          default <- rownames(species_df()[is_animal, ])
         }
+        default
       })
       
       observe({
+        choices <- as.list(rownames(species_df()))
+        names(choices) <- species_df()[[spp_col()]]
         shinyWidgets::updatePickerInput(session = session,
                                         "spp_select",
-                                        choices = species_df()[[mapping_records()$spp_col]],
+                                        choices = choices,
                                         selected = default_species())
       })
       
@@ -127,8 +175,55 @@ selectServer <- function(id,
         dat_filtered <- camtrap_data()
         
         # Filter species
+        selected <- input$spp_select
         
-      })      
+        # Get rows corresponding to selected obs_col
+        if (is.null(obs_col())) {
+          obs_filter <- species_df()[input$spp_select, ]
+          obs_filter <- obs_filter[[obs_col()]]
+          
+          dat_filtered$data$observations <- dat_filtered$data$observations |>
+            dplyr::filter(.data[[obs_col()]] %in% obs_filter)
+        }
+        
+        # Get rows corresponding to selected spp_col
+        spp_filter <- species_df()[input$spp_select, ]
+        spp_filter <- spp_filter[[spp_col()]]
+        
+        dat_filtered$data$observations <- dat_filtered$data$observations |>
+          dplyr::filter(.data[[spp_col()]] %in% spp_filter)
+        
+        # Get rows corresponding to cameras_col
+        dat_filtered$data$observations <- dat_filtered$data$observations |>
+          dplyr::filter(.data[[cam_col_rec()]] %in% input$cam_select)
+        dat_filtered$data$deployments <- dat_filtered$data$deployments |>
+          dplyr::filter(.data[[cam_col_cam()]] %in% input$cam_select)
+        
+        
+        return(dat_filtered)
+      })
+      
+
+# Data preview ------------------------------------------------------------
+      output$rec_filter_preview <- renderDataTable({
+        DT::datatable(dat_filtered()$data$observations,
+                      filter = "none",
+                      selection = "none",
+                      options = list(scrollX = TRUE))
+        
+      })
+      
+      output$cam_filter_preview <- renderDataTable({
+        DT::datatable(dat_filtered()$data$deployments,
+                      filter = "none",
+                      selection = "none",
+                      options = list(scrollX = TRUE))
+      })
+      
+
+# Return values -----------------------------------------------------------
+      
+      return(list(camtrap_data = dat_filtered))
     }
   )
 }

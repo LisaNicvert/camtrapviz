@@ -22,7 +22,8 @@ ui <- function() {
       sidebarMenu(
         menuItem("Data import", tabName = "dataimport", 
                  icon = icon("th-list")),
-        menuItem("Select data", tabName = "selectdata"),
+        menuItem("Select data", tabName = "selectdata",
+                 icon = icon("filter")),
         menuItem("Data overview", tabName = "summary",
                  icon = icon("dashboard")),
         menuItem("All species", tabName = "all",
