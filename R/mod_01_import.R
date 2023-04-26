@@ -426,7 +426,7 @@ importServer <- function(id) {
     allowed_records <- allowed_records$widget
     allowed_cameras <- cameras_widgets |>
       filter(empty_allowed == TRUE)
-    allowed_records <- allowed_cameras$widget
+    allowed_cameras <- allowed_cameras$widget
     empty_allowed <- c(allowed_records, 
                        allowed_cameras)
     
@@ -729,6 +729,9 @@ importServer <- function(id) {
     # Update selection list and default names in selectInput for records
     observeEvent(input$records_input, {
       if (input$input_type == 2) { # Only update widgets for manual import
+        cat("------------------------\n")
+        cat(paste(unname(empty_allowed), collapse = " | "))
+        cat("\n")
         update_selected_columns(widget_list = records_to_update(), 
                                 default = default_records(),
                                 choices = records_cols(),
