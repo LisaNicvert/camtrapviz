@@ -20,8 +20,7 @@ selectUI <- function(id) {
                          item = "cameras"),
            textOutput(NS(id, "cameras_list"))
            ),
-    verbatimTextOutput(NS(id, "code")),
-    dataTableOutput(NS(id, "test")),
+
 # Preview -----------------------------------------------------------------
     column(width = 12,
            h3("Filtered data preview"),
@@ -39,7 +38,15 @@ selectUI <- function(id) {
                              )
                       )
              )
-           )
+           ),
+
+    # Show code ---------------------------------------------------------------
+      
+    column(width = 12,
+           actionButton(NS(id, "code_filter"), 
+                        "Show data filtering code", icon("code"),
+                        style = "margin-top: 25px; margin-bottom: 15px;")
+    )
   )
 }
 
@@ -55,32 +62,32 @@ selectServer <- function(id,
     id,
     function(input, output, session) {
 
-# Test reactive input -----------------------------------------------------
+      # Test reactive input -----------------------------------------------------
       
       # stopifnot(is.reactive(camtrap_data))
       stopifnot(is.reactive(mapping_records))
       stopifnot(is.reactive(mapping_cameras))
       
 
-# Create column names reactives -------------------------------------------
-
-  obs_col <- reactive({
-    mapping_records()$obs_col
-  })
+      # Create column names reactives -------------------------------------------
+    
+      obs_col <- reactive({
+        mapping_records()$obs_col
+      })
+          
+      spp_col <- reactive({
+        mapping_records()$spp_col
+      })
       
-  spp_col <- reactive({
-    mapping_records()$spp_col
-  })
+      cam_col_cam <- reactive({
+        mapping_cameras()$cam_col
+      })
+      
+      cam_col_rec <- reactive({
+        mapping_records()$cam_col
+      })
   
-  cam_col_cam <- reactive({
-    mapping_cameras()$cam_col
-  })
-  
-  cam_col_rec <- reactive({
-    mapping_records()$cam_col
-  })
-  
-# Get species and cameras -------------------------------------------------
+      # Get species and cameras -------------------------------------------------
       
       species_df <- reactive({
         
@@ -130,23 +137,23 @@ selectServer <- function(id,
       })
       
 
-# Display species and cameras ---------------------------------------------
-
-    output$species_list <- renderText({
-      species <- species_df()[input$spp_select, ]
-
-      if (is.data.frame(species)) {
-        species <- species[[spp_col()]]
-      }
+      # Display species and cameras ---------------------------------------------
+  
+      output$species_list <- renderText({
+        species <- species_df()[input$spp_select, ]
+  
+        if (is.data.frame(species)) {
+          species <- species[[spp_col()]]
+        }
+        
+        paste("Selected species:", paste(species, collapse = ", "))
+      })
+        
+      output$cameras_list <- renderText({
+        paste("Selected cameras:", paste(input$cam_select, collapse = ", "))
+      })
       
-      paste("Selected species:", paste(species, collapse = ", "))
-    })
-      
-    output$cameras_list <- renderText({
-      paste("Selected cameras:", paste(input$cam_select, collapse = ", "))
-    })
-      
-# Update selectInput ------------------------------------------------------
+      # Update selectInput ------------------------------------------------------
       
       default_species <- reactive({
         if (is.null(obs_col())) {
@@ -177,7 +184,7 @@ selectServer <- function(id,
       })
       
 
-# Filter tables -----------------------------------------------------------
+      # Filter tables -----------------------------------------------------------
 
       dat_filtered <- metaReactive2({
         # Get values to filter on ---
@@ -221,13 +228,15 @@ selectServer <- function(id,
           # Filter obs_col
           # Check has type and length != 0, 
           # in case there were only animals selected
-          if (has_type & (length(obs_filter) != 0)) {
+          if (has_type) {
             dat_filtered$data$observations <- dat_filtered$data$observations |>
-              dplyr::filter(.data[[..(obs_col())]] %in% obs_filter)
+              dplyr::filter(.data[[..(obs_col())]] %in% obs_filter | .data[[..(spp_col())]] %in% spp_filter)
+          } else {
+            # Filter spp_col
+            dat_filtered$data$observations <- dat_filtered$data$observations |>
+              dplyr::filter(.data[[..(spp_col())]] %in% spp_filter)
           }
-          # Filter spp_col
-          dat_filtered$data$observations <- dat_filtered$data$observations |>
-            dplyr::filter(.data[[..(spp_col())]] %in% spp_filter)
+          
           # Filter cameras_col
           dat_filtered$data$observations <- dat_filtered$data$observations |>
             dplyr::filter(.data[[..(cam_col_rec())]] %in% cam_filter)
@@ -239,15 +248,7 @@ selectServer <- function(id,
         
       }, varname = "dat_filtered")
       
-      output$test <- renderDataTable({
-        species_df()
-      })
-      
-      output$code <- renderPrint({
-        expandChain(dat_filtered())
-      })
-      
-# Data preview ------------------------------------------------------------
+      # Data preview ------------------------------------------------------------
       output$rec_filter_preview <- renderDataTable({
         DT::datatable(dat_filtered()$data$observations,
                       filter = "none",
@@ -263,8 +264,16 @@ selectServer <- function(id,
                       options = list(scrollX = TRUE))
       })
       
-
-# Return values -----------------------------------------------------------
+      # Print code --------------------------------------------------------------
+      
+      observeEvent(input$code_filter, {
+        code <- expandChain(dat_filtered())
+        displayCodeModal(code,
+                         title = "Data filtering code")
+      })
+      
+      
+      # Return values -----------------------------------------------------------
       
       return(list(camtrap_data = dat_filtered))
     }
