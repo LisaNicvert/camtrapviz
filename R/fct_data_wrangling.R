@@ -84,14 +84,13 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #' (optional if `date_col` and `time_col` are provided)
 #' @param date_col name of the column containing date (optional if `timestamp_col` is provided)
 #' @param time_col name of the column containing time (optional if `timestamp_col` is provided)
-#' @param dfcam the dataframe of cameras deployments (optional). If it is provided,
-#' at least `setup_col` or `retrieval_col` must also be provided.
+#' @param dfcam the dataframe of cameras deployments (optional).
 #' @param cam_col_dfcam name of the column containing camera ID in `dfcam` 
 #' If `dfcam` is provided but `cam_col_dfcam` is `NULL`, it will be set to `cam_col`.
 #' @param setup_col name of the column containing setup date or datetime 
-#' in `dfcam` (optional if `retrieval_col` is provided)
+#' in `dfcam` (optional)
 #' @param retrieval_col name of the column containing retrieval date or datetime 
-#' in `dfcam` (optional if `setup_col` is provided)
+#' in `dfcam` (optional)
 #' 
 #' @details In the final dataframe, the start and the end of the sampling are
 #' computed as follows for each camera:
@@ -105,6 +104,8 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #' + if setup and retrieval date are provided via `dfcam`, 
 #' `setup_origin` and `retrieval_origin` are `metadata`.
 #' + else, these columns contain `picture`.
+#' + if `dfcam` is provided but has no setup or retrieval columns, then
+#' the cameras will be added but all columns except camera name will be `NA`.
 #' As this function uses the `cameraOperation` function from 
 #' the `camtrapR` package, the camera names may not contain 
 #' `Cam` as it is a reserved name in this function.
@@ -166,13 +167,9 @@ summarize_cameras <- function(df, cam_col,
     }
   }
   
-  # Check that some columns are provided when dfcam is provided
-  if (!is.null(dfcam)) {
+  if (!is.null(dfcam)) { # if dfcam provided
     if (is.null(cam_col_dfcam)) { # Set cam_col_dfcam to cam_col
       cam_col_dfcam <- cam_col
-    }
-    if (is.null(setup_col) & is.null(retrieval_col)) {
-      stop("If dfcam is not NULL, then setup_col or retrieval_col must be provided.")
     }
   }
   

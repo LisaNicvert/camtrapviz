@@ -29,17 +29,16 @@ infortmation on the pictures sampling time (date and time or datetime).}
 
 \item{time_col}{name of the column containing time (optional if \code{timestamp_col} is provided)}
 
-\item{dfcam}{the dataframe of cameras deployments (optional). If it is provided,
-at least \code{setup_col} or \code{retrieval_col} must also be provided.}
+\item{dfcam}{the dataframe of cameras deployments (optional).}
 
 \item{cam_col_dfcam}{name of the column containing camera ID in \code{dfcam}
 If \code{dfcam} is provided but \code{cam_col_dfcam} is \code{NULL}, it will be set to \code{cam_col}.}
 
 \item{setup_col}{name of the column containing setup date or datetime
-in \code{dfcam} (optional if \code{retrieval_col} is provided)}
+in \code{dfcam} (optional)}
 
 \item{retrieval_col}{name of the column containing retrieval date or datetime
-in \code{dfcam} (optional if \code{setup_col} is provided)}
+in \code{dfcam} (optional)}
 }
 \value{
 The summary is returned as a dataframe with the following columns:
@@ -75,6 +74,8 @@ were computed is stored in \code{setup_origin} and \code{retrieval_origin}.
 \item if setup and retrieval date are provided via \code{dfcam},
 \code{setup_origin} and \code{retrieval_origin} are \code{metadata}.
 \item else, these columns contain \code{picture}.
+\item if \code{dfcam} is provided but has no setup or retrieval columns, then
+the cameras will be added but all columns except camera name will be \code{NA}.
 As this function uses the \code{cameraOperation} function from
 the \code{camtrapR} package, the camera names may not contain
 \code{Cam} as it is a reserved name in this function.

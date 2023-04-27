@@ -126,10 +126,8 @@ conditionalPanel(condition = "input.input_type == 2", ns = ns,
 
 importServer <- function(id) {
   moduleServer(id, function(input, output, session) {
-
-
-# Server functions --------------------------------------------------------
     
+# Server functions -----------------------------------------------------------
     
     # Update selected columns
     #
@@ -148,7 +146,7 @@ importServer <- function(id) {
                                         choices,
                                         empty_allowed,
                                         nullval) {
-
+      
       for(w in widget_list) {
         # Get default
         default_name <- default[[w]]
@@ -190,7 +188,6 @@ importServer <- function(id) {
       }
       return(res)
     }
-
     
     # Get mapping
     # 
@@ -236,176 +233,32 @@ importServer <- function(id) {
       }
       return(res)
     }
-
-# CRS formats -------------------------------------------------------------
-    epsg_df <-rgdal::make_EPSG()
-    
-    epsg <- as.list(epsg_df$code)
-    names(epsg) <- paste0(epsg_df$note, " (EPSG:", epsg ,")")
-    
-# Widgets dataframes --------------------------------------------------------
-    records_widgets <- data.frame(
-      widget = c("spp_col",
-                 "cam_col",
-                 "date_col",
-                 "time_col",
-                 "timestamp_col",
-                 "crs_col",
-                 "lat_col",
-                 "lon_col",
-                 "setup_col",
-                 "retrieval_col",
-                 "count_col",
-                 "obs_col"),
-      label = c("Species",
-                "Camera",
-                "Date",
-                "Time",
-                "Timestamp",
-                "Coordinates format (CRS)",
-                "Latitude/y coordinate",
-                "Longitude/x coordinate",
-                "Setup date/datetime",
-                "Retrieval date/datetime",
-                "Count",
-                "Observation type"),
-      empty_allowed = c(FALSE,
-                        FALSE,
-                        FALSE,
-                        FALSE,
-                        FALSE,
-                        FALSE,
-                        FALSE,
-                        FALSE,
-                        TRUE,
-                        TRUE,
-                        TRUE,
-                        TRUE),
-      type = c("records",
-               "records",
-               "date_time",
-               "date_time",
-               "timestamp",
-               "cameras",
-               "cameras",
-               "cameras",
-               "cameras",
-               "cameras",
-               "records",
-               "records"),
-      regex = c("^vernacularNames\\.en$|species", 
-                "station|deployment|camera",
-                "date", 
-                "hour|time(?!stamp)", 
-                "timestamp|datetime",
-                NA,
-                "lat|((^|[^[:alpha:]]+)y([^[:alpha:]]+|$))",
-                "lon|((^|[^[:alpha:]]+)x([^[:alpha:]]+|$))",
-                "setup|start",
-                "retrieval|end",
-                "count",
-                "observationType"),
-      mica = c("vernacularNames.en",
-               "deploymentID",
-               NA,
-               NA,
-               "timestamp",
-               NA,
-               NA,
-               NA,
-               NA,
-               NA,
-               "count",
-               "observationType"),
-      recordTableSample = c("Species",
-                            "Station",
-                            NA,
-                            NA,
-                            "DateTimeOriginal",
-                            NA,
-                            NA,
-                            NA,
-                            NA,
-                            NA,
-                            NA,
-                            NA),
-      cast =  c("as.character",
-                "as.character",
-                "as.Date",
-                "times",
-                "as.POSIXct",
-                "as.character",
-                "as.numeric",
-                "as.numeric",
-                "as.Date",
-                "as.Date",
-                "as.numeric",
-                "as.character"),
-      in_columns = c(TRUE,
-                     TRUE,
-                     TRUE,
-                     TRUE,
-                     TRUE,
-                     FALSE,
-                     TRUE,
-                     TRUE,
-                     TRUE,
-                     TRUE,
-                     TRUE,
-                     TRUE)
-      )
-    
-    cameras_widgets <- records_widgets |> 
-      dplyr::filter(widget == "cam_col" | type == "cameras") |>
-      mutate(widget = paste(widget, "cov", sep = "_"))
-    
-    # Set default camera columns for mica
-    cameras_widgets <- cameras_widgets |>
-      mutate(mica = ifelse(widget == "crs_col_cov", 
-                           4326, mica)) |>
-      mutate(mica = ifelse(widget == "lat_col_cov", 
-                           "latitude", mica)) |>
-      mutate(mica = ifelse(widget == "lon_col_cov", 
-                           "longitude", mica)) |>
-      mutate(mica = ifelse(widget == "setup_col_cov", 
-                           "start", mica)) |>
-      mutate(mica = ifelse(widget == "retrieval_col_cov", 
-                           "end", mica))
-    # Set default camera columns for recordTableSample
-    cameras_widgets <- cameras_widgets |>
-      mutate(recordTableSample = ifelse(widget == "crs_col_cov", 
-                                        32650, recordTableSample)) |>
-      mutate(recordTableSample = ifelse(widget == "lat_col_cov", 
-                                        "utm_y", recordTableSample)) |>
-      mutate(recordTableSample = ifelse(widget == "lon_col_cov", 
-                                        "utm_x", recordTableSample)) |>
-      mutate(recordTableSample = ifelse(widget == "setup_col_cov", 
-                                        "Setup_date", recordTableSample)) |>
-      mutate(recordTableSample = ifelse(widget == "retrieval_col_cov", 
-                                        "Retrieval_date", recordTableSample))
     
 # Setup variables ---------------------------------------------------------
+    
     # Define roots for ShinyFiles 
     roots <- c("home" = fs::path_home())
     
     # Define placeholder for optional columns
     nullval <- "Not present in data"
     
+    # Define dates firmats to use un tryFormats
     dates_formats <- c("%Y-%m-%d",
                        "%Y/%m/%d",
                        "%d-%m-%Y",
                        "%d/%m/%Y",
                        "%m-%d-%Y",
                        "%m/%d/%Y")
+    
 # Useful variables from widgets df ----------------------------------------
     
     # Get CRS spec
     crs_records <- records_widgets |>
-      filter(in_columns == FALSE)
+      filter(widget == "crs_col")
     crs_cameras <- cameras_widgets |>
-      filter(in_columns == FALSE)
+      filter(widget == "crs_col_cov")
     
-    # Get widgets that correspond to columns
+    # Get widgets that correspond to columns to choose in the data
     records_widgets <- records_widgets |>
       filter(in_columns == TRUE)
     cameras_widgets <- cameras_widgets |>
@@ -424,6 +277,7 @@ importServer <- function(id) {
     allowed_records <- records_widgets |>
       filter(empty_allowed == TRUE)
     allowed_records <- allowed_records$widget
+    
     allowed_cameras <- cameras_widgets |>
       filter(empty_allowed == TRUE)
     allowed_cameras <- allowed_cameras$widget
@@ -434,7 +288,10 @@ importServer <- function(id) {
     cameras_to_update <- cameras_widgets
     cameras_to_update <- cameras_to_update$widget
     
-    # Define example mappings
+    
+
+# Define mappings for example datasets ------------------------------------
+
     example_mapping_records <- list(mica = get_example_mapping(records_widgets, 
                                                                "mica"),
                                     recordTableSample = get_example_mapping(records_widgets, 
@@ -453,15 +310,19 @@ importServer <- function(id) {
         "Sample dataset from the camtrapR package (camtrapR format)"
       }
     })
-    
 
 # Create records widgets ----------------------------------------------------------
-    # Create mandatory selecters
+    # We create the records selecters not all at once to control ordering
+    # in the UI
+    
+## Mandatory selecters -----------------------------------------------------
     mandatory <- records_widgets |>
       dplyr::filter(type == "records") |>
       dplyr::filter(empty_allowed == FALSE)
     mandatory_widgets <- create_widget_list(mandatory)
     
+    
+## Date-time/timestamp selecters -----------------------------------------------------
     # Create timestamp selecter
     timestamp <- records_widgets |>
       dplyr::filter(type == "timestamp")
@@ -472,6 +333,7 @@ importServer <- function(id) {
       dplyr::filter(type == "date_time")
     datetime_widgets <- create_widget_list(datetime)
     
+## Cameras in records selecters -----------------------------------------------------
     # Crete camera selecters
     cov <- records_widgets |>
       dplyr::filter(type == "cameras")
@@ -496,22 +358,29 @@ importServer <- function(id) {
                          selected = "4326",
                          server = TRUE)
     
-    # Create optional selecters
+
+## Create optional selecters ------------------------------------------------------
     optional <- records_widgets |>
       dplyr::filter(type == "records") |>
       dplyr::filter(empty_allowed == TRUE)
     optional_widgets <- create_widget_list(optional)
     
-    # Render UI
+
+## Render UI elements ------------------------------------------------------
+    
     output$mandatory_records_col <- renderUI(mandatory_widgets)
     output$datetime_records_col <- renderUI(datetime_widgets)
     output$timestamp_records_col <- renderUI(timestamp_widgets)
     output$mandatory_widgets_cov_col_records <- renderUI(mandatory_widgets_cov)
-    output$optional_widgets_cov_cov_records <- renderUI(optional_widgets_cov)
+    output$optional_widgets_cov_col_records <- renderUI(optional_widgets_cov)
     output$optional_records_col <- renderUI(optional_widgets)
     
 
 # Create cameras widgets --------------------------------------------------
+    # We create the cameras selecters not all at once to control ordering
+    # in the UI
+
+## Create widgets ----------------------------------------------------------
     mandatory_cam <- cameras_widgets |> 
       dplyr::filter(empty_allowed == FALSE)
     optional_cam <- cameras_widgets |> 
@@ -532,6 +401,8 @@ importServer <- function(id) {
                          choices = epsg,
                          selected = "4326",
                          server = TRUE)
+
+## Render UI elements ------------------------------------------------------
 
     output$mandatory_cameras_col <- renderUI(mandatory_widgets_cam)
     output$optional_cameras_col <- renderUI(optional_widgets_cam)

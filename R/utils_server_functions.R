@@ -7,6 +7,7 @@
 #
 # Script Description: server functions
 
+
 # Default colnames --------------------------------------------------------
 
 #' Find default colname
@@ -126,7 +127,7 @@ find_default_colnames <- function(regex_list,
 }
 
 
-# Summarize cameras -------------------------------------------------------
+# Summary module -------------------------------------------------------
 
 #' Get cameras not in
 #'

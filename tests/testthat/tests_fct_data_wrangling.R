@@ -78,13 +78,6 @@ test_that("Summarize cameras raises errors", {
                                    date_col = "Date"),
                  "timestamp_col is provided, so date_col and time_col will be ignored.")
   
-  expect_error(summarize_cameras(recordTableSample, 
-                                 cam_col = "Station",
-                                 timestamp_col = "DateTimeOriginal",
-                                 dfcam = camtraps,
-                                 cam_col_dfcam = "Station"),
-               "If dfcam is not NULL, then setup_col or retrieval_col must be provided.")
-  
 })
 
 test_that("Summarize cameras (no dfcam)", {
@@ -285,5 +278,42 @@ test_that("Summarize cameras with a camera with one obs", {
                          setup_origin = "picture",
                          retrieval_origin = "picture",
                          sampling_length = 0)
+  expect_equal(res, expected)
+})
+
+test_that("Summarize cameras (dfcam with no setup or retrieval)", {
+  # Create dfs
+  df <- data.frame(species = c("cat", "cow", "dog", "rabbit"),
+                   stamp = as.POSIXct(c("2020-04-01 12:00:00",
+                                        "2020-04-02 12:00:00",
+                                        "2020-04-11 12:00:00",
+                                        "2020-04-12 12:00:00")),
+                   camera = c("A01", "A01", "A02", "A02"))
+  dfcam <- data.frame(camera = c("A01", "A02", "A03"))
+  
+  # Give cam_col_dfcam
+  res <- summarize_cameras(df, 
+                           timestamp_col = "stamp",
+                           cam_col = "camera",
+                           dfcam = dfcam,
+                           cam_col_dfcam = "camera")
+  
+  expected <- data.frame(camera = c("A01", "A02", "A03"),
+                         setup = as.POSIXct(c("2020-04-01 12:00:00",
+                                              "2020-04-11 12:00:00",
+                                              NA)),
+                         retrieval = as.POSIXct(c("2020-04-02 12:00:00",
+                                                  "2020-04-12 12:00:00",
+                                                  NA)),
+                         setup_origin = c("picture", "picture", NA),
+                         retrieval_origin = c("picture", "picture", NA),
+                         sampling_length = c(1, 1, NA))
+  expect_equal(res, expected)
+  
+  # Don't give cam_col_dfcam
+  res <- summarize_cameras(df, 
+                           timestamp_col = "stamp",
+                           cam_col = "camera",
+                           dfcam = dfcam)
   expect_equal(res, expected)
 })
