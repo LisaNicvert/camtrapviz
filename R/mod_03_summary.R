@@ -48,8 +48,11 @@ summaryUI <- function(id) {
     h3("Cameras summary"),
     textOutput(NS(id, "check_cameras_records")),
     textOutput(NS(id, "check_cameras_cameras")),
+    br(),
     dataTableOutput(NS(id, "cameras_table")),
-    verbatimTextOutput(NS(id, "code_cameras_table"))
+    actionButton(NS(id, "code_cameras_table"), 
+                 "Show camera summary code", icon("code"),
+                 style = "margin-top: 15px; margin-bottom: 15px;")
     ) # end tagList
     
 }
@@ -266,7 +269,10 @@ summaryServer <- function(id,
     })
     
   
-# Plots code --------------------------------------------------------------
+
+# Print code --------------------------------------------------------------
+
+## Plots code --------------------------------------------------------------
     
     observeEvent(input$plot_map_output_code, {
       code <- expandChain(output$plot_map())
@@ -277,14 +283,16 @@ summaryServer <- function(id,
       code <- expandChain(output$plot_occurrences())
       displayCodeModal(code)
     })
-
-# Tables code -------------------------------------------------------------
     
-    output$code_cameras_table <- renderPrint({
-      expandChain(cameras_values())
+
+## Summarize cameras code --------------------------------------------------
+
+    observeEvent(input$code_cameras_table, {
+      code <- expandChain(cameras_values())
+      displayCodeModal(code,
+                       title = "Cameras table code")
     })
     
-
 # Return values -----------------------------------------------------------
 
   list(camtable = output$cameras_table)

@@ -69,8 +69,12 @@ ui <- function() {
                       h2("Survey summary"),
                       summaryUI("summary"),
                       # Download
-                      downloadButton("download_script", 
-                                     "Download script")
+                      column(width = 12,
+                             align = "center",
+                             style = "margin-top: 25px",
+                             downloadButton("download_script", 
+                                            "Download script")
+                             )
                   )
                 )
         ),
