@@ -247,12 +247,15 @@ summaryServer <- function(id,
         dat <- ..(camtrap_data())
         df <- dat$data$observations
         
+        cameras_list <- ..(cameras_values()[[cam_col_rec()]])
+        
         gg <- plot_points(df,
                           camera_col = ..(cam_col_rec()),
                           spp_col = ..(spp_col()),
                           timestamp_col = ..(unname(mapping_records()$timestamp_col)),
                           time_col = ..(unname(mapping_records()$time_col)),
-                          date_col = ..(unname(mapping_records()$date_col)))
+                          date_col = ..(unname(mapping_records()$date_col)),
+                          cameras_list = cameras_list)
         x <- girafe(ggobj = gg,
                     width_svg = ..(width),
                     height_svg = ..(height))

@@ -9,6 +9,7 @@ plot_points(
   camera_col,
   spp_col,
   timestamp_col,
+  cameras_list = NULL,
   date_col = NULL,
   time_col = NULL,
   interactive = TRUE
@@ -24,6 +25,9 @@ plot_points(
 \item{timestamp_col}{Name of the timestamp column. If it
 is a datetime, it must be of class POSIXct. It can be \code{NULL}
 if \code{date_col} and \code{time_col} are provided.}
+
+\item{cameras_list}{A character vector of all cameras that should appeat
+on the plot (optional)}
 
 \item{date_col}{Name of the date column. It is assumed
 to be of class \code{Date} (else, results are not guaranteed).

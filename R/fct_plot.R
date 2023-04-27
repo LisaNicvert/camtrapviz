@@ -24,6 +24,8 @@
 #' to be of class `times` (else, results are not guaranteed). 
 #' It can be `NULL` if `timestamp_col` is provided.
 #' @param interactive Logical; make the plot interactive with `ggiraph`?
+#' @param cameras_list A character vector of all cameras that should appeat
+#' on the plot (optional)
 #'
 #' @details If `date_col` and `time_col` are provided along with
 #' `timestamp_col`, they will be ignored.
@@ -45,6 +47,7 @@ plot_points <- function(df,
                         camera_col,
                         spp_col,
                         timestamp_col,
+                        cameras_list = NULL,
                         date_col = NULL,
                         time_col = NULL,
                         interactive = TRUE) {
@@ -72,6 +75,16 @@ plot_points <- function(df,
     timestamp_col <- "timestamp_col"
   }
   
+  if (!is.null(cameras_list)) {
+    # Filter data (keep only cameras in cameras_list)
+    dfp <- dfp |> filter(.data[[camera_col]] %in% cameras_list)
+    
+    # Corece cameras to factor
+    levels <- unique(cameras_list)
+    dfp[[camera_col]] <- factor(dfp[[camera_col]],
+                                levels = levels)
+  }
+  
   if (interactive) {
     gg <- ggplot(dfp, aes(x = .data[[timestamp_col]], 
                           y = .data[[camera_col]],
@@ -81,6 +94,7 @@ plot_points <- function(df,
                                           sep = ": "),
                           data_id = .data[[camera_col]]
     )) +
+      scale_y_discrete(drop = FALSE) +
       geom_point_interactive(show.legend = FALSE)
   } else {
     gg <- ggplot(dfp, aes(x = .data[[timestamp_col]], 
