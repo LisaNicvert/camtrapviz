@@ -70,38 +70,34 @@ summaryServer <- function(id,
     stopifnot(is.reactive(mapping_cameras))
     stopifnot(is.reactive(crs))
     
-# Reactive general values -------------------------------------------------
-    ncameras <- reactive({
-      nrow(cameras_values())
+
+# Create column names reactives -------------------------------------------
+    spp_col <- reactive({
+      unname(mapping_records()$spp_col)
+    })    
+    
+    obs_col <- reactive({
+      unname(mapping_records()$obs_col)
+    })    
+    
+    cam_col_cam <- reactive({
+      unname(mapping_cameras()$cam_col)
     })
+    
+    cam_col_rec <- reactive({
+      unname(mapping_records()$cam_col)
+    })
+    
+# Reactive general values -------------------------------------------------
     
     nspecies <- reactive({
-      
-      get_nspecies <- function(df, species_col, obs_col = NULL) {
-        if (!is.null(obs_col)) {
-          # Filter to get only animal species
-          species <- species[df[[obs_col]] == "animal"]
-        }
-        n <- length(unique(species))
-        return(n)
-      }
-      
-      # Get species column
-      species_col <- mapping_records()$spp_col
-      species <- camtrap_data()$data$observations[[species_col]]
-      
-      if (!is.null(mapping_records()$obs_col)) {
-        # Filter to get only animal species
-        obs_col <- mapping_records()$obs_col
-        species <- species[camtrap_data()$data$observations[[obs_col]] == "animal"]
-      }
-      length(unique(species))
+      get_nspecies(df = camtrap_data()$data$observations,
+                   species_col = spp_col(),
+                   obs_col = obs_col(), 
+                   keep_NA = FALSE)
     })
-    
-    daterange <- reactive({
-      c(min(cameras_values()$setup), 
-        max(cameras_values()$retrieval))
-    })
+
+# Summarize cameras -------------------------------------------------------
     
     cameras_values <- metaReactive2({
       
@@ -131,18 +127,26 @@ summaryServer <- function(id,
                             retrieval_col = ..(mapping_cameras$retrieval_col))
         })
       }
-      
-      
     }, varname = "camvalues")
     
 
+# Values extracted from cameras table -------------------------------------
+
+    daterange <- reactive({
+      c(min(cameras_values()$setup), 
+        max(cameras_values()$retrieval))
+    })
+    
+    ncameras <- reactive({
+      nrow(cameras_values())
+    })
 # Check cameras -----------------------------------------------------------
     
     cameras_status <- reactive({
       get_cameras_not_in(dfrecords = camtrap_data()$data$observations,
                          dfcameras = camtrap_data()$data$deployments,
-                         cam_col_records = mapping_records()$cam_col,
-                         cam_col_cameras = mapping_cameras()$cam_col)
+                         cam_col_records = cam_col_rec(),
+                         cam_col_cameras = cam_col_cam())
     })
     
 # Infobox values ----------------------------------------------------------
@@ -188,17 +192,15 @@ summaryServer <- function(id,
     
 # Plots -------------------------------------------------------------------
     output$plot_map <- metaRender2(renderLeaflet, {
-      # Create a meaningful name
-      import_dat <- camtrap_data()
-      
       metaExpr({
-        df <- import_dat$data$deployments
+        dat <- ..(camtrap_data())
+        df <- dat$data$deployments
         
         plot_map(df, 
                  lat_col = ..(unname(mapping_cameras()$lat_col)),
                  lon_col = ..(unname(mapping_cameras()$lon_col)),
                  crs = ..(crs()),
-                 cam_col = ..(unname(mapping_cameras()$cam_col)),
+                 cam_col = ..(cam_col_cam()),
                  color = "black")
       })
     })
@@ -220,6 +222,7 @@ summaryServer <- function(id,
                    color = "red")
     })
     
+    # For debugging
     output$sel <- renderText({
       paste(paste("Leaflet:", paste(input$plot_map_shape_click, collapse = ", ")),
             paste("Girafe:", input$plot_occurrences_selected)
@@ -237,16 +240,13 @@ summaryServer <- function(id,
       width <- max(8,
                    unitw/(1 + exp(-24*unitw)))
       
-      # Create a meaningful name
-      import_dat <- camtrap_data()
-      
       metaExpr({
-        "# See  code in import tab to create import_dat"
-        df <- import_dat$data$observations
+        dat <- ..(camtrap_data())
+        df <- dat$data$observations
         
         gg <- plot_points(df,
-                          camera_col = ..(unname(mapping_records()$cam_col)),
-                          spp_col = ..(unname(mapping_records()$spp_col)),
+                          camera_col = ..(cam_col_rec()),
+                          spp_col = ..(spp_col()),
                           timestamp_col = ..(unname(mapping_records()$timestamp_col)),
                           time_col = ..(unname(mapping_records()$time_col)),
                           date_col = ..(unname(mapping_records()$date_col)))
@@ -287,7 +287,7 @@ summaryServer <- function(id,
 
 # Return values -----------------------------------------------------------
 
-  list(camtable = output$cameras_table)    
+  list(camtable = output$cameras_table)
     
   })
 }

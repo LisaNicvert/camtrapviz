@@ -72,19 +72,19 @@ selectServer <- function(id,
       # Create column names reactives -------------------------------------------
     
       obs_col <- reactive({
-        mapping_records()$obs_col
+        unname(mapping_records()$obs_col)
       })
           
       spp_col <- reactive({
-        mapping_records()$spp_col
+        unname(mapping_records()$spp_col)
       })
       
       cam_col_cam <- reactive({
-        mapping_cameras()$cam_col
+        unname(mapping_cameras()$cam_col)
       })
       
       cam_col_rec <- reactive({
-        mapping_records()$cam_col
+        unname(mapping_records()$cam_col)
       })
   
       # Get species and cameras -------------------------------------------------
