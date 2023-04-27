@@ -141,14 +141,14 @@ test_that("Summarize cameras with camera df", {
   expect_equal(colnames(res), expected_colnames)
   expect_equal(class(res$setup), c("POSIXct", "POSIXt"))
   expect_true(all(res$setup < res$retrieval))
-  expect_equal(rep("setup", nrow(res)), res$setup_origin)
+  expect_equal(rep("metadata", nrow(res)), res$setup_origin)
   expect_equal(rep("picture", nrow(res)), res$retrieval_origin)
   # Test duration
-  setup <- kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A01"]
-  retrieval <- kga[kga$cameraID == "KGA_A01", ]
+  setup <- kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A02"]
+  retrieval <- kga[kga$cameraID == "KGA_A02", ]
   retrieval <- max(as.POSIXct(paste(retrieval$eventDate, retrieval$eventTime)))
   len <- as.numeric(retrieval - as.POSIXct(setup), "days")
-  expect_equal(res$sampling_length[res$cameraID == "KGA_A01"], len, 
+  expect_equal(res$sampling_length[res$cameraID == "KGA_A02"], len, 
                tolerance = 10e-3)
   
 })
@@ -169,7 +169,7 @@ test_that("Summarize cameras with NA in setup/retrieval", {
   
   # NA in setup
   kga_cameras_test <- kga_cameras
-  kga_cameras_test$Setup.Date[kga_cameras_test$cameraID == "KGA_A01"] <- NA
+  kga_cameras_test$Setup.Date[kga_cameras_test$cameraID == "KGA_A02"] <- NA
   
   res <- summarize_cameras(kga, 
                            cam_col = "cameraID", 
@@ -178,15 +178,15 @@ test_that("Summarize cameras with NA in setup/retrieval", {
                            dfcam = kga_cameras_test,
                            cam_col_dfcam = "cameraID", 
                            setup_col = "Setup.Date")
-  expected <- kga |> filter(cameraID == "KGA_A01") |> 
+  expected <- kga |> filter(cameraID == "KGA_A02") |> 
     mutate(dtime = as.POSIXct(paste(eventDate, eventTime))) |>
     summarise(mintime = min(dtime))
   expected <- expected$mintime
   
-  expect_equal(res$setup[res$cameraID == "KGA_A01"], expected)
+  expect_equal(res$setup[res$cameraID == "KGA_A02"], expected)
   
   # Missing camera in setup
-  kga_cameras_test <- kga_cameras |> filter(cameraID != "KGA_A01")
+  kga_cameras_test <- kga_cameras |> filter(cameraID != "KGA_A02")
   
   res <- summarize_cameras(kga, 
                            cam_col = "cameraID", 
@@ -195,10 +195,10 @@ test_that("Summarize cameras with NA in setup/retrieval", {
                            dfcam = kga_cameras_test,
                            cam_col_dfcam = "cameraID", 
                            setup_col = "Setup.Date")
-  expect_equal(res$setup[res$cameraID == "KGA_A01"], expected)
+  expect_equal(res$setup[res$cameraID == "KGA_A02"], expected)
   
   # Missing camera in data
-  kga_test <- kga |> filter(cameraID != "KGA_A01")
+  kga_test <- kga |> filter(cameraID != "KGA_A02")
   res <- summarize_cameras(kga_test, 
                            cam_col = "cameraID", 
                            time_col = "eventTime",
@@ -206,13 +206,13 @@ test_that("Summarize cameras with NA in setup/retrieval", {
                            dfcam = kga_cameras,
                            cam_col_dfcam = "cameraID", 
                            setup_col = "Setup.Date")
-  expected <- as.POSIXct(kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A01"])
-  expect_equal(res$setup[res$cameraID == "KGA_A01"], expected)
-  expect_true(is.na(res$retrieval[res$cameraID == "KGA_A01"]))
+  expected <- as.POSIXct(kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A02"])
+  expect_equal(res$setup[res$cameraID == "KGA_A02"], expected)
+  expect_true(is.na(res$retrieval[res$cameraID == "KGA_A02"]))
   
   # Missing camera in data and in setup
   kga_test2 <- kga |> filter(cameraID != "KGA_A02")
-  kga_cameras_test <- kga_cameras |> filter(cameraID != "KGA_A01")
+  kga_cameras_test <- kga_cameras |> filter(cameraID != "KGA_A03")
   res <- summarize_cameras(kga_test2, 
                            cam_col = "cameraID", 
                            time_col = "eventTime",
@@ -220,12 +220,12 @@ test_that("Summarize cameras with NA in setup/retrieval", {
                            dfcam = kga_cameras_test,
                            cam_col_dfcam = "cameraID", 
                            setup_col = "Setup.Date")
-  expected <- kga_test2 |> filter(cameraID == "KGA_A01") |> 
+  expected <- kga_test2 |> filter(cameraID == "KGA_A03") |> 
     mutate(dtime = as.POSIXct(paste(eventDate, eventTime))) |>
     summarise(mintime = min(dtime),
               maxtime = max(dtime))
-  expect_equal(res$setup[res$cameraID == "KGA_A01"], expected$mintime)
-  expect_equal(res$retrieval[res$cameraID == "KGA_A01"], expected$maxtime)
+  expect_equal(res$setup[res$cameraID == "KGA_A03"], expected$mintime)
+  expect_equal(res$retrieval[res$cameraID == "KGA_A03"], expected$maxtime)
   
   expected <- as.POSIXct(kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A02"])
   expect_equal(res$setup[res$cameraID == "KGA_A02"], expected)

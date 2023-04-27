@@ -103,7 +103,7 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #' The information on how the start and the end of the sampling 
 #' were computed is stored in `setup_origin` and `retrieval_origin`.
 #' + if setup and retrieval date are provided via `dfcam`, 
-#' `setup_origin` is `setup` and `retrieval_origin` is `retrieval`.
+#' `setup_origin` and `retrieval_origin` are `metadata`.
 #' + else, these columns contain `picture`.
 #' As this function uses the `cameraOperation` function from 
 #' the `camtrapR` package, the camera names may not contain 
@@ -228,7 +228,7 @@ summarize_cameras <- function(df, cam_col,
       ind <- match(setup_df[[cam_col_dfcam]], camsum[[cam_col]])
       
       camsum$setup[ind] <- setup_df[[setup_col]]
-      camsum$setup_origin[ind] <- "setup"
+      camsum$setup_origin[ind] <- "metadata"
     }
     if (!is.null(retrieval_col)) { # Retrieval date specified in cameras
       
@@ -245,7 +245,7 @@ summarize_cameras <- function(df, cam_col,
       ind <- match(retrieval_df[[cam_col_dfcam]], camsum[[cam_col]])
       
       camsum$retrieval[ind] <- retrieval_df[[retrieval_col]]
-      camsum$retrieval_origin[ind] <- "retrieval"
+      camsum$retrieval_origin[ind] <- "metadata"
     }
   }
   

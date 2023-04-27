@@ -73,7 +73,7 @@ of the camera.
 The information on how the start and the end of the sampling
 were computed is stored in \code{setup_origin} and \code{retrieval_origin}.
 \item if setup and retrieval date are provided via \code{dfcam},
-\code{setup_origin} is \code{setup} and \code{retrieval_origin} is \code{retrieval}.
+\code{setup_origin} and \code{retrieval_origin} are \code{metadata}.
 \item else, these columns contain \code{picture}.
 As this function uses the \code{cameraOperation} function from
 the \code{camtrapR} package, the camera names may not contain
