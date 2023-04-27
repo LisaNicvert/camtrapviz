@@ -729,9 +729,6 @@ importServer <- function(id) {
     # Update selection list and default names in selectInput for records
     observeEvent(input$records_input, {
       if (input$input_type == 2) { # Only update widgets for manual import
-        cat("------------------------\n")
-        cat(paste(unname(empty_allowed), collapse = " | "))
-        cat("\n")
         update_selected_columns(widget_list = records_to_update(), 
                                 default = default_records(),
                                 choices = records_cols(),
@@ -952,12 +949,6 @@ importServer <- function(id) {
       castval_rec <- castval_rec[non_null_names] # Reorder values
       names(castval_rec) <- unname(non_null_rec) # Rename with table column names
       
-      # cat("-------------------\n")
-      # cat(paste(names(castval_rec)))
-      # cat("\n")
-      # cat(paste(castval_rec))
-      # cat("\n")
-      
       # Cameras
       # /!\ Here we choose to look in the records table,
       # because the cast types should be the same in both tables
@@ -969,12 +960,6 @@ importServer <- function(id) {
                                     widget_values = non_null_names)
       castval_cam <- castval_cam[non_null_names] # Reorder values
       names(castval_cam) <- unname(non_null_cam) # Rename with table column names
-      
-      # cat("-------------------\n")
-      # cat(paste(names(castval_cam)))
-      # cat("\n")
-      # cat(paste(castval_cam))
-      # cat("\n")
       
       # Fine-tune date format
       if (input$input_type == 1) { # Example files (known date format)
