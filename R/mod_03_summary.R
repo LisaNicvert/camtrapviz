@@ -70,7 +70,6 @@ summaryServer <- function(id,
     stopifnot(is.reactive(mapping_cameras))
     stopifnot(is.reactive(crs))
     
-
 # Create column names reactives -------------------------------------------
     spp_col <- reactive({
       unname(mapping_records()$spp_col)
@@ -133,8 +132,8 @@ summaryServer <- function(id,
 # Values extracted from cameras table -------------------------------------
 
     daterange <- reactive({
-      c(min(cameras_values()$setup), 
-        max(cameras_values()$retrieval))
+      c(min(cameras_values()$setup, na.rm = TRUE), 
+        max(cameras_values()$retrieval, na.rm = TRUE))
     })
     
     ncameras <- reactive({
@@ -159,7 +158,8 @@ summaryServer <- function(id,
     })
     
     output$sampling_length <- renderText({
-      total_sampling <- sum(cameras_values()$sampling_length)
+      total_sampling <- sum(cameras_values()$sampling_length,
+                            na.rm = TRUE)
       total_sampling
     })
     
