@@ -57,3 +57,30 @@ test_that("Plot species bars", {
   # Test that NA species was replaced with blank
   expect_equal(br, c("blank", "rabbit", "cow", "cat"))
 })
+
+test_that("Plot map", {
+  # Default radii ---
+  plot_map(camtraps,
+           lat_col = "utm_y",
+           lon_col = "utm_x",
+           crs = 32650, # Here we use the EPSG code for UTM zone 50N
+           cam_col = "Station")
+  
+  # Custom radii ---
+  radii <- c(1, 120, 500)
+  plot_map(camtraps,
+           lat_col = "utm_y",
+           lon_col = "utm_x",
+           crs = 32650, # Here we use the EPSG code for UTM zone 50N
+           cam_col = "Station",
+           circle_radii = radii,
+           rescale = TRUE)
+  
+  # Don't rescale
+  plot_map(camtraps,
+           lat_col = "utm_y",
+           lon_col = "utm_x",
+           crs = 32650, # Here we use the EPSG code for UTM zone 50N
+           cam_col = "Station",
+           circle_radii = radii)
+})

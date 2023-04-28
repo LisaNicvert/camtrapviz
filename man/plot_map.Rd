@@ -4,7 +4,17 @@
 \alias{plot_map}
 \title{Plot map}
 \usage{
-plot_map(df, lat_col, lon_col, crs = 4326, cam_col, color = "black")
+plot_map(
+  df,
+  lat_col,
+  lon_col,
+  crs = 4326,
+  cam_col,
+  color = "black",
+  highlight_color = "red",
+  circle_radii = 10,
+  rescale = FALSE
+)
 }
 \arguments{
 \item{df}{A dataframe containing cameras information}
@@ -21,6 +31,15 @@ Defaults to EPSG:4326, which is the code for WGS84 standard.}
 \item{cam_col}{Name of the camera name column}
 
 \item{color}{color for the points}
+
+\item{highlight_color}{color to use when hovering over a point}
+
+\item{circle_radii}{A named vector of radii tu use for the cirles. Names
+correspond to camera names.}
+
+\item{rescale}{rescale circles? If \code{TRUE}, radii will be linearly resized
+so that the maximum corresponds to 300m, and radii smaller than
+10 will be set to 10m.}
 }
 \value{
 a \code{leaflet} map representing cameras as points.

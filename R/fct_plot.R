@@ -191,6 +191,12 @@ plot_species_bars <- function(df,
 #' Defaults to EPSG:4326, which is the code for WGS84 standard.
 #' @param cam_col Name of the camera name column
 #' @param color color for the points
+#' @param highlight_color color to use when hovering over a point
+#' @param circle_radii A named vector of radii tu use for the cirles. Names
+#' correspond to camera names.
+#' @param rescale rescale circles? If `TRUE`, radii will be linearly resized 
+#' so that the maximum corresponds to 300m, and radii smaller than
+#' 10 will be set to 10m. 
 #'
 #' @return a `leaflet` map representing cameras as points.
 #' If the CRS of the input data is different from EPSG:4326 (WGS84), 
@@ -211,7 +217,10 @@ plot_map <- function(df,
                      lat_col, lon_col, 
                      crs = 4326,
                      cam_col,
-                     color = "black") {
+                     color = "black",
+                     highlight_color = "red",
+                     circle_radii = 10,
+                     rescale = FALSE) {
   
   if(!is.null(crs)) { # Specify the CRS
     df_sf <- sf::st_as_sf(df, 
@@ -224,12 +233,22 @@ plot_map <- function(df,
                           coords = c(lon_col, lat_col))
   }
   
+  # Rescale radii measures
+  if (rescale) {
+    circle_radii <- circle_radii*(300/max(circle_radii)) # set max to 300
+    circle_radii[circle_radii < 10] <- 10 # Set min to 10
+  }
+  
+  
   leaflet(df_sf) |> 
     addTiles() |> 
     addCircles(data = df_sf,
-               label = paste0("Camera: ", df_sf[[cam_col]]),
+               label = df_sf[[cam_col]],
                layerId = df_sf[[cam_col]],
-               popup = df_sf[[cam_col]],
+               popup = paste0("Camera: ", df_sf[[cam_col]]),
                color = color,
-               highlightOptions = highlightOptions(color = "red"))
+               fillColor = color,
+               radius = circle_radii,
+               highlightOptions = highlightOptions(fillColor = highlight_color,
+                                                   color = highlight_color))
 }
