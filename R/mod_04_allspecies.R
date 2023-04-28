@@ -46,12 +46,30 @@ allspeciesServer <- function(id,
     stopifnot(is.reactive(mapping_cameras))
     stopifnot(is.reactive(crs))
 
+# Create column names reactives -------------------------------------------
+    spp_col <- reactive({
+      unname(mapping_records()$spp_col)
+    })    
+    
+    obs_col <- reactive({
+      unname(mapping_records()$obs_col)
+    })    
+    
+    cam_col_cam <- reactive({
+      unname(mapping_cameras()$cam_col)
+    })
+    
+    cam_col_rec <- reactive({
+      unname(mapping_records()$cam_col)
+    })
 # Plot species ------------------------------------------------------------
 
     output$plot_species <- metaRender2(renderGirafe, {
       # Set height
-      # unit <- nspecies()/6
-      unit <- 12
+      nspecies <- nrow(summarize_species(camtrap_data()$data$observations,
+                                         species_col = spp_col(), 
+                                         obs_col = obs_col()))
+      unit <- nspecies/6
       height <- max(5, 
                     unit/(1 + exp(-12*unit)))
       
@@ -59,8 +77,8 @@ allspeciesServer <- function(id,
         "# Species abundance barplot ---"
         "# ggplot plot"
         gg <- plot_species_bars(..(camtrap_data())$data$observations, 
-                                spp_col = ..(unname(mapping_records()$spp_col)),
-                                obs_col = ..(unname(mapping_records()$obs_col)),
+                                spp_col = spp_col(),
+                                obs_col = obs_col(),
                                 count_col = ..(unname(mapping_records()$count_col)))
         
         "# ggiraph plot (interactive)"
