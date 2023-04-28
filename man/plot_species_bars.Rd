@@ -9,7 +9,8 @@ plot_species_bars(
   spp_col,
   count_col = NULL,
   obs_col = NULL,
-  interactive = TRUE
+  interactive = TRUE,
+  NA_count_placeholder = NA
 )
 }
 \arguments{
@@ -25,6 +26,10 @@ If it is present, the function will plot only the observations
 for which \code{obs_col} is "animal".}
 
 \item{interactive}{Logical; make the plot interactive with \code{ggiraph}?}
+
+\item{NA_count_placeholder}{Value with which to replace NAs present
+in the column containing counts. If not specified, NA is the default
+and species which have NA in counts will have a NA count.}
 }
 \value{
 A \code{ggplot} object representing horizontal bars of species

@@ -55,24 +55,21 @@ allspeciesServer <- function(id,
       height <- max(5, 
                     unit/(1 + exp(-12*unit)))
       
-      # Create a meaningful name
-      import_dat <- camtrap_data()
-      
       metaExpr({
-        "# See code in import tab to create import_dat"
-        df <- import_dat$data$observations
-        
-        gg <- plot_species_bars(df, 
+        "# Species abundance barplot ---"
+        "# ggplot plot"
+        gg <- plot_species_bars(..(camtrap_data())$data$observations, 
                                 spp_col = ..(unname(mapping_records()$spp_col)),
                                 obs_col = ..(unname(mapping_records()$obs_col)),
                                 count_col = ..(unname(mapping_records()$count_col)))
         
-        x <- girafe(ggobj = gg,
-                    width_svg = 8,
-                    height_svg = ..(height))
-        x <- girafe_options(x,
-                            opts_zoom(min = 0.5, max = 10))
-        x
+        "# ggiraph plot (interactive)"
+        gi <- ggiraph::girafe(ggobj = gg,
+                              width_svg = 8,
+                              height_svg = ..(height))
+        gi <- ggiraph::girafe_options(gi,
+                                      opts_zoom(min = 0.5, max = 10))
+        gi
       })
       
     })

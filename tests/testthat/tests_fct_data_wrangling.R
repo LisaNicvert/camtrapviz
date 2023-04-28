@@ -407,3 +407,35 @@ test_that("Summarize species with NA in count",{
                            NA_count_placeholder = 1)
   expect_equal(res$n_individuals, 7)
 })
+
+test_that("Summarize species without camera", {
+  df <- data.frame(species = c("zebra", "cat", "cat", "cow", "cow", "rabbit", NA, NA),
+                   type = c("animal", "animal", "animal", "animal", "animal", "animal", "human", "blank"),
+                   count = c(1, 1, 1, 50, 3, 4, 1, NA))
+  
+  # Without obstype ---
+  res <- summarize_species(df, species_col = "species")
+  
+  expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA),
+                         n_sightings = c(2, 2, 1, 1, 2),
+                         n_individuals = c(2, 2, 1, 1, 2))
+  expect_equal(res, expected)
+  
+  # With obstype ---
+  res <- summarize_species(df, 
+                           species_col = "species",
+                           obs_col = "type")
+  expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA, NA),
+                         type = c("animal", "animal", "animal", "animal", "blank", "human"),
+                         n_sightings = c(2, 2, 1, 1, 1, 1),
+                         n_individuals = c(2, 2, 1, 1, 1, 1))
+  expect_equal(res, expected)
+  
+  # With count ---
+  res <- suppressWarnings(summarize_species(df, 
+                                            species_col = "species",
+                                            obs_col = "type",
+                                            count_col = "count"))
+  expected$n_individuals <- c(2, 53, 4, 1, NA, 1)
+  expect_equal(res, expected)
+})

@@ -123,6 +123,9 @@ plot_points <- function(df,
 #' If it is present, the function will plot only the observations
 #' for which `obs_col` is "animal". 
 #' @param interactive Logical; make the plot interactive with `ggiraph`?
+#' @param NA_count_placeholder Value with which to replace NAs present
+#' in the column containing counts. If not specified, NA is the default
+#' and species which have NA in counts will have a NA count.
 #'
 #' @return A `ggplot` object representing horizontal bars of species
 #' count. The x-axis is the observed number of individuals and the y-axis
@@ -138,37 +141,32 @@ plot_species_bars <- function(df,
                               spp_col, 
                               count_col = NULL,
                               obs_col = NULL,
-                              interactive = TRUE) {
+                              interactive = TRUE,
+                              NA_count_placeholder = NA) {
   
-  # Initialize df plot
-  dfp <- df
+  # Summarize species
+  dfp <- summarize_species(df, 
+                           species_col = spp_col, 
+                           count_col = count_col,
+                           obs_col = obs_col,
+                           NA_count_placeholder = NA_count_placeholder)
   
+  # Replace species with obs_type when species is NA
   if (!is.null(obs_col)) {
-    # Get only the observations of type animal
-    dfp <- dfp |> filter(.data[[obs_col]] == "animal")
-  }
-  
-  # Group by species
-  dfp <- dfp |> group_by(.data[[spp_col]])
-  
-  if (is.null(count_col)) { # no count column
-    dfp <- dfp |>
-      summarise(count = n())
-  } else { # count column
-    dfp <- dfp |>
-      summarise(count = sum(.data[[count_col]]))
+    dfp[[spp_col]][is.na(dfp[[spp_col]])] <- dfp[[obs_col]][is.na(dfp[[spp_col]])] 
   }
   
   if (interactive) {
-    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], count),
-                          y = count,
-                          tooltip = paste(.data[[spp_col]], count, 
+    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], n_individuals),
+                          y = n_individuals,
+                          tooltip = paste(.data[[spp_col]], 
+                                          n_individuals, 
                                           sep = ": ")
     )) +
       geom_col_interactive()
   } else {
-    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], count),
-                          y = count)) +
+    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], n_individuals),
+                          y = n_individuals)) +
       geom_col()
   }
   gg <- gg +

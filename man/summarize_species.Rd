@@ -7,7 +7,7 @@
 summarize_species(
   df,
   species_col,
-  cam_col,
+  cam_col = NULL,
   obs_col = NULL,
   count_col = NULL,
   ncam = NULL,
@@ -19,11 +19,11 @@ summarize_species(
 
 \item{species_col}{Name of the species column}
 
-\item{cam_col}{Name of the column containing camera codes}
+\item{cam_col}{Name of the column containing camera codes (optional)}
 
 \item{obs_col}{Name of the observation type column (optional)}
 
-\item{count_col}{Name of the column containing species count}
+\item{count_col}{Name of the column containing species count (optional)}
 
 \item{ncam}{Number of cameras to take into account when computing
 the proportion of cameras the species was ween on. If \code{NULL},
@@ -46,8 +46,8 @@ pictures (using the input \code{count_col} column).
 If \code{count_col} is \code{NULL}, it contains the same values as \code{n_sightings}.
 If there are NAs in the input  \code{count_col}, they will propagate in \code{n_individuals}
 (unless a value is specified in \code{NA_count_placeholder}).
-\item \code{n_cameras}: the number of cameras the species was seen on
-\item \code{prop_cam}: the proportion of cameras the species was seen on.
+\item \code{n_cameras} (present only if \code{cam_col} is not \code{NULL}) : the number of cameras the species was seen on.
+\item \code{prop_cam} (present only if \code{cam_col} is not \code{NULL}): the proportion of cameras the species was seen on.
 If \code{ncam} is provided, then it uses \code{ncam} as the total number of cameras.
 }
 }

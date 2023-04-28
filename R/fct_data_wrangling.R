@@ -310,8 +310,8 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #' @param df the observation dataframe to summarize
 #' @param species_col Name of the species column
 #' @param obs_col Name of the observation type column (optional)
-#' @param count_col Name of the column containing species count
-#' @param cam_col Name of the column containing camera codes
+#' @param count_col Name of the column containing species count (optional)
+#' @param cam_col Name of the column containing camera codes (optional)
 #' @param ncam Number of cameras to take into account when computing
 #' the proportion of cameras the species was ween on. If `NULL`, 
 #' defaults to the number of cameras present in the `df`.
@@ -330,8 +330,8 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #' If `count_col` is `NULL`, it contains the same values as `n_sightings`.
 #' If there are NAs in the input  `count_col`, they will propagate in `n_individuals`
 #' (unless a value is specified in `NA_count_placeholder`).
-#' + `n_cameras`: the number of cameras the species was seen on
-#' + `prop_cam`: the proportion of cameras the species was seen on. 
+#' + `n_cameras` (present only if `cam_col` is not `NULL`) : the number of cameras the species was seen on.
+#' + `prop_cam` (present only if `cam_col` is not `NULL`): the proportion of cameras the species was seen on.
 #' If `ncam` is provided, then it uses `ncam` as the total number of cameras.
 #' 
 #' @export
@@ -348,11 +348,37 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #'                          NA_count_placeholder = 1)
 summarize_species <- function(df, 
                               species_col, 
-                              cam_col,
+                              cam_col = NULL,
                               obs_col = NULL,
                               count_col = NULL,
                               ncam = NULL,
                               NA_count_placeholder = NA) {
+  
+  # Set and check ncam ---
+  if (!is.null(cam_col)) {
+    ncam_df <- length(unique(df[[cam_col]]))
+    if (is.null(ncam)) {
+      # Set ncam to the number of cameras in the data
+      ncam <- ncam_df
+    } else {
+      if (ncam < ncam_df) {
+        warning("ncam is smaller than the number of cameras in df: are you sure it's what you want?")
+      }
+    }
+  }
+  
+  # Replace NAs in count ---
+  if (!is.null(count_col)) {
+    NAs_in_count <- length(df[[count_col]][is.na(df[[count_col]])])
+    
+    if (NAs_in_count != 0) {
+      if (is.na(NA_count_placeholder)) {
+        warning("There are NAs in the count column; if you want to replace them with a value, use NA_count_placeholder.")
+      } else {
+        df[[count_col]][is.na(df[[count_col]])] <- NA_count_placeholder
+      }
+    }
+  }
   
   # Group data ---
   if (!is.null(obs_col)) { # obs_col provided
@@ -363,42 +389,27 @@ summarize_species <- function(df,
       group_by(.data[[species_col]])
   }
   
-  # Set and check ncam ---
-  ncam_df <- length(unique(df[[cam_col]]))
-  if (is.null(ncam)) {
-    # Set ncam to the number of cameras in the data
-    ncam <- ncam_df
-  } else {
-    if (ncam < ncam_df) {
-      warning("ncam is smaller than the number of cameras in df: are you sure it's what you want?")
-    }
-  }
-  
-  # Replace NAs in count
-  if (!is.null(count_col)) {
-    NAs_in_count <- length(res[[count_col]][is.na(res[[count_col]])])
-    
-    if (NAs_in_count != 0) {
-      if (is.na(NA_count_placeholder)) {
-        warning("There are NAs in the count column; if you want to replace them with a value, use NA_count_placeholder.")
-      } else {
-        res[[count_col]][is.na(res[[count_col]])] <- NA_count_placeholder
-      }
-    }
-    
-  }
-  
   # Summarize ---
-  res <- res |> 
-    summarise(n_sightings = n(),
-              n_individuals = ifelse(is.null(count_col), 
-                                             n(), # Simply count rows
-                                             sum(.data[[count_col]]) # else sum count col
-                                     ),
-              n_cameras = length(unique(.data[[cam_col]]))
-              )
-  # Add prop_cam
-  res$prop_cam <- res$n_cameras/ncam
+  if (!is.null(cam_col)) {
+    res <- res |> 
+      summarise(n_sightings = n(),
+                n_individuals = ifelse(is.null(count_col), 
+                                       n(), # Simply count rows
+                                       sum(.data[[count_col]]) # else sum count col
+                ),
+                n_cameras = length(unique(.data[[cam_col]]))
+      )
+    # Add prop_cam
+    res$prop_cam <- res$n_cameras/ncam
+  } else {
+    res <- res |> 
+      summarise(n_sightings = n(),
+                n_individuals = ifelse(is.null(count_col), 
+                                       n(), # Simply count rows
+                                       sum(.data[[count_col]]) # else sum count col
+                )
+      )
+  }
   
   
   # Convert tibble to dataframe
