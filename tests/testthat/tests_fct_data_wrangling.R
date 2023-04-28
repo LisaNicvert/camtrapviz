@@ -317,3 +317,93 @@ test_that("Summarize cameras (dfcam with no setup or retrieval)", {
                            dfcam = dfcam)
   expect_equal(res, expected)
 })
+
+
+# Summarize species -------------------------------------------------------
+test_that("Summarize species", {
+  df <- data.frame(species = c("zebra", "cat", "cat", "cow", "cow", "rabbit", NA, NA),
+                   type = c("animal", "animal", "animal", "animal", "animal", "animal", "human", "blank"),
+                   camera = c("C1", "C1", "C1", "C1", "C2", "C3", "C3", "C4"),
+                   count = c(1, 1, 1, 50, 3, 4, 1, NA))
+  
+  # Without obstype ---
+  res <- summarize_species(df, species_col = "species", cam_col = "camera")
+  
+  expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA),
+                         n_sightings = c(2, 2, 1, 1, 2),
+                         n_individuals = c(2, 2, 1, 1, 2),
+                         n_cameras = c(1, 2, 1, 1, 2))
+  expected$prop_cam <- expected$n_cameras/4
+  expect_equal(res, expected)
+  
+  # With obstype ---
+  res <- summarize_species(df, 
+                           species_col = "species", cam_col = "camera",
+                           obs_col = "type")
+  expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA, NA),
+                         type = c("animal", "animal", "animal", "animal", "blank", "human"),
+                         n_sightings = c(2, 2, 1, 1, 1, 1),
+                         n_individuals = c(2, 2, 1, 1, 1, 1),
+                         n_cameras = c(1, 2, 1, 1, 1, 1))
+  expected$prop_cam <- expected$n_cameras/4
+  expect_equal(res, expected)
+  
+  # With count ---
+  res <- suppressWarnings(summarize_species(df, 
+                                            species_col = "species", cam_col = "camera",
+                                            obs_col = "type",
+                                            count_col = "count"))
+  expected$n_individuals <- c(2, 53, 4, 1, NA, 1)
+  expected$prop_cam <- expected$n_cameras/4
+  expect_equal(res, expected)
+  
+  # With ncam ---
+  res <- suppressWarnings(summarize_species(df, 
+                                            species_col = "species", cam_col = "camera",
+                                            obs_col = "type",
+                                            count_col = "count",
+                                            ncam = 50))
+  expected$prop_cam <- expected$n_cameras/50
+  expect_equal(res, expected)
+  
+})
+
+test_that("Summarize species throws a warning", {
+  df <- data.frame(species = rep("cat", 10),
+                   camera = 1:10)
+  expect_warning(summarize_species(df, 
+                                   species_col = "species", 
+                                   cam_col = "camera",
+                                   ncam = 3),
+                 "ncam is smaller than the number of cameras in df: are you sure it's what you want?", 
+                 fixed = TRUE)
+})
+
+test_that("Summarize species with NA in count",{
+  df <- data.frame(species = rep("cat", 5),
+                   camera = 1:5,
+                   count = c(1, 1, 3, NA, 1))
+  
+  # Without NA replacement ---
+  # Check warning
+  expect_warning(summarize_species(df, 
+                                   species_col = "species", 
+                                   cam_col = "camera",
+                                   count_col = "count"),
+                 "There are NAs in the count column; if you want to replace them with a value, use NA_count_placeholder.",
+                 fixed = TRUE)
+  # Check value
+  res <- suppressWarnings(summarize_species(df, 
+                                            species_col = "species", 
+                                            cam_col = "camera",
+                                            count_col = "count"))
+  expect_true(is.na(res$n_individuals))
+  
+  # With NA replacement ---
+  res <- summarize_species(df, 
+                           species_col = "species", 
+                           cam_col = "camera",
+                           count_col = "count",
+                           NA_count_placeholder = 1)
+  expect_equal(res$n_individuals, 7)
+})

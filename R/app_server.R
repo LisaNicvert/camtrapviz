@@ -9,7 +9,6 @@
 #' @export
 server <- function(input, output, session) {
   
-
   # Import reactives --------------------------------------------------------
   import_val <- importServer("import")
   
@@ -61,7 +60,10 @@ server <- function(input, output, session) {
                     data_filtering = expandChain(invisible(select_val$camtrap_data()),
                                                  .expansionContext = ec),
                     camtable = expandChain(summary_val$camtable(),
-                                           .expansionContext = ec)),
+                                           .expansionContext = ec),
+                    spptable = expandChain(summary_val$spptable(),
+                                           .expansionContext = ec)
+                    ),
         render_args = list(output_format = "html_document")
       )
     }

@@ -26,6 +26,15 @@ library(camtrapviz)
 ```
 
 ## Data summary
+
+Here is a summary table per camera:
+
 ```{r}
 {{camtable}}
+```
+
+Here is a summary table per species:
+
+```{r}
+{{spptable}}
 ```

@@ -7,6 +7,9 @@
 #
 # Script Description: functions to handle camera trap data
 
+
+# Cameras -----------------------------------------------------------------
+
 #' Get cameras
 #' 
 #' Get a unique of all cameras present either in one list or in the
@@ -33,44 +36,6 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
   
   cam <- sort(unique(c(cam1r, cam2r)), na.last = NA.last)
   return(cam)
-}
-
-
-#' Get species count
-#'
-#' @param df a dataframe
-#' @param species_col name of the species column from the dataframe
-#' @param obs_col name of the observation type column from the dataframe
-#' @param keep_NA count NAs in the species length?
-#'
-#' @return The number of species. If `obs_col` is provided, will
-#' ignore all species with `obs_col` value different from `animal`.
-#' If `keep_NA`, will count NA in the total species count.
-#' 
-#' @export
-#'
-#' @examples
-#' df <- data.frame(obstype = c("animal", "animal", "animal", "animal", "blank"),
-#'                  species = c("cat", "cat", "cow", "dog", NA))
-#' get_nspecies(df, species_col = "species", obs_col = "obstype")
-get_nspecies <- function(df, species_col, obs_col = NULL,
-                         keep_NA = FALSE) {
-  
-  if (!is.null(obs_col)) {
-    # Filter to get only animal species
-    species <- df[[species_col]][df[[obs_col]] == "animal"]
-  } else {
-    species <- df[[species_col]]
-  }
-  
-  if (!keep_NA) {
-    # Remove Nas
-    species <- species[!is.na(species)]
-  }
-  
-  n <- length(unique(species))
-  
-  return(n)
 }
 
 #' Summarize cameras
@@ -296,4 +261,149 @@ summarize_cameras <- function(df, cam_col,
   # Tibble to df
   camsum <- as.data.frame(camsum)
   return(camsum)
+}
+
+
+# Species -----------------------------------------------------------------
+
+#' Get species count
+#'
+#' @param df a dataframe
+#' @param species_col name of the species column from the dataframe
+#' @param obs_col name of the observation type column from the dataframe
+#' @param keep_NA count NAs in the species length?
+#'
+#' @return The number of species. If `obs_col` is provided, will
+#' ignore all species with `obs_col` value different from `animal`.
+#' If `keep_NA`, will count NA in the total species count.
+#' 
+#' @export
+#'
+#' @examples
+#' df <- data.frame(obstype = c("animal", "animal", "animal", "animal", "blank"),
+#'                  species = c("cat", "cat", "cow", "dog", NA))
+#' get_nspecies(df, species_col = "species", obs_col = "obstype")
+get_nspecies <- function(df, species_col, obs_col = NULL,
+                         keep_NA = FALSE) {
+  
+  if (!is.null(obs_col)) {
+    # Filter to get only animal species
+    species <- df[[species_col]][df[[obs_col]] == "animal"]
+  } else {
+    species <- df[[species_col]]
+  }
+  
+  if (!keep_NA) {
+    # Remove Nas
+    species <- species[!is.na(species)]
+  }
+  
+  n <- length(unique(species))
+  
+  return(n)
+}
+
+#' Summarize species
+#'
+#' Summarize species information from a data table
+#'
+#' @param df the observation dataframe to summarize
+#' @param species_col Name of the species column
+#' @param obs_col Name of the observation type column (optional)
+#' @param count_col Name of the column containing species count
+#' @param cam_col Name of the column containing camera codes
+#' @param ncam Number of cameras to take into account when computing
+#' the proportion of cameras the species was ween on. If `NULL`, 
+#' defaults to the number of cameras present in the `df`.
+#' @param NA_count_placeholder Value with which to replace NAs present
+#' in the column containing counts. Defaults to NA (i.e. values are not
+#' replaced)
+#'
+#' @return A table summarizing species information with the following columns:
+#' + Species (named like `species_col`): species identity 
+#' (same as the `species_col` input column)
+#' + Observation type (present only if `obs_col` is not `NULL` and named like 
+#' `obs_col`): observation type (same as the `obs_col` input column)
+#' + `n_sightings`: number of rows where the species was photographed.
+#' + `n_individuals`: count of individuals observed on all
+#' pictures (using the input `count_col` column).
+#' If `count_col` is `NULL`, it contains the same values as `n_sightings`.
+#' If there are NAs in the input  `count_col`, they will propagate in `n_individuals`
+#' (unless a value is specified in `NA_count_placeholder`).
+#' + `n_cameras`: the number of cameras the species was seen on
+#' + `prop_cam`: the proportion of cameras the species was seen on. 
+#' If `ncam` is provided, then it uses `ncam` as the total number of cameras.
+#' 
+#' @export
+#'
+#' @examples
+#' df <- data.frame(species = c("zebra", "cat", "cat", "cow", NA, NA),
+#'                  type = c("animal", "animal", "animal", "animal", "human", "blank"),
+#'                  camera = c("C1", "C1", "C2", "C3", "C3", "C4"),
+#'                  count = c(1, 1, 3, 50, 1, NA))
+#' res <- summarize_species(df, 
+#'                          species_col = "species", cam_col = "camera",
+#'                          obs_col = "type",
+#'                          count_col = "count",
+#'                          NA_count_placeholder = 1)
+summarize_species <- function(df, 
+                              species_col, 
+                              cam_col,
+                              obs_col = NULL,
+                              count_col = NULL,
+                              ncam = NULL,
+                              NA_count_placeholder = NA) {
+  
+  # Group data ---
+  if (!is.null(obs_col)) { # obs_col provided
+    res <- df |> 
+      group_by(.data[[species_col]], .data[[obs_col]])
+  } else {
+    res <- df |> 
+      group_by(.data[[species_col]])
+  }
+  
+  # Set and check ncam ---
+  ncam_df <- length(unique(df[[cam_col]]))
+  if (is.null(ncam)) {
+    # Set ncam to the number of cameras in the data
+    ncam <- ncam_df
+  } else {
+    if (ncam < ncam_df) {
+      warning("ncam is smaller than the number of cameras in df: are you sure it's what you want?")
+    }
+  }
+  
+  # Replace NAs in count
+  if (!is.null(count_col)) {
+    NAs_in_count <- length(res[[count_col]][is.na(res[[count_col]])])
+    
+    if (NAs_in_count != 0) {
+      if (is.na(NA_count_placeholder)) {
+        warning("There are NAs in the count column; if you want to replace them with a value, use NA_count_placeholder.")
+      } else {
+        res[[count_col]][is.na(res[[count_col]])] <- NA_count_placeholder
+      }
+    }
+    
+  }
+  
+  # Summarize ---
+  res <- res |> 
+    summarise(n_sightings = n(),
+              n_individuals = ifelse(is.null(count_col), 
+                                             n(), # Simply count rows
+                                             sum(.data[[count_col]]) # else sum count col
+                                     ),
+              n_cameras = length(unique(.data[[cam_col]]))
+              )
+  # Add prop_cam
+  res$prop_cam <- res$n_cameras/ncam
+  
+  
+  # Convert tibble to dataframe
+  res <- as.data.frame(res)
+  
+  return(res)
+  
 }

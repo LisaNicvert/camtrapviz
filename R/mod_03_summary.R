@@ -44,16 +44,28 @@ summaryUI <- function(id) {
                                   height = "500px")),
 
 # Tables ------------------------------------------------------------------
-
-    h3("Cameras summary"),
-    textOutput(NS(id, "check_cameras_records")),
-    textOutput(NS(id, "check_cameras_cameras")),
-    br(),
-    dataTableOutput(NS(id, "cameras_table")),
-    actionButton(NS(id, "code_cameras_table"), 
-                 "Show camera summary code", icon("code"),
-                 style = "margin-top: 15px; margin-bottom: 15px;")
-    ) # end tagList
+    h3("Summary tables"),
+    tabsetPanel(
+      tabPanel("Cameras",
+               br(),
+               textOutput(NS(id, "check_cameras_records")),
+               textOutput(NS(id, "check_cameras_cameras")),
+               br(),
+               dataTableOutput(NS(id, "cameras_table")),
+               actionButton(NS(id, "code_cameras_table"), 
+                            "Show camera summary code", icon("code"),
+                            style = "margin-top: 15px; margin-bottom: 15px;")
+               ),
+      tabPanel("Species",
+               br(),
+               br(),
+               dataTableOutput(NS(id, "species_table")),
+               actionButton(NS(id, "code_species_table"), 
+                            "Show species summary code", icon("code"),
+                            style = "margin-top: 15px; margin-bottom: 15px;")
+               )
+    )
+  ) # end tagList
     
 }
 
@@ -132,6 +144,20 @@ summaryServer <- function(id,
     }, varname = "camvalues")
     
 
+# Summarize species -------------------------------------------------------
+    
+    species_values <- metaReactive({
+      dat <- ..(camtrap_data())$data$observations
+      ncam <- nrow(..(cameras_values()))
+      summarize_species(df = dat, 
+                        species_col = ..(spp_col()), 
+                        cam_col = ..(cam_col_rec()), 
+                        obs_col = ..(obs_col()),
+                        count_col = ..(unname(mapping_records()$count_col)),
+                        ncam = ncam)
+    }, varname = "sppvalues", bindToReturn = TRUE)
+
+
 # Values extracted from cameras table -------------------------------------
 
     daterange <- reactive({
@@ -191,6 +217,13 @@ summaryServer <- function(id,
                       filter = "none",
                       selection = "none",
                       options = list(scrollX = TRUE))
+    })
+    
+    output$species_table <- metaRender(renderDataTable, {
+      DT::datatable(..(species_values()),
+                    filter = "none",
+                    selection = "none",
+                    options = list(scrollX = TRUE))
     })
     
 # Plots -------------------------------------------------------------------
@@ -296,9 +329,16 @@ summaryServer <- function(id,
                        title = "Cameras table code")
     })
     
+    observeEvent(input$code_species_table, {
+      code <- expandChain(species_values())
+      displayCodeModal(code,
+                       title = "Species table code")
+    })
+    
 # Return values -----------------------------------------------------------
 
-  list(camtable = output$cameras_table)
+  list(camtable = output$cameras_table,
+       spptable = output$species_table)
     
   })
 }
