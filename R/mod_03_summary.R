@@ -227,18 +227,14 @@ summaryServer <- function(id,
     })
     
 # Plots -------------------------------------------------------------------
-    output$plot_map <- metaRender2(renderLeaflet, {
-      metaExpr({
-        dat <- ..(camtrap_data())
-        df <- dat$data$deployments
-        
-        plot_map(df, 
-                 lat_col = ..(unname(mapping_cameras()$lat_col)),
-                 lon_col = ..(unname(mapping_cameras()$lon_col)),
-                 crs = ..(crs()),
-                 cam_col = ..(cam_col_cam()),
-                 color = "black")
-      })
+    output$plot_map <- metaRender(renderLeaflet, {
+      "# Plot map ---"
+      plot_map(..(camtrap_data())$data$deployments, 
+               lat_col = ..(unname(mapping_cameras()$lat_col)),
+               lon_col = ..(unname(mapping_cameras()$lon_col)),
+               crs = ..(crs()),
+               cam_col = ..(cam_col_cam()),
+               color = "black")
     })
     
     # Girafe observer
@@ -277,29 +273,29 @@ summaryServer <- function(id,
                    unitw/(1 + exp(-24*unitw)))
       
       metaExpr({
-        dat <- ..(camtrap_data())
-        df <- dat$data$observations
+        "# Species occurrences plot ---"
         
-        cameras_list <- ..(cameras_values()[[cam_col_rec()]])
-        
-        gg <- plot_points(df,
+        "# ggplot plot"
+        gg <- plot_points(..(camtrap_data())$data$observations,
                           camera_col = ..(cam_col_rec()),
                           spp_col = ..(spp_col()),
                           timestamp_col = ..(unname(mapping_records()$timestamp_col)),
                           time_col = ..(unname(mapping_records()$time_col)),
                           date_col = ..(unname(mapping_records()$date_col)),
-                          cameras_list = cameras_list)
-        x <- girafe(ggobj = gg,
-                    width_svg = ..(width),
-                    height_svg = ..(height))
-        x <- girafe_options(x,
-                            opts_zoom(min = 0.5, max = 10),
-                            opts_hover_inv(css = "opacity:0.3"),
-                            opts_selection_inv(css = "opacity:0.3"),
-                            opts_selection(type = "single"),
-                            opts_hover(css = "")
-                            )
-        x
+                          cameras_list = ..(cameras_values())[[..(cam_col_rec())]])
+        
+        "# ggiraph plot (interactive)"
+        gi <- ggiraph::girafe(ggobj = gg,
+                              width_svg = ..(width),
+                              height_svg = ..(height))
+        gi <- ggiraph::girafe_options(gi,
+                                      opts_zoom(min = 0.5, max = 10),
+                                      opts_hover_inv(css = "opacity:0.3"),
+                                      opts_selection_inv(css = "opacity:0.3"),
+                                      opts_selection(type = "single"),
+                                      opts_hover(css = "")
+                                      )
+        gi
       }, bindToReturn = TRUE)
       
     })
@@ -338,7 +334,9 @@ summaryServer <- function(id,
 # Return values -----------------------------------------------------------
 
   list(camtable = output$cameras_table,
-       spptable = output$species_table)
+       spptable = output$species_table,
+       plot_map = output$plot_map,
+       plot_occurrences = output$plot_occurrences)
     
   })
 }

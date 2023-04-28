@@ -10,18 +10,19 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r}
+```{r libraries}
 library(camtrapviz)
+library(ggiraph)
 ```
 
 ## Data import
 
-```{r}
+```{r data_cleaning}
 {{data_cleaning}}
 ```
 
 ## Data filtering
-```{r}
+```{r data_filtering}
 {{data_filtering}}
 ```
 
@@ -29,12 +30,29 @@ library(camtrapviz)
 
 Here is a summary table per camera:
 
-```{r}
+```{r cameras_table}
 {{camtable}}
 ```
 
 Here is a summary table per species:
 
-```{r}
+```{r species_table}
 {{spptable}}
 ```
+
+### Map
+
+This map shows the cameras of this project that have spatial coordinates.
+
+```{r plot_map, echo = FALSE}
+{{plot_map}}
+```
+
+### Species occurrences
+
+This plot shows the occurrences of species on the different cameras.
+
+```{r plot_occurrences,  echo = FALSE}
+{{plot_occurrences}}
+```
+

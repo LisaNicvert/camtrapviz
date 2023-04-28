@@ -62,7 +62,11 @@ server <- function(input, output, session) {
                     camtable = expandChain(summary_val$camtable(),
                                            .expansionContext = ec),
                     spptable = expandChain(summary_val$spptable(),
-                                           .expansionContext = ec)
+                                           .expansionContext = ec),
+                    plot_map = expandChain(summary_val$plot_map(),
+                                           .expansionContext = ec),
+                    plot_occurrences = expandChain(summary_val$plot_occurrences(),
+                                .expansionContext = ec)
                     ),
         render_args = list(output_format = "html_document")
       )
