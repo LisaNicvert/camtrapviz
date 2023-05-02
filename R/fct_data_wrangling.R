@@ -465,14 +465,20 @@ get_diversity_table <- function(df, cam_col, spp_col,
     # Create df with missing factors
     cam_levels <- levels(df[[cam_col]])
     to_add <- cam_levels[!(cam_levels %in% res[[cam_col]])]
-    to_add <- factor(to_add, levels = cam_levels)
     
-    missing_cams <- data.frame(cam = to_add)
-    colnames(missing_cams) <- cam_col
-    
-    # Add missing cameras and reorder
+    # Add missing cameras
+    if (length(to_add) != 0) {
+      to_add <- factor(to_add, levels = cam_levels)
+      
+      missing_cams <- data.frame(cam = to_add, empty = TRUE)
+      colnames(missing_cams)[1] <- cam_col
+      
+      res <- res |> 
+        mutate(empty = FALSE) |>
+        dplyr::bind_rows(missing_cams)
+    }
+    # Reorder
     res <- res |> 
-      dplyr::bind_rows(missing_cams) |>
       dplyr::arrange(.data[[cam_col]])
   }
   

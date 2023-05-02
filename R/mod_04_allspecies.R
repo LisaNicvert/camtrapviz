@@ -8,9 +8,9 @@ allspeciesUI <- function(id) {
       column(width = 4,
              selectInput(NS(id, "divtype"), 
                          label = "Diversity index",
-                         choices = c("Number of species (richness)",
-                                     "Shannon diversity",
-                                     "Simpson diversity"))
+                         choices = c("Number of species (richness)" = "richness",
+                                     "Shannon diversity" = "shannon",
+                                     "Simpson diversity" = "simpson"))
       ),
       column(width = 8,
              outputCodeButton(leafletOutput(NS(id, "plot_diversity"),
@@ -88,16 +88,31 @@ allspeciesServer <- function(id,
 # Compute diversity indices -----------------------------------------------
 
   diversity <- metaReactive({
-    "# Get richness ---"
-    # Compute richness
-    richness_df <- ..(diversity_df()) |>
-      group_by(.data[[..(cam_col_rec())]]) |>
-      summarise(richness = n(), .groups = "drop")
+    "# Get diversity indices ---"
+    if ("empty" %in% colnames(..(diversity_df()))) {
+      diversity_df <- ..(diversity_df()) |>
+        group_by(.data[[..(cam_col_rec())]]) |>
+        summarise(richness = ifelse(all(empty), 
+                                    NA, n()) , 
+                  shannon = ifelse(all(empty),
+                                   NA, -sum((count/sum(count))*log(count/sum(count)))),
+                  simpson = ifelse(all(empty),
+                                   NA, sum(count*(count-1))/(sum(count)*(sum(count)-1))),
+                  .groups = "drop")
+    } else {
+      diversity_df <- ..(diversity_df()) |>
+        group_by(.data[[..(cam_col_rec())]]) |>
+        summarise(richness = n() , 
+                  shannon = -sum((count/sum(count))*log(count/sum(count))),
+                  simpson = sum(count*(count-1))/(sum(count)*(sum(count)-1)),
+                  .groups = "drop")
+    }
     
-    # Get named vector
-    richness <- richness_df$richness
-    names(richness) <- richness_df[[..(cam_col_rec())]]
-    richness
+
+    "# Choose selected index for plot"
+    res <- diversity_df[[..(input$divtype)]]
+    names(res) <- diversity_df[[..(cam_col_rec())]]
+    res
   })
     
 # Plot map ----------------------------------------------------------------

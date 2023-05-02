@@ -515,8 +515,24 @@ test_that("Get diversity df", {
                           count = c(NA,
                                     2, 50, 1, 
                                     3, 1,
-                                    NA))
+                                    NA),
+                          empty = c(TRUE, 
+                                    FALSE, FALSE, FALSE,
+                                    FALSE, FALSE,
+                                    FALSE))
   
   expect_equal(tab, expected3)
   
+  # No missing camera in levels ---
+  dflevels <- df
+  dflevels$camera <- factor(dflevels$camera)
+  tab <- get_diversity_table(dflevels,
+                             cam_col = "camera",
+                             spp_col = "species",
+                             count_col = "count", 
+                             keep_all_levels = TRUE)
+  
+  expected4 <- expected2
+  expected4$camera <- factor(expected4$camera)
+  expect_equal(tab, expected4)
 })

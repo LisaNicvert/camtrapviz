@@ -247,7 +247,7 @@ plot_map <- function(df,
     color <- rep(color, length(circle_radii))
     color[which(is.na(circle_radii))] <- "purple"
     # Placeholder value
-    circle_radii[which(is.na(circle_radii))] <- 1
+    circle_radii[which(is.na(circle_radii))] <- 0
   }
   
   circle_radii <- unname(circle_radii)
