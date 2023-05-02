@@ -282,7 +282,7 @@ summaryServer <- function(id,
                           timestamp_col = ..(unname(mapping_records()$timestamp_col)),
                           time_col = ..(unname(mapping_records()$time_col)),
                           date_col = ..(unname(mapping_records()$date_col)),
-                          cameras_list = ..(cameras_values())[[..(cam_col_rec())]])
+                          cameras_list = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
         
         "# ggiraph plot (interactive)"
         gi <- ggiraph::girafe(ggobj = gg,

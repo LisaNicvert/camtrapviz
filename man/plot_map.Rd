@@ -13,7 +13,8 @@ plot_map(
   color = "black",
   highlight_color = "red",
   circle_radii = 10,
-  rescale = FALSE
+  rescale = FALSE,
+  label
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ correspond to camera names.}
 \item{rescale}{rescale circles? If \code{TRUE}, radii will be linearly resized
 so that the maximum corresponds to 300m, and radii smaller than
 10 will be set to 10m.}
+
+\item{label}{label to display when hovering over the map points}
 }
 \value{
 a \code{leaflet} map representing cameras as points.

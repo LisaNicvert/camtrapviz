@@ -58,7 +58,7 @@ test_that("Plot species bars", {
   expect_equal(br, c("blank", "rabbit", "cow", "cat"))
 })
 
-test_that("Plot map", {
+test_that("Plot map (radii)", {
   # Default radii ---
   plot_map(camtraps,
            lat_col = "utm_y",
@@ -83,4 +83,38 @@ test_that("Plot map", {
            crs = 32650, # Here we use the EPSG code for UTM zone 50N
            cam_col = "Station",
            circle_radii = radii)
+  
+  # Named radii ---
+  
+  # All radii
+  radii <- c("StationC" = 1, "StationA" = 120, "StationB" = 500)
+  plot_map(camtraps,
+           lat_col = "utm_y",
+           lon_col = "utm_x",
+           crs = 32650, # Here we use the EPSG code for UTM zone 50N
+           cam_col = "Station",
+           circle_radii = radii,
+           rescale = TRUE)
+  
+  # Not all radii
+  radii <- c("StationA" = 120, "StationB" = 500)
+  plot_map(camtraps,
+           lat_col = "utm_y",
+           lon_col = "utm_x",
+           crs = 32650, # Here we use the EPSG code for UTM zone 50N
+           cam_col = "Station",
+           circle_radii = radii,
+           rescale = FALSE)
+})
+
+test_that("Plot map (labels)", {
+  
+  # Unnamed labels ---
+  labels <- c("AAA", "BBB", "CCC")
+  plot_map(camtraps,
+           lat_col = "utm_y",
+           lon_col = "utm_x",
+           crs = 32650, # Here we use the EPSG code for UTM zone 50N
+           cam_col = "Station",
+           label = labels)
 })

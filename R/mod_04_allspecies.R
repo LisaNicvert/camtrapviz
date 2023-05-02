@@ -13,9 +13,11 @@ allspeciesUI <- function(id) {
                                      "Simpson diversity"))
       ),
       column(width = 8,
-             # outputCodeButton(leafletOutput(NS(id, "plot_map"),
-             #                                height = "400px"))
-      )
+             outputCodeButton(leafletOutput(NS(id, "plot_diversity"),
+                                            height = "400px"))
+      ),
+      column(width = 12,
+             dataTableOutput(NS(id, "diversity_table")))
     ),
     
 # Counts per species ------------------------------------------------------
@@ -62,6 +64,61 @@ allspeciesServer <- function(id,
     cam_col_rec <- reactive({
       unname(mapping_records()$cam_col)
     })
+    
+
+# Species diversity table -------------------------------------------------
+  diversity_df <- metaReactive({
+    "# Summarize species and cameras ---"
+    get_diversity_table(..(camtrap_data())$data$observations,
+                        cam_col = ..(cam_col_rec()),
+                        spp_col = ..(spp_col()),
+                        count_col = ..(mapping_cameras()$count_col), 
+                        keep_all_levels = TRUE)
+    
+  }, varname = "diversity_df", bindToReturn = TRUE)
+    
+  output$diversity_table <- renderDataTable({
+    DT::datatable(diversity_df(),
+                  filter = "none",
+                  selection = "none",
+                  options = list(scrollX = TRUE))
+  })
+  
+
+# Compute diversity indices -----------------------------------------------
+
+  diversity <- metaReactive({
+    "# Get richness ---"
+    # Compute richness
+    richness_df <- ..(diversity_df()) |>
+      group_by(.data[[..(cam_col_rec())]]) |>
+      summarise(richness = n(), .groups = "drop")
+    
+    # Get named vector
+    richness <- richness_df$richness
+    names(richness) <- richness_df[[..(cam_col_rec())]]
+    richness
+  })
+    
+# Plot map ----------------------------------------------------------------
+    
+    output$plot_diversity <- metaRender(renderLeaflet, {
+      "# Plot map ---"
+      # Labels (replace NA with "No data")
+      labels <- ifelse(is.na(..(diversity())), 
+                       "No data", ..(diversity()))
+      
+      plot_map(..(camtrap_data())$data$deployments, 
+               lat_col = ..(unname(mapping_cameras()$lat_col)),
+               lon_col = ..(unname(mapping_cameras()$lon_col)),
+               crs = ..(crs()),
+               cam_col = ..(cam_col_cam()),
+               circle_radii = ..(diversity()),
+               color = "black",
+               label = labels,
+               rescale = TRUE)
+    })
+    
 # Plot species ------------------------------------------------------------
 
     output$plot_species <- metaRender2(renderGirafe, {
@@ -72,7 +129,6 @@ allspeciesServer <- function(id,
       unit <- nspecies/6
       height <- max(5, 
                     unit/(1 + exp(-12*unit)))
-      
       metaExpr({
         "# Species abundance barplot ---"
         "# ggplot plot"
@@ -94,10 +150,19 @@ allspeciesServer <- function(id,
     
 
 # Plots code --------------------------------------------------------------
+    # Map ---
+    observeEvent(input$plot_diversity_output_code, {
+      code <- expandChain(output$plot_diversity())
+      displayCodeModal(code)
+    })
     
+    # Species bars ---
     observeEvent(input$plot_species_output_code, {
       code <- expandChain(output$plot_species())
       displayCodeModal(code)
     })
+    
+    
+    
   })
 }

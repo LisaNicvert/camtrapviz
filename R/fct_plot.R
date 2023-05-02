@@ -79,7 +79,7 @@ plot_points <- function(df,
     # Filter data (keep only cameras in cameras_list)
     dfp <- dfp |> filter(.data[[camera_col]] %in% cameras_list)
     
-    # Corece cameras to factor
+    # Coerce cameras to factor
     levels <- unique(cameras_list)
     dfp[[camera_col]] <- factor(dfp[[camera_col]],
                                 levels = levels)
@@ -197,6 +197,7 @@ plot_species_bars <- function(df,
 #' @param rescale rescale circles? If `TRUE`, radii will be linearly resized 
 #' so that the maximum corresponds to 300m, and radii smaller than
 #' 10 will be set to 10m. 
+#' @param label label to display when hovering over the map points
 #'
 #' @return a `leaflet` map representing cameras as points.
 #' If the CRS of the input data is different from EPSG:4326 (WGS84), 
@@ -220,7 +221,8 @@ plot_map <- function(df,
                      color = "black",
                      highlight_color = "red",
                      circle_radii = 10,
-                     rescale = FALSE) {
+                     rescale = FALSE,
+                     label) {
   
   if(!is.null(crs)) { # Specify the CRS
     df_sf <- sf::st_as_sf(df, 
@@ -233,17 +235,40 @@ plot_map <- function(df,
                           coords = c(lon_col, lat_col))
   }
   
+  # Reorder radii if named
+  if (length(circle_radii) != 0 & !is.null(names(circle_radii))) {
+    circle_radii <- reorder_named_values(circle_radii, names = df[[cam_col]],
+                                         keep_all_names = TRUE)
+  }
+  
+  # Set custom color and placeholder for NA values
+  if (NA %in% circle_radii) {
+    # NA color
+    color <- rep(color, length(circle_radii))
+    color[which(is.na(circle_radii))] <- "purple"
+    # Placeholder value
+    circle_radii[which(is.na(circle_radii))] <- 1
+  }
+  
+  circle_radii <- unname(circle_radii)
+  
   # Rescale radii measures
   if (rescale) {
     circle_radii <- circle_radii*(300/max(circle_radii)) # set max to 300
     circle_radii[circle_radii < 10] <- 10 # Set min to 10
   }
   
+  if (missing(label)) {
+    label <- df_sf[[cam_col]]
+  } # else {
+  #   label <- reorder_named_values(circle_radii, names = df[[cam_col]],
+  #                                 keep_all_names = TRUE)
+  # }
   
   leaflet(df_sf) |> 
     addTiles() |> 
     addCircles(data = df_sf,
-               label = df_sf[[cam_col]],
+               label = label,
                layerId = df_sf[[cam_col]],
                popup = paste0("Camera: ", df_sf[[cam_col]]),
                color = color,

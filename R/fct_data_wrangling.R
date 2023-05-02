@@ -418,3 +418,92 @@ summarize_species <- function(df,
   return(res)
   
 }
+
+
+# Diversity ---------------------------------------------------------------
+
+#' Get diversity table
+#' 
+#' Compute a table with various diversity indices from a species
+#' occurrence dataframe.
+#'
+#' @param df The dataframe
+#' @param cam_col Name of the column containing cameras names
+#' @param spp_col Name of the column containing species names
+#' @param keep_all_levels Should we keep all camera levels even 
+#' those that have no rows in `df`? (Checked only if `cam_col` is a factor)
+#' @param count_col Name of the column containing species counts (optional)
+#'
+#' @return A dataframe with one row per camera-species combination and with the
+#' count of individuals of each species seen at this camera.
+#' 
+#' @export
+#'
+#' @examples
+#' df <- data.frame(species = c("zebra", "cat", "cat", "cow", "cow", NA, NA),
+#'                  type = c("animal", "animal", "animal", "animal", "animal", "human", "blank"),
+#'                  camera = c("C1", "C1", "C1", "C1", "C2", "C2", "C3"),
+#'                  count = c(1, 1, 1, 50, 3, 1, NA))
+#' get_diversity_table(df,
+#'                     cam_col = "camera",
+#'                     spp_col = "species",
+#'                     count_col = "count")
+get_diversity_table <- function(df, cam_col, spp_col, 
+                                count_col = NULL, 
+                                keep_all_levels = TRUE) {
+  
+  # One row per camera and species
+  res <- df |>
+    group_by(.data[[cam_col]], 
+             .data[[spp_col]]) |>
+    summarise(count = ifelse(is.null(count_col),
+                             n(), sum(.data[[count_col]])),
+              .groups = "drop")
+  
+  # Add unused levels
+  if(is.factor(df[[cam_col]]) & keep_all_levels) {
+    # Create df with missing factors
+    cam_levels <- levels(df[[cam_col]])
+    to_add <- cam_levels[!(cam_levels %in% res[[cam_col]])]
+    to_add <- factor(to_add, levels = cam_levels)
+    
+    missing_cams <- data.frame(cam = to_add)
+    colnames(missing_cams) <- cam_col
+    
+    # Add missing cameras and reorder
+    res <- res |> 
+      dplyr::bind_rows(missing_cams) |>
+      dplyr::arrange(.data[[cam_col]])
+  }
+  
+  res <- as.data.frame(res)
+  return(res)
+  
+}
+
+# Helpers -----------------------------------------------------------------
+#' Reorder values
+#'
+#' @param vec A named vector to reorder
+#' @param names The order of the names
+#' @param keep_all_names If some values of `names` are not in
+#' the names of `vec`, should they be kept?
+#'
+#' @return The reordered vector `vec` with only names in `names`.
+#' Some values can be `NA` if `keep_all_names` is `TRUE`.
+reorder_named_values <- function(vec, names, 
+                                 keep_all_names = TRUE) {
+  
+  names_vec <- names(vec)
+  
+  if (!keep_all_names) {
+    names_sel <- names[names %in% names_vec]
+  }
+  else {
+    names_sel <- names
+  }
+  res <- vec[names_sel]
+  names(res) <- names_sel
+  return(res)
+}
+

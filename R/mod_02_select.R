@@ -243,6 +243,15 @@ selectServer <- function(id,
           dat_filtered$data$deployments <- dat_filtered$data$deployments |>
             dplyr::filter(.data[[..(cam_col_cam())]] %in% cam_filter)
           
+          "# Cameras to factor ---"
+          cameras_list <- get_cameras(dat_filtered$data$observations[[..(cam_col_rec())]],
+                                      dat_filtered$data$deployments[[..(cam_col_cam())]])
+          
+          dat_filtered$data$observations[[..(cam_col_rec())]] <- factor(dat_filtered$data$observations[[..(cam_col_rec())]],
+                                                                        levels = cameras_list)
+          dat_filtered$data$deployments[[..(cam_col_cam())]] <- factor(dat_filtered$data$deployments[[..(cam_col_cam())]],
+                                                                       levels = cameras_list)
+          
           dat_filtered
         }, bindToReturn = TRUE, localize = FALSE)
         
