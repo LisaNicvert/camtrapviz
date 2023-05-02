@@ -40,11 +40,11 @@ server <- function(input, output, session) {
   
 
   # All species -------------------------------------------------------------
-  allspeciesServer("allspecies",
-                   camtrap_data = select_val$camtrap_data,
-                   mapping_records = import_val$mapping_records,
-                   mapping_cameras = import_val$mapping_cameras,
-                   crs = import_val$crs) 
+  allspecies_val <- allspeciesServer("allspecies",
+                                     camtrap_data = select_val$camtrap_data,
+                                     mapping_records = import_val$mapping_records,
+                                     mapping_cameras = import_val$mapping_cameras,
+                                     crs = import_val$crs) 
   
   # Download handler --------------------------------------------------------
   
@@ -66,7 +66,13 @@ server <- function(input, output, session) {
                     plot_map = expandChain(summary_val$plot_map(),
                                            .expansionContext = ec),
                     plot_occurrences = expandChain(summary_val$plot_occurrences(),
-                                .expansionContext = ec)
+                                .expansionContext = ec),
+                    plot_species_bars = expandChain(allspecies_val$species_bars(),
+                                                    .expansionContext = ec),
+                    diversity_table = expandChain(allspecies_val$diversity_table(),
+                                                  .expansionContext = ec),
+                    plot_diversity = expandChain(allspecies_val$diversity_map(),
+                                                  .expansionContext = ec)
                     ),
         render_args = list(output_format = "html_document")
       )

@@ -52,7 +52,28 @@ This map shows the cameras of this project that have spatial coordinates.
 
 This plot shows the occurrences of species on the different cameras.
 
-```{r plot_occurrences,  echo = FALSE}
+```{r plot_occurrences, echo = FALSE}
 {{plot_occurrences}}
+```
+
+## Community analyses
+
+This graph shows the how many individuals of each species were seen.
+
+```{r, echo = FALSE}
+{{plot_species_bars}}
+```
+
+
+The table below summarizes diversity indices for each camera.
+
+```{r}
+{{diversity_table}}
+```
+
+Below is the plot representing the chosen index:
+
+```{r, echo = FALSE}
+{{plot_diversity}}
 ```
 

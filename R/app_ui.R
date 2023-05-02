@@ -68,32 +68,34 @@ ui <- function() {
                   box(width = 12,
                       h2("Survey summary"),
                       summaryUI("summary"),
+                  )
+                )
+        ),
+
+# All species -------------------------------------------------------------
+
+        tabItem(tabName = "all",
+                fluidRow(
+                  box(h2("All species analyses"),
+                      width = 12,
+                      allspeciesUI("allspecies"),
                       # Download
                       column(width = 12,
                              align = "center",
                              style = "margin-top: 25px",
                              downloadButton("download_script", 
                                             "Download script")
-                             )
-                  )
-                )
-        ),
-        tabItem(tabName = "all",
-                fluidRow(
-                  box(h2("All species analyses"),
-                      width = 12,
-                      allspeciesUI("allspecies")
+                      )
                       )
                 )
         ),
+
+# One species -------------------------------------------------------------
+
         tabItem(tabName = "one",
                 box(width = 12,
                     h2("One species tab content")),
-        ),
-        tabItem(tabName = "two",
-                box(width = 12,
-                    h2("Two species tab content"))
-                )
+        )
       ) # End tabItems
     ) # End dashboardBody
   ) # End dashboardPage

@@ -220,7 +220,7 @@ plot_map <- function(df,
                      cam_col,
                      color = "black",
                      highlight_color = "red",
-                     circle_radii = 10,
+                     circle_radii = 3,
                      rescale = FALSE,
                      label) {
   
@@ -254,26 +254,25 @@ plot_map <- function(df,
   
   # Rescale radii measures
   if (rescale) {
-    circle_radii <- circle_radii*(300/max(circle_radii)) # set max to 300
-    circle_radii[circle_radii < 10] <- 10 # Set min to 10
+    circle_radii <- 3 + circle_radii*(20/max(circle_radii)) # set max to 20
+    # circle_radii[circle_radii < 3] <- 3 # Set min to 3
   }
   
   if (missing(label)) {
     label <- df_sf[[cam_col]]
-  } # else {
-  #   label <- reorder_named_values(circle_radii, names = df[[cam_col]],
-  #                                 keep_all_names = TRUE)
-  # }
+  }
   
   leaflet(df_sf) |> 
     addTiles() |> 
-    addCircles(data = df_sf,
+    addCircleMarkers(data = df_sf,
                label = label,
                layerId = df_sf[[cam_col]],
                popup = paste0("Camera: ", df_sf[[cam_col]]),
-               color = color,
+               stroke = FALSE,
+               fillOpacity = 0.8,
                fillColor = color,
-               radius = circle_radii,
-               highlightOptions = highlightOptions(fillColor = highlight_color,
-                                                   color = highlight_color))
+               radius = circle_radii
+               # highlightOptions = highlightOptions(fillColor = highlight_color,
+               #                                     color = highlight_color)
+               )
 }

@@ -1,3 +1,5 @@
+# UI ----------------------------------------------------------------------
+
 allspeciesUI <- function(id) {
   tagList(
         
@@ -15,9 +17,7 @@ allspeciesUI <- function(id) {
       column(width = 8,
              outputCodeButton(leafletOutput(NS(id, "plot_diversity"),
                                             height = "400px"))
-      ),
-      column(width = 12,
-             dataTableOutput(NS(id, "diversity_table")))
+      )
     ),
     
 # Counts per species ------------------------------------------------------
@@ -35,6 +35,11 @@ allspeciesUI <- function(id) {
   )
 
 }
+
+
+# Server ------------------------------------------------------------------
+
+
 allspeciesServer <- function(id,
                              camtrap_data, 
                              mapping_records,
@@ -66,69 +71,47 @@ allspeciesServer <- function(id,
     })
     
 
-# Species diversity table -------------------------------------------------
+# Compute diversity indices -----------------------------------------------
   diversity_df <- metaReactive({
     "# Summarize species and cameras ---"
-    get_diversity_table(..(camtrap_data())$data$observations,
-                        cam_col = ..(cam_col_rec()),
-                        spp_col = ..(spp_col()),
-                        count_col = ..(mapping_cameras()$count_col), 
-                        keep_all_levels = TRUE)
+    count_df <- get_diversity_table(..(camtrap_data())$data$observations,
+                                    cam_col = ..(cam_col_rec()),
+                                    spp_col = ..(spp_col()),
+                                    count_col = ..(mapping_cameras()$count_col), 
+                                    keep_all_levels = TRUE)
     
-  }, varname = "diversity_df", bindToReturn = TRUE)
+    "# Compute diversity indices ---"
+    get_diversity_indices(count_df, 
+                          spp_col =  ..(spp_col()),
+                          cam_col = ..(cam_col_rec()))
+  }, bindToReturn = TRUE, varname = "diversity_df")
     
-  output$diversity_table <- renderDataTable({
-    DT::datatable(diversity_df(),
+  diversity_table <- metaReactive({
+    DT::datatable(..(diversity_df()),
                   filter = "none",
                   selection = "none",
                   options = list(scrollX = TRUE))
-  })
+  }, bindToReturn = TRUE, varname = "diversity_table")
   
-
-# Compute diversity indices -----------------------------------------------
-
-  diversity <- metaReactive({
-    "# Get diversity indices ---"
-    if ("empty" %in% colnames(..(diversity_df()))) {
-      diversity_df <- ..(diversity_df()) |>
-        group_by(.data[[..(cam_col_rec())]]) |>
-        summarise(richness = ifelse(all(empty), 
-                                    NA, n()) , 
-                  shannon = ifelse(all(empty),
-                                   NA, -sum((count/sum(count))*log(count/sum(count)))),
-                  simpson = ifelse(all(empty),
-                                   NA, sum(count*(count-1))/(sum(count)*(sum(count)-1))),
-                  .groups = "drop")
-    } else {
-      diversity_df <- ..(diversity_df()) |>
-        group_by(.data[[..(cam_col_rec())]]) |>
-        summarise(richness = n() , 
-                  shannon = -sum((count/sum(count))*log(count/sum(count))),
-                  simpson = sum(count*(count-1))/(sum(count)*(sum(count)-1)),
-                  .groups = "drop")
-    }
-    
-
-    "# Choose selected index for plot"
-    res <- diversity_df[[..(input$divtype)]]
-    names(res) <- diversity_df[[..(cam_col_rec())]]
-    res
-  })
-    
 # Plot map ----------------------------------------------------------------
     
     output$plot_diversity <- metaRender(renderLeaflet, {
       "# Plot map ---"
-      # Labels (replace NA with "No data")
-      labels <- ifelse(is.na(..(diversity())), 
-                       "No data", ..(diversity()))
+      
+      "# Choose selected index for plot"
+      index <- ..(diversity_df())[[..(input$divtype)]]
+      names(index) <- ..(diversity_df())[[..(cam_col_rec())]]
+      
+      "# Set hovering labels (replace NA with 'No data')"
+      labels <- ifelse(is.na(index), 
+                       "No data", index)
       
       plot_map(..(camtrap_data())$data$deployments, 
                lat_col = ..(unname(mapping_cameras()$lat_col)),
                lon_col = ..(unname(mapping_cameras()$lon_col)),
                crs = ..(crs()),
                cam_col = ..(cam_col_cam()),
-               circle_radii = ..(diversity()),
+               circle_radii = index,
                color = "black",
                label = labels,
                rescale = TRUE)
@@ -148,8 +131,8 @@ allspeciesServer <- function(id,
         "# Species abundance barplot ---"
         "# ggplot plot"
         gg <- plot_species_bars(..(camtrap_data())$data$observations, 
-                                spp_col = spp_col(),
-                                obs_col = obs_col(),
+                                spp_col = ..(spp_col()),
+                                obs_col = ..(obs_col()),
                                 count_col = ..(unname(mapping_records()$count_col)))
         
         "# ggiraph plot (interactive)"
@@ -177,7 +160,11 @@ allspeciesServer <- function(id,
       displayCodeModal(code)
     })
     
-    
+
+# Return values -----------------------------------------------------------
+    return(list(diversity_table = diversity_table,
+                diversity_map = output$plot_diversity,
+                species_bars = output$plot_species))
     
   })
 }

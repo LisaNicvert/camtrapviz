@@ -480,7 +480,10 @@ test_that("Get diversity df", {
                                      NA),
                          count = c(2, 1, 1, 
                                    1, 1,
-                                   1))
+                                   1),
+                         prop = c(0.5, 0.25, 0.25,
+                                  0.5, 0.5,
+                                  1))
   expect_equal(tab, expected)
   
   # Add count ---
@@ -492,6 +495,9 @@ test_that("Get diversity df", {
   expected2$count <- c(2, 50, 1, 
                        3, 1,
                        NA)
+  expected2$prop <- c(2/53, 50/53, 1/53, 
+                      3/4, 1/4,
+                      NA)
   expect_equal(tab, expected2)
   
   # Add missing camera ---
@@ -516,6 +522,10 @@ test_that("Get diversity df", {
                                     2, 50, 1, 
                                     3, 1,
                                     NA),
+                          prop = c(NA,
+                                   2/53, 50/53, 1/53, 
+                                   3/4, 1/4,
+                                   NA),
                           empty = c(TRUE, 
                                     FALSE, FALSE, FALSE,
                                     FALSE, FALSE,
@@ -535,4 +545,32 @@ test_that("Get diversity df", {
   expected4 <- expected2
   expected4$camera <- factor(expected4$camera)
   expect_equal(tab, expected4)
+})
+
+test_that("Get diversity indices", {
+  countdf <- data.frame(camera = c("C1", "C1", "C1",
+                                   "C2",
+                                   "C3", "C3", "C3"),
+                        species = c("cat", "cow", "rabbit",
+                                    "cat",
+                                    "cat", "cow", "rabbit"),
+                        count = c(30, 30, 30,
+                                  30,
+                                  88, 1, 1),
+                        prop = c(1/3, 1/3, 1/3,
+                                 1,
+                                 88/90, 1/90, 1/90))
+  
+  res <- get_diversity_indices(countdf, 
+                               spp_col = "species", cam_col = "camera")
+  expected <- data.frame(camera = c("C1", "C2", "C3"),
+                         richness = c(3, 1, 3),
+                         shannon = c(-3*((1/3)*log(1/3)),
+                                     0, 
+                                     -((88/90)*log(88/90) + (1/90)*log(1/90) + (1/90)*log(1/90))),
+                         simpson = c((3*(30*29))/(90*89),
+                                     1,
+                                     (88*87)/(90*89))
+                         )
+  expect_equal(res, expected)
 })

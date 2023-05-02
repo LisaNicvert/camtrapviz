@@ -25,8 +25,9 @@ get_diversity_table(
 those that have no rows in \code{df}? (Checked only if \code{cam_col} is a factor)}
 }
 \value{
-A dataframe with one row per camera-species combination and with the
-count of individuals of each species seen at this camera.
+A dataframe with one row per camera-species combination.
+For each camera-species, we have the count (column \code{count})
+and proportion (column \code{prop}) of individuals of each species seen at this camera.
 }
 \description{
 Compute a table with various diversity indices from a species

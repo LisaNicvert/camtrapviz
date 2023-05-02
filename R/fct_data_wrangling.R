@@ -434,8 +434,9 @@ summarize_species <- function(df,
 #' those that have no rows in `df`? (Checked only if `cam_col` is a factor)
 #' @param count_col Name of the column containing species counts (optional)
 #'
-#' @return A dataframe with one row per camera-species combination and with the
-#' count of individuals of each species seen at this camera.
+#' @return A dataframe with one row per camera-species combination.
+#' For each camera-species, we have the count (column `count`) 
+#' and proportion (column `prop`) of individuals of each species seen at this camera.
 #' 
 #' @export
 #'
@@ -458,7 +459,10 @@ get_diversity_table <- function(df, cam_col, spp_col,
              .data[[spp_col]]) |>
     summarise(count = ifelse(is.null(count_col),
                              n(), sum(.data[[count_col]])),
-              .groups = "drop")
+              .groups = "drop") |> 
+    group_by(.data[[cam_col]]) |> 
+    mutate(prop = count/sum(count)) |>
+    dplyr::ungroup()
   
   # Add unused levels
   if(is.factor(df[[cam_col]]) & keep_all_levels) {
@@ -481,11 +485,73 @@ get_diversity_table <- function(df, cam_col, spp_col,
     res <- res |> 
       dplyr::arrange(.data[[cam_col]])
   }
-  
+
   res <- as.data.frame(res)
   return(res)
   
 }
+
+#' Get diversity indices
+#' 
+#' From a summary table of camera/species, return richness, Shannon
+#' and Simpson diversity indices.
+#'
+#' @param count_df Dataframe summarizing counts per species. Can be 
+#' computed using the records dataframe with the `get_diversity_table`
+#' function.
+#' @param spp_col Name of the column containing species names
+#' @param cam_col Name of the column containing cameras names
+#' @param count_col Name of the column containing species counts
+#' @param prop_col Name of the column containing species proportions
+#'
+#' @return A dataframe with one row per camera summarizing diversity indices.
+#' 
+#' @details
+#' Richness is computed as the number of the different species seen at the
+#' camera.
+#' Shannon index is computed as: -\sum{p_i\times ln(p_i)}. It ranges
+#' between 0 and +\inf, zero indicating the lowest diversity.
+#' Simpson index is computed as: \frac{\sum{n_i\times(n_i - 1)}}{N\times(N-1)}.
+#' It ranges between 0 and 1, 1 indicating the lowest diversity.
+#' 
+#' @export
+#'
+#' @examples
+#' countdf <- data.frame(camera = c("C1", "C1", "C1", "C2",
+#'                                  "C3", "C3", "C3"),
+#'                       species = c("cat", "cow", "rabbit",
+#'                                   "cat", "cat", "cow", "rabbit"),
+#'                       count = c(30, 30, 30, 30, 88, 1, 1),
+#'                       prop = c(1/3, 1/3, 1/3, 1, 88/90, 1/90, 1/90))
+#'get_diversity_indices(countdf, 
+#'                      spp_col = "species", cam_col = "camera")
+get_diversity_indices <- function(count_df, spp_col, cam_col,
+                                  count_col = "count",
+                                  prop_col = "prop") {
+  
+  if ("empty" %in% colnames(count_df)) {
+    diversity_df <- count_df |>
+      group_by(.data[[cam_col]]) |>
+      summarise(richness = ifelse(all(empty),
+                                  NA, n()),
+                shannon = ifelse(all(empty),
+                                 NA, -sum(.data[[prop_col]]*log(.data[[prop_col]]))),
+                simpson = ifelse(all(empty),
+                                 NA, sum(.data[[count_col]]*(.data[[count_col]]-1))/(sum(.data[[count_col]])*(sum(.data[[count_col]])-1))),
+                .groups = "drop")
+  } else {
+  diversity_df <- count_df |>
+    group_by(.data[[cam_col]]) |>
+    summarise(richness = n(),
+              shannon = -sum((.data[[prop_col]]*log(.data[[prop_col]]))),
+              simpson = sum(.data[[count_col]]*(.data[[count_col]]-1))/(sum(.data[[count_col]])*(sum(.data[[count_col]])-1)),
+              .groups = "drop")
+  }
+  
+  diversity_df <- as.data.frame(diversity_df)
+  return(diversity_df)
+}
+
 
 # Helpers -----------------------------------------------------------------
 #' Reorder values

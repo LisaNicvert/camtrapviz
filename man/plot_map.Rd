@@ -12,7 +12,7 @@ plot_map(
   cam_col,
   color = "black",
   highlight_color = "red",
-  circle_radii = 10,
+  circle_radii = 3,
   rescale = FALSE,
   label
 )
