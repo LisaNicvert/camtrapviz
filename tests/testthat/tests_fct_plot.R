@@ -118,3 +118,38 @@ test_that("Plot map (labels)", {
            cam_col = "Station",
            label = labels)
 })
+
+test_that("Plot density", {
+  # Prepare test data ---
+  testdat <- kga |> dplyr::select(snapshotName, eventTime) |> 
+    filter(snapshotName == "gemsbok")
+  testdat$hour <- as.numeric(testdat$eventTime)*24
+  
+  # Check with radians ---
+  # Fit model
+  mod <- fit_vonMises(testdat$eventTime, k = 3)
+  # Get density
+  dt <- vonMises_density(mod)
+  
+  gg <- ggplot(dt) +
+    geom_histogram_interactive(data = testdat, 
+                   aes(x = hour,
+                       y = after_stat(density),
+                       tooltip = paste0("Density: ", round(after_stat(density), 3), "\n",
+                                        "Time: ", after_stat(x)),
+                       data_id = after_stat(x)),
+                   alpha = 0.7,
+                   biwidth = 1) +
+    geom_line(aes(x = x, y = density)) +
+    scale_x_continuous(breaks = seq(0, 24, by = 4)) +
+    ggtitle("Estimated density") +
+    xlab("Time (hours)") +
+    ylab("Density") +
+    theme_linedraw()
+  
+  gi <- ggiraph::girafe(ggobj = gg)
+  gi <- ggiraph::girafe_options(gi,
+                                opts_hover(css = "fill:orange"))
+  
+  gi
+})

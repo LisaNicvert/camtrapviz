@@ -3,6 +3,9 @@
 
 onespeciesUI <- function(id) {
   tagList(
+
+# Choose species ----------------------------------------------------------
+
     h3("Choose species"),
     fluidRow(column(width = 12,
                     selectInput(NS(id, "species"),
@@ -11,15 +14,20 @@ onespeciesUI <- function(id) {
                     )
              ),
     fluidRow(column(width = 6,
+
+# Activity plot -----------------------------------------------------------
+
                     h3("Activity plot"),
                     numericInput(NS(id, "k"),
                                  "Number of mixture components",
                                  min = 1, max = 5, value = 3),
-                    dataTableOutput(NS(id, "dat")),
-                    actionButton(NS(id, "code_test"), 
-                                 "Show von Mises code", icon("code"),
-                                 style = "margin-top: 15px; margin-bottom: 15px;")
+                    outputCodeButton(girafeOutput(NS(id, "density_plot")),
+                                     height = "500px"),
+                    # dataTableOutput(NS(id, "dat"))
                     ),
+
+# Map ---------------------------------------------------------------------
+
              column(width = 6,
                     h3("Presence map")
                     )
@@ -164,17 +172,61 @@ onespeciesServer <- function(id,
       }
     }, varname = "density")
 
-    output$dat <- renderDataTable({
-      density()
-    })
     
 
-# Codes -------------------------------------------------------------------
+# Density plot ------------------------------------------------------------
+
+    output$density_plot <- metaRender(renderGirafe, {
+      "# Plot density ---"
+      dfplot <- ..(filtered_records())
+      
+      if (!is.null(..(timestamp_col()))) {
+        datetime <- dfplot[[..(timestamp_col())]]
+        times <- format(datetime, format = "%H:%M:%S")
+        times <- chron::times(times)
+      } else {
+        times <- dfplot[[..(time_col())]]
+      }
+      
+      # Select only species and time for dfplot
+      dfplot <- dfplot |> select(.data[[..(spp_col())]]) |> 
+        mutate(time = as.numeric(times)*24)
+      
+      gg <- ggplot(..(density())) +
+        geom_histogram_interactive(data = dfplot, 
+                       aes(x = time,
+                           y = after_stat(density),
+                           tooltip = paste0("Density: ", round(after_stat(density), 3), "\n",
+                                            "Time: ", after_stat(x)),
+                           data_id = after_stat(x)),
+                       binwidth = 1,
+                       alpha = 0.7) +
+        geom_line(aes(x = x, y = density)) +
+        scale_x_continuous(breaks = seq(0, 24, by = 4)) +
+        ggtitle("Estimated density") +
+        xlab("Time (hours)") +
+        ylab("Density") +
+        theme_linedraw()
+      
+      gi <- ggiraph::girafe(ggobj = gg)
+      gi <- ggiraph::girafe_options(gi,
+                                    opts_hover(css = "fill:orange"))
+      gi
+    })
     
-    observeEvent(input$code_test, {
-      code <- expandChain(density())
+    observeEvent(input$density_plot_output_code, {
+      code <- expandChain(output$density_plot())
       displayCodeModal(code)
     })
+    
+    
+    
+
+# Tests -------------------------------------------------------------------
+    
+    # output$dat <- renderDataTable({
+    #   density()
+    # })
     
     
     
