@@ -266,6 +266,85 @@ summarize_cameras <- function(df, cam_col,
 
 # Species -----------------------------------------------------------------
 
+#' Get unique species from a dataframe
+#'
+#' @param df The dataframe
+#' @param spp_col name of the species column from the dataframe
+#' @param obs_col name of the observation type column from the dataframe
+#' @param animal_code value of `obs_col` coding for animal observations.
+#' @param return_df renturn a dataframe? If `TRUE`, will return a dataframe 
+#' (see below); else will return a character vector of species names.
+#'
+#' @return If `return_df` is `TRUE`, returns a dataframe containing 
+#' unique species and their characteristics. Else, returns only the character
+#' vector containing to the column `spp_col` of this dataframe.
+#' + a column named like `spp_col` containing unique species names.
+#' + if `obs_col` is not `NULL`: a column named like `obs_col` containing corresponding
+#' observation type
+#' The rownames of this table are of the form ID_number and are a unique ID for
+#' the species.
+#' 
+#' @details
+#' When `obs_col` is provided, the values of the `spp_col` column that are 
+#' `NA` when `obs_col` corresponds to a non-animal species (which is the 
+#' case in the `camtrapDP` standard) are replaced with the value from 
+#' `obs_col`.
+#' 
+#' @export
+#'
+#' @examples
+#' df <- data.frame(species = c("rabbit", "cat", "cat", NA, NA, 
+#'                              "cameratrapper", "tourist"),
+#'                  type = c("animal", "animal", "animal", "fire", "blank", 
+#'                           "human", "human"))
+#' get_species(df, spp_col = "species", obs_col = "type")
+get_species <- function(df,
+                        spp_col, obs_col = NULL,
+                        animal_code = "animal",
+                        return_df = TRUE) {
+  
+  if (!is.null(obs_col)) {
+    # Get (unique) species ---
+    spp_df <- df[c(obs_col, spp_col)] |>
+      distinct(.keep_all = TRUE)
+    
+    # Replace values with not animal ---
+    is_non_animal <- spp_df[[obs_col]] != animal_code # Get non-animals
+    is_non_animal[is.na(is_non_animal)] <- TRUE # Consider NAs as non-animals
+    spp_df[[spp_col]][is_non_animal & is.na(spp_df[[spp_col]])] <- spp_df[[obs_col]][is_non_animal & is.na(spp_df[[spp_col]])]
+    
+    # Arrange with non-animal last ---
+    # Get factor levels
+    levels <- sort(unique(spp_df[[obs_col]], na.last = TRUE), na.last = TRUE)
+    levels <- c(animal_code, levels[levels != animal_code])
+    
+    spp_df[[obs_col]] <- factor(spp_df[[obs_col]], 
+                                levels = levels)
+    spp_df <- spp_df |> dplyr::arrange(.data[[obs_col]],
+                                       .data[[spp_col]])
+    # Convert back to character
+    spp_df[[obs_col]] <- as.character(spp_df[[obs_col]])
+    
+    # Reorder columns
+    spp_df <- spp_df[, c(spp_col, obs_col)]
+  } else {
+    spp_df <- df[spp_col] |>
+      distinct(.keep_all = TRUE)
+    spp_df <- spp_df |> dplyr::arrange(.data[[spp_col]])
+  }
+  
+  if (return_df) {
+    # Add ID
+    res <- as.data.frame(spp_df)
+    rownames(res) <- paste("ID", 1:nrow(res), sep = "_")
+  } else {
+    res <- spp_df[[spp_col]]
+  }
+  
+  return(res)
+}
+
+
 #' Get species count
 #'
 #' @param df a dataframe
@@ -509,10 +588,21 @@ get_diversity_table <- function(df, cam_col, spp_col,
 #' @details
 #' Richness is computed as the number of the different species seen at the
 #' camera.
-#' Shannon index is computed as: -\sum{p_i\times ln(p_i)}. It ranges
-#' between 0 and +\inf, zero indicating the lowest diversity.
-#' Simpson index is computed as: \frac{\sum{n_i\times(n_i - 1)}}{N\times(N-1)}.
-#' It ranges between 0 and 1, 1 indicating the lowest diversity.
+#' 
+#' Shannon index is computed as: 
+#' \deqn{-\sum p_i ln(p_i)}
+#' Where p_i represents the proportion of the abundance of species i at
+#' a camera over the the total number of individuals of all species 
+#' seen at this camera.
+#' It ranges between 0 and +infinity, zero indicating the 
+#' lowest diversity.
+#' 
+#' Simpson index is computed as: 
+#' \deqn{(\sum n_i (n_i - 1))/(N (N-1))}
+#' Where n_i represents the abundance of species i at
+#' a camera over the total number of individuals of all species 
+#' seen at this camera.
+#' It ranges between 0 and 1, one indicating the lowest diversity.
 #' 
 #' @export
 #'

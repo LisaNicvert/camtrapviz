@@ -320,6 +320,63 @@ test_that("Summarize cameras (dfcam with no setup or retrieval)", {
 
 
 # Summarize species -------------------------------------------------------
+test_that("Get species", {
+  df <- data.frame(species = c("rabbit", "cat", "cat", NA, NA, "cameratrapper", "tourist"),
+                   type = c("animal", "animal", "animal", "fire", "blank", "human", "human"))
+  
+  # No observation type
+  res <- get_species(df, spp_col = "species")
+  expected <- data.frame(species = c("cameratrapper", "cat", "rabbit", "tourist", NA))
+  rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
+  expect_equal(res, expected)
+  
+  # Observation type
+  res <- get_species(df, 
+                     spp_col = "species", obs_col = "type")
+  expected <- data.frame(species = c("cat", "rabbit",
+                                     "blank", "fire", "cameratrapper", "tourist"),
+                         type = c("animal", "animal",
+                                  "blank", "fire", "human", "human"))
+  rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
+  expect_equal(res, expected)
+  
+  # NA in obstype
+  df <- data.frame(species = c("cat", "human", NA, NA),
+                   type = c("animal", "human", "blank", NA))
+  res <- get_species(df, 
+                     spp_col = "species", obs_col = "type")
+  expected <- data.frame(species = c("cat", "blank", "human", NA),
+                         type = c("animal", "blank", "human", NA))
+  rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
+  expect_equal(res, expected)
+})
+
+test_that("Get species (return vector)", {
+  df <- data.frame(species = c("rabbit", "cat", "cat", NA, NA, "cameratrapper", "tourist"),
+                   type = c("animal", "animal", "animal", "fire", "blank", "human", "human"))
+  
+  # No observation type
+  res <- get_species(df, spp_col = "species", return_df = FALSE)
+  expected <- c("cameratrapper", "cat", "rabbit", "tourist", NA)
+  expect_equal(res, expected)
+  
+  # Observation type
+  res <- get_species(df, 
+                     spp_col = "species", obs_col = "type",
+                     return_df = FALSE)
+  expected <- c("cat", "rabbit", "blank", "fire", "cameratrapper", "tourist")
+  expect_equal(res, expected)
+  
+  # NA in obstype
+  df <- data.frame(species = c("cat", "human", NA, NA),
+                   type = c("animal", "human", "blank", NA))
+  res <- get_species(df, 
+                     spp_col = "species", obs_col = "type",
+                     return_df = FALSE)
+  expected <- c("cat", "blank", "human", NA)
+  expect_equal(res, expected)
+})
+
 test_that("Summarize species", {
   df <- data.frame(species = c("zebra", "cat", "cat", "cow", "cow", "rabbit", NA, NA),
                    type = c("animal", "animal", "animal", "animal", "animal", "animal", "human", "blank"),

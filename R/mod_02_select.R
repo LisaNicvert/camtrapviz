@@ -90,40 +90,8 @@ selectServer <- function(id,
       # Get species and cameras -------------------------------------------------
       
       species_df <- reactive({
-        
-        if (!is.null(obs_col())) {
-          # Get (unique) species ---
-          spp_df <- camtrap_data()$data$observations[c(obs_col(), spp_col())] |>
-            distinct(.keep_all = TRUE)
-          
-          # Replace values with not animal ---
-          # Get non-animals
-          is_non_animal <- spp_df[[obs_col()]] != "animal"
-          spp_df[[spp_col()]][is_non_animal] <- spp_df[[obs_col()]][is_non_animal]
-          
-          # Arrange with non-animal last ---
-          # Get factor levels
-          levels <- unique(spp_df[[obs_col()]], na.last = TRUE)
-          levels <- c("animal", levels[levels != "animal"])
-          
-          spp_df[[obs_col()]] <- factor(spp_df[[obs_col()]], 
-                                      levels = levels)
-          spp_df <- spp_df |> dplyr::arrange(.data[[obs_col()]],
-                                             .data[[spp_col()]])
-          # Convert back to character
-          spp_df[[obs_col()]] <- as.character(spp_df[[obs_col()]])
-          
-        } else {
-          spp_df <- camtrap_data()$data$observations[spp_col()] |>
-            distinct(.keep_all = TRUE)
-          spp_df <- spp_df |> dplyr::arrange(.data[[spp_col()]])
-        }
-        
-        # Add ID
-        spp_df <- as.data.frame(spp_df)
-        rownames(spp_df) <- paste("ID", 1:nrow(spp_df), sep = "_")
-        
-        return(spp_df)
+        get_species(camtrap_data()$data$observations,
+                    spp_col =  spp_col(), obs_col = obs_col())
       })
       
       cameras <- reactive({

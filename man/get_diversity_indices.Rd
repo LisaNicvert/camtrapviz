@@ -35,10 +35,21 @@ and Simpson diversity indices.
 \details{
 Richness is computed as the number of the different species seen at the
 camera.
-Shannon index is computed as: -\sum{p_i\times ln(p_i)}. It ranges
-between 0 and +\inf, zero indicating the lowest diversity.
-Simpson index is computed as: \frac{\sum{n_i\times(n_i - 1)}}{N\times(N-1)}.
-It ranges between 0 and 1, 1 indicating the lowest diversity.
+
+Shannon index is computed as:
+\deqn{-\sum p_i ln(p_i)}
+Where p_i represents the proportion of the abundance of species i at
+a camera over the the total number of individuals of all species
+seen at this camera.
+It ranges between 0 and +infinity, zero indicating the
+lowest diversity.
+
+Simpson index is computed as:
+\deqn{(\sum n_i (n_i - 1))/(N (N-1))}
+Where n_i represents the abundance of species i at
+a camera over the total number of individuals of all species
+seen at this camera.
+It ranges between 0 and 1, one indicating the lowest diversity.
 }
 \examples{
 countdf <- data.frame(camera = c("C1", "C1", "C1", "C2",
