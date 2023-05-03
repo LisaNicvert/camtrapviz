@@ -75,7 +75,10 @@ onespeciesServer <- function(id,
       unname(mapping_records()$timestamp_col)
     })
     
-    # Get species df ----------------------------------------------------------
+
+    # Species selection -------------------------------------------------------
+    
+    ## Get species df ----------------------------------------------------------
     species_df <- reactive({
       # Validate to wait for filtering
       validate(need(nrow(camtrap_data()$data$observations) != 0, 
@@ -85,7 +88,7 @@ onespeciesServer <- function(id,
                               spp_col = spp_col(), obs_col = obs_col())
     })
     
-    # Update selectInput ------------------------------------------------------
+    ## Update selectInput ------------------------------------------------------
     
     observe({
       choices <- as.list(rownames(species_df()))
@@ -94,9 +97,9 @@ onespeciesServer <- function(id,
                         "species",
                         choices = choices)
     })
-    
 
-# Get filtered data ------------------------------------------------------
+
+    ## Get filtered data ------------------------------------------------------
 
     filtered_records <- metaReactive2({
       # Get values to filter on ---
@@ -146,13 +149,23 @@ onespeciesServer <- function(id,
       
     }, varname = "filtered_records")
 
-# Compute density ---------------------------------------------------------
+    filtered_records_table <- metaReactive({
+      DT::datatable(..(filtered_records()),
+                    filter = "none",
+                    selection = "none",
+                    options = list(scrollX = TRUE))
+    }, bindToReturn = TRUE, varname = "filtered_records_table")
+    
+    # Density -----------------------------------------------------------------
+
+    
+    ## Compute density ---------------------------------------------------------
     density <- metaReactive2({
       # Get time
       if (!is.null(timestamp_col())) {
         metaExpr({
           "# Get von Mises density ---"
-          datetime <- ..(filtered_records())[[timestamp_col()]]
+          datetime <- ..(filtered_records())[[..(timestamp_col())]]
           times <- format(datetime, format = "%H:%M:%S")
           times <- chron::times(times)
 
@@ -163,7 +176,7 @@ onespeciesServer <- function(id,
       } else {
         metaExpr({
           "# Get von Mises density ---"
-          times <- ..(filtered_records())[[time_col()]]
+          times <- ..(filtered_records())[[..(time_col())]]
 
           mod <- fit_vonMises(times, k = ..(input$k))
           vonMises_density(mod, unit = "hour")
@@ -173,8 +186,7 @@ onespeciesServer <- function(id,
     }, varname = "density")
 
     
-
-# Density plot ------------------------------------------------------------
+    ## Density plot ------------------------------------------------------------
 
     output$density_plot <- metaRender(renderGirafe, {
       "# Plot density ---"
@@ -189,8 +201,9 @@ onespeciesServer <- function(id,
       }
       
       # Select only species and time for dfplot
-      dfplot <- dfplot |> select(.data[[..(spp_col())]]) |> 
-        mutate(time = as.numeric(times)*24)
+      dfplot <- dfplot |> 
+        dplyr::select(.data[[..(spp_col())]]) |> 
+        dplyr::mutate(time = as.numeric(times)*24)
       
       gg <- ggplot(..(density())) +
         geom_histogram_interactive(data = dfplot, 
@@ -203,7 +216,6 @@ onespeciesServer <- function(id,
                        alpha = 0.7) +
         geom_line(aes(x = x, y = density)) +
         scale_x_continuous(breaks = seq(0, 24, by = 4)) +
-        ggtitle("Estimated density") +
         xlab("Time (hours)") +
         ylab("Density") +
         theme_linedraw()
@@ -219,6 +231,8 @@ onespeciesServer <- function(id,
       displayCodeModal(code)
     })
     
+
+    # Abundance map ----------------------------------------------------------- 
     
     
 
@@ -228,7 +242,12 @@ onespeciesServer <- function(id,
     #   density()
     # })
     
-    
+
+    # Return values -----------------------------------------------------------
+
+    return(list(filtered_records = filtered_records_table,
+                density_plot = output$density_plot))
+      
     
   })
 }

@@ -79,7 +79,11 @@ server <- function(input, output, session) {
                     diversity_table = expandChain(allspecies_val$diversity_table(),
                                                   .expansionContext = ec),
                     plot_diversity = expandChain(allspecies_val$diversity_map(),
-                                                  .expansionContext = ec)
+                                                  .expansionContext = ec),
+                    filtered_records = expandChain(onespecies_val$filtered_records(),
+                                                   .expansionContext = ec),
+                    density_plot = expandChain(onespecies_val$density_plot(),
+                                               .expansionContext = ec)
                     ),
         render_args = list(output_format = "html_document")
       )

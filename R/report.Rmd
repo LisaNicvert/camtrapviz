@@ -13,6 +13,7 @@ knitr::opts_chunk$set(
 ```{r libraries}
 library(camtrapviz)
 library(ggiraph)
+library(ggplot2)
 ```
 
 ## Data import
@@ -75,5 +76,19 @@ Below is the plot representing the chosen index:
 
 ```{r, echo = FALSE}
 {{plot_diversity}}
+```
+
+## Unispecific analyses
+
+Now the analyses will concentrate on a single species.
+
+```{r}
+{{filtered_records}}
+```
+
+Below is the activity curve of the species, estimated with a mixture of von Mises distributions, along with the histogram of the observed activity times.
+
+```{r, echo = FALSE}
+{{density_plot}}
 ```
 
