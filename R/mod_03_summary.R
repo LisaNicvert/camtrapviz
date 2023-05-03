@@ -247,11 +247,11 @@ summaryServer <- function(id,
 
       leafletProxy(mapId = "plot_map", session) |> 
         removeMarker(layerId = clicked_point) |>
-        addCircles(lng = lon,
-                   lat = lat,
-                   layerId = clicked_point,
-                   options = popupOptions(closeButton = FALSE),
-                   color = "red")
+        addCircleMarkers(lng = lon,
+                         lat = lat,
+                         layerId = clicked_point,
+                         options = popupOptions(closeButton = FALSE),
+                         color = "red")
     })
     
     # For debugging
