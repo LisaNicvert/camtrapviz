@@ -92,3 +92,8 @@ Below is the activity curve of the species, estimated with a mixture of von Mise
 {{density_plot}}
 ```
 
+And here is a map summarizing the abundance of this species at each camera:
+
+```{r, echo = FALSE}
+{{abundance_map}}
+```

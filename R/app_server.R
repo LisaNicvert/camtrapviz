@@ -83,7 +83,9 @@ server <- function(input, output, session) {
                     filtered_records = expandChain(onespecies_val$filtered_records(),
                                                    .expansionContext = ec),
                     density_plot = expandChain(onespecies_val$density_plot(),
-                                               .expansionContext = ec)
+                                               .expansionContext = ec),
+                    abundance_map = expandChain(onespecies_val$abundance_map(),
+                                                .expansionContext = ec)
                     ),
         render_args = list(output_format = "html_document")
       )

@@ -44,8 +44,8 @@ ui <- function() {
         
         tabItem(tabName = "dataimport",
                 fluidRow(
-                  box(h2("Data import"),
-                      width = 12,
+                  box(width = 12,
+                      h2("Data import"),
                       importUI("import")
                       )
                 )
@@ -55,8 +55,8 @@ ui <- function() {
 
         tabItem(tabName = "selectdata",
                 fluidRow(
-                  box(h2("Select data"),
-                      width = 12,
+                  box(width = 12,
+                      h2("Select data"),
                       selectUI("select")
                   )
                 )
@@ -77,8 +77,8 @@ ui <- function() {
 
         tabItem(tabName = "all",
                 fluidRow(
-                  box(h2("All species analyses"),
-                      width = 12,
+                  box(width = 12,
+                      h2("All species analyses"),
                       allspeciesUI("allspecies")
                       )
                 )
@@ -87,17 +87,19 @@ ui <- function() {
 # One species -------------------------------------------------------------
 
         tabItem(tabName = "one",
-                box(width = 12,
-                    h2("One species analyses"),
-                    onespeciesUI("onespecies"),
-                    # Download
-                    column(width = 12,
-                           align = "center",
-                           style = "margin-top: 25px",
-                           downloadButton("download_script", 
-                                          "Download script")
-                           )
-                    ),
+                fluidRow(
+                  box(width = 12,
+                      h2("One species analyses"),
+                      onespeciesUI("onespecies"),
+                      # Download
+                      column(width = 12,
+                             align = "center",
+                             style = "margin-top: 25px",
+                             downloadButton("download_script", 
+                                            "Download script")
+                             )
+                      )
+                )
         )
       ) # End tabItems
     ) # End dashboardBody

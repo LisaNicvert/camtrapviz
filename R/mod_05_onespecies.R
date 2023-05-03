@@ -13,25 +13,31 @@ onespeciesUI <- function(id) {
                                    choices = NULL)
                     )
              ),
-    fluidRow(column(width = 6,
+    # Activity plot -----------------------------------------------------------
 
-# Activity plot -----------------------------------------------------------
-
-                    h3("Activity plot"),
+    h3("Activity plot"),
+    fluidRow(column(width = 3,
                     numericInput(NS(id, "k"),
                                  "Number of mixture components",
-                                 min = 1, max = 5, value = 3),
+                                 min = 1, max = 5, value = 3)),
+             column(width = 9, 
                     outputCodeButton(girafeOutput(NS(id, "density_plot")),
-                                     height = "500px"),
-                    # dataTableOutput(NS(id, "dat"))
-                    ),
+                                     height = "400px")
+                    )
+             ),
 
 # Map ---------------------------------------------------------------------
-
-             column(width = 6,
-                    h3("Presence map")
-                    )
+             h3("Presence map"),
+             fluidRow(
+               column(width = 12,
+                      outputCodeButton(leafletOutput(NS(id, "plot_abundance")),
+                                       height = "500px")
+               )
              )
+
+# Tests -------------------------------------------------------------------
+    # dataTableOutput(NS(id, "test"))
+             
   )
 }
 
@@ -234,19 +240,50 @@ onespeciesServer <- function(id,
 
     # Abundance map ----------------------------------------------------------- 
     
+    output$plot_abundance <- metaRender(renderLeaflet, {
+      "# Plot map ---"
+      
+      "# Get species abundance"
+      abundance_df <- get_diversity_table(..(filtered_records()),
+                                          cam_col = ..(cam_col_rec()),
+                                          spp_col = ..(spp_col()),
+                                          count_col = ..(mapping_cameras()$count_col), 
+                                          keep_all_levels = TRUE)
+      abundance <- abundance_df$count
+      names(abundance) <- abundance_df[[..(cam_col_rec())]]
+      
+      "# Set hovering labels (replace NA with 'No data')"
+      labels <- ifelse(is.na(abundance), 
+                       "No data", abundance)
+      
+      plot_map(..(camtrap_data())$data$deployments, 
+               lat_col = ..(unname(mapping_cameras()$lat_col)),
+               lon_col = ..(unname(mapping_cameras()$lon_col)),
+               crs = ..(crs()),
+               cam_col = ..(cam_col_cam()),
+               circle_radii = abundance,
+               color = "black",
+               label = labels,
+               rescale = TRUE)
+    })
     
+    observeEvent(input$plot_abundance_output_code, {
+      code <- expandChain(output$plot_abundance())
+      displayCodeModal(code)
+    })
 
 # Tests -------------------------------------------------------------------
     
-    # output$dat <- renderDataTable({
-    #   density()
+    # output$test <- renderDataTable({
+    #   filtered_records()
     # })
     
 
     # Return values -----------------------------------------------------------
 
     return(list(filtered_records = filtered_records_table,
-                density_plot = output$density_plot))
+                density_plot = output$density_plot,
+                abundance_map = output$plot_abundance))
       
     
   })
