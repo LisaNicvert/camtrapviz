@@ -377,6 +377,19 @@ test_that("Get species (return vector)", {
   expect_equal(res, expected)
 })
 
+test_that("Get species (obstype but no other than animal)", {
+  df <- data.frame(species = c("rabbit", "cat", "cat", "cow"),
+                   type = rep("animal", 4))
+  res <- get_species(df, 
+                     spp_col = "species", obs_col = "type")
+  res
+  expected <- data.frame(species = c("cat", "cow", "rabbit"),
+                         type = rep("animal", 3))
+  rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
+  expect_equal(res, expected)
+})
+
+
 test_that("Summarize species", {
   df <- data.frame(species = c("zebra", "cat", "cat", "cow", "cow", "rabbit", NA, NA),
                    type = c("animal", "animal", "animal", "animal", "animal", "animal", "human", "blank"),
@@ -631,3 +644,76 @@ test_that("Get diversity indices", {
                          )
   expect_equal(res, expected)
 })
+
+# Circular density distribution -------------------------------------------
+
+test_that("Time to circular", {
+  tim <- chron::times(c("00:00:00", "12:00:00", "08:30:00"))
+  
+  # Return simple vector ---
+  # Radians
+  res <- time_to_circular(tim, circular = FALSE)
+  expect_true("numeric" %in% class(res))
+  expect_equal(res, as.numeric(tim)*2*pi)
+  
+  # Hours
+  res <- time_to_circular(tim, circular = FALSE, units = "hours")
+  expect_true("numeric" %in% class(res))
+  expect_equal(res, c(0, 12, 8.5))
+  
+  # Return circular object ---
+  # Radians
+  res <- time_to_circular(tim, circular = TRUE)
+  
+  expect_true("circular" %in% class(res))
+  expect_equal(res[[1]], 0)
+  expect_equal(res[[2]], pi)
+  expect_equal(res[[3]], 8.5*(2*pi)/24)
+  
+  # Hours
+  res <- time_to_circular(tim, circular = TRUE,
+                          units = "hours")
+  
+  expect_true("circular" %in% class(res))
+  expect_equal(res[[1]], 0)
+  expect_equal(res[[2]], 12)
+  expect_equal(res[[3]], 8.5)
+  
+})
+
+test_that("Fit von Mises", {
+  # Prepare test data ---
+  testdat <- kga |> dplyr::select(snapshotName, eventTime) |> 
+    filter(snapshotName == "gemsbok")
+  
+  # Check with radians ---
+  # Fit model
+  mod <- fit_vonMises(testdat$eventTime, k = 3)
+  # Get density
+  dt <- vonMises_density(mod, unit = "radians")
+  
+  # Check
+  expect_equal(nrow(dt), length(seq(0, 2*pi, by = 0.01)))
+  
+  # Visual check
+  hist(as.numeric(testdat$eventTime)*2*pi, freq = FALSE,
+       breaks = seq(0, 2*pi, by = pi/8))
+  lines(as.numeric(dt$x), dt$density, type = "l", col = "red")
+  timeRad <- as.numeric(testdat$eventTime)*2*pi
+  library(overlap)
+  densityPlot(timeRad, rug = FALSE, xscale = NA, add = TRUE,
+              lty = 2)
+  
+  # Check with hours ---
+  dt <- vonMises_density(mod)
+  
+  # Visual check
+  hist(as.numeric(testdat$eventTime)*24, freq = FALSE,
+       breaks = seq(0, 24, by = 1.5))
+  lines(as.numeric(dt$x), dt$density, type = "l", col = "red")
+  timeRad <- as.numeric(testdat$eventTime)*2*pi
+  densityPlot(timeRad, rug = FALSE, xscale = 24, add = TRUE,
+              lty = 2)
+  
+})
+    

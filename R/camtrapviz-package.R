@@ -75,6 +75,7 @@
 #' @importFrom shiny navbarPage
 #' @importFrom shiny need
 #' @importFrom shiny NS
+#' @importFrom shiny numericInput
 #' @importFrom shiny observe
 #' @importFrom shiny observeEvent
 #' @importFrom shiny outputOptions

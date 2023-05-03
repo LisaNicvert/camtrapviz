@@ -45,6 +45,13 @@ server <- function(input, output, session) {
                                      mapping_records = import_val$mapping_records,
                                      mapping_cameras = import_val$mapping_cameras,
                                      crs = import_val$crs) 
+
+  # One species -------------------------------------------------------------
+  onespecies_val <- onespeciesServer("onespecies",
+                                     camtrap_data = select_val$camtrap_data,
+                                     mapping_records = import_val$mapping_records,
+                                     mapping_cameras = import_val$mapping_cameras,
+                                     crs = import_val$crs) 
   
   # Download handler --------------------------------------------------------
   

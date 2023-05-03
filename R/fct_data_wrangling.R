@@ -336,6 +336,7 @@ get_species <- function(df,
   if (return_df) {
     # Add ID
     res <- as.data.frame(spp_df)
+
     rownames(res) <- paste("ID", 1:nrow(res), sep = "_")
   } else {
     res <- spp_df[[spp_col]]
@@ -640,6 +641,164 @@ get_diversity_indices <- function(count_df, spp_col, cam_col,
   
   diversity_df <- as.data.frame(diversity_df)
   return(diversity_df)
+}
+
+
+# Circular density distribution -------------------------------------------
+
+#' Time to radians
+#'
+#' Convert a time of day to circular data.
+#' 
+#' @param time The time of the day (must be an object of class
+#' `times` from the `chron` package)
+#' @param circular Return an object of class circular? 
+#' @param units The unit to use (subset of values used in in `circular::circular`)
+#'
+#' @return the times converted to the desired unit. 
+#' If `circular` is `TRUE`, returns an object of class `circular`.
+#'
+#' @export
+#'
+#' @examples
+#' time_to_circular(chron::times(c("00:00:00", "12:00:00", "08:33:44")))
+time_to_circular <- function(time, 
+                             units = c("radians", "hours"),
+                             circular = FALSE) {
+  
+  if (!("times" %in% class(time))) {
+    stop("time must be of class 'times'. You can convert it using chron::times(time)")
+  }
+  
+  if (length(units) > 1) {
+    units <- units[1]
+  }
+  
+  if (units == "radians") {
+    coef <- 2*pi
+  } else if (units == "hours") {
+    coef <- 24
+  }
+  
+  timenum <- as.numeric(time)*coef
+  
+  if (circular) {
+    timenum <- circular::circular(timenum, 
+                                  units = units)
+  }
+  
+  return(timenum)
+}
+
+#' Fit a von Mises distribution.
+#'
+#' @param time The time of the day (must be an object of class
+#' `times` from the `chron` package)
+#' @param k Number of mixxture components (number of modes
+#' in the final ditribution)
+#'
+#' @return A mixture moden of von Mises distributions of class
+#' `movMF`.
+#' 
+#' @export
+#'
+#' @examples
+#' data("recordTableSample", package = "camtrapR")
+#' recordTableSample <- recordTableSample[recordTableSample$Species == "PBE", ]
+#' recordTableSample$Time <- chron::times(recordTableSample$Time)
+#' fit_vonMises(recordTableSample$Time, k = 3)
+fit_vonMises <- function(time, k) {
+  
+  if (length(units) > 1) {
+    units <- units[1]
+  }
+  
+  circular <- time_to_circular(time, units = "radians")
+  
+  # Convert angular coordinates to cartesian coordinates 
+  # on the unit circle
+  x <- cos(circular)
+  y <- sin(circular)
+  
+  mod <- movMF::movMF(cbind(x, y), k)
+  
+  return(mod)
+}
+
+#' von Mises density
+#'
+#' Get the density of a von Mises mixture model.
+#' 
+#' @param mod The model
+#' @param unit Unit to use in the return dataframe. Can be either `radians`
+#' or `hours`.
+#' @param x The vector on which to fit. Must be of type `circular`.
+#'
+#' @return A dataframe with 2 columns:
+#' + `density`: value of the density probability function
+#' + `x`: corresponding value of the variable 
+#' (using the unit specified in `unit`).
+#'
+#' @export
+#'
+#' @examples
+#' data("recordTableSample", package = "camtrapR")
+#' recordTableSample <- recordTableSample[recordTableSample$Species == "PBE", ]
+#' recordTableSample$Time <- chron::times(recordTableSample$Time)
+#' mod <- fit_vonMises(recordTableSample$Time, k = 3)
+#' dt <- vonMises_density(mod)
+#' # Visual check
+#' hist(as.numeric(recordTableSample$Time)*2*pi, 
+#'      freq = FALSE, breaks = seq(0, 2*pi, by = pi/8))
+#' lines(as.numeric(dt$x), dt$density, type = "l")
+vonMises_density <- function(mod, 
+                             x = circular::circular(seq(0, 2*pi, by = 0.01),
+                                                    units = "radians"),
+                             unit = c("hour", "radians")) {
+  
+  # Get model coefficients ---
+  modcoef <- coef(mod)
+  # Get proportions
+  alpha <- modcoef$alpha
+  # Get means
+  mu <- apply(modcoef$theta, 1, 
+              function(x) atan2(y = x[2], x = x[1]))
+  # Get kappa
+  kappa <- sqrt(rowSums(modcoef$theta^2)) 
+  
+  # Get density ---
+  # Helper function for one density
+  vm_density <- function(x, alpha, mu, kappa) {
+    alpha*circular::dvonmises(x, 
+                              mu = circular::circular(mu, units = "radians"),
+                              kappa = kappa)
+  }
+  
+  # Get density for each component of the mixture
+  densities <- lapply(1:length(alpha),
+                      function(i) vm_density(x, alpha[i], mu[i], kappa[i]))
+  densities <- do.call("rbind", densities)
+  
+  # Get final density
+  density <- colSums(densities)
+  
+  # Format return as a df ---
+  if (length(unit) > 1) {
+    unit <- unit[1]
+  }
+  
+  if (unit == "hour") {
+    coef <- (2*pi)/24
+    # Convert time and density
+    x <- x * 1/coef
+    density <- density * coef
+  }
+  
+  res <- data.frame(density = density,
+                    x = x)
+  
+  return(res)
+  
 }
 
 

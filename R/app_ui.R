@@ -27,8 +27,9 @@ ui <- function() {
         menuItem("Data overview", tabName = "summary",
                  icon = icon("dashboard")),
         menuItem("All species", tabName = "all",
-                 icon = icon("puzzle-piece")),
-        menuItem("One species", tabName = "one")
+                 icon = icon("dice-five")),
+        menuItem("One species", tabName = "one",
+                 icon = icon("dice-one"))
       )
     ),
     dashboardBody(
@@ -78,14 +79,7 @@ ui <- function() {
                 fluidRow(
                   box(h2("All species analyses"),
                       width = 12,
-                      allspeciesUI("allspecies"),
-                      # Download
-                      column(width = 12,
-                             align = "center",
-                             style = "margin-top: 25px",
-                             downloadButton("download_script", 
-                                            "Download script")
-                      )
+                      allspeciesUI("allspecies")
                       )
                 )
         ),
@@ -94,7 +88,16 @@ ui <- function() {
 
         tabItem(tabName = "one",
                 box(width = 12,
-                    h2("One species tab content")),
+                    h2("One species analyses"),
+                    onespeciesUI("onespecies"),
+                    # Download
+                    column(width = 12,
+                           align = "center",
+                           style = "margin-top: 25px",
+                           downloadButton("download_script", 
+                                          "Download script")
+                           )
+                    ),
         )
       ) # End tabItems
     ) # End dashboardBody

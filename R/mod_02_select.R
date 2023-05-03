@@ -90,8 +90,8 @@ selectServer <- function(id,
       # Get species and cameras -------------------------------------------------
       
       species_df <- reactive({
-        get_species(camtrap_data()$data$observations,
-                    spp_col =  spp_col(), obs_col = obs_col())
+        camtrapviz::get_species(camtrap_data()$data$observations,
+                                spp_col =  spp_col(), obs_col = obs_col())
       })
       
       cameras <- reactive({
