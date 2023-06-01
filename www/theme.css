@@ -3,3 +3,48 @@
   font-weight: bold;
   font-size: 24px;
 }
+
+/* Tooltip container */
+.mytooltip {
+  position: relative;
+  display: inline-block;
+  width: 20em;
+  color:#4179c3;
+  left:0.5em;
+}
+
+/* Tooltip text */
+.mytooltip .mytooltiptext {
+  visibility: hidden;
+  background-color: #6b6b6b;
+  text-align: left;
+  display: inline-block;
+  color: #fff;
+  padding: 0.5em;
+  border-radius: 6px;
+ 
+  position: absolute;
+  left: 2em;
+  top: -0.3em;
+  z-index: 100;
+  
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.mytooltip .mytooltiptext::after {
+  content: " ";
+  position: absolute;
+  top: 1em;
+  right: 100%; /* To the left of the tooltip */
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #6b6b6b transparent transparent;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.mytooltip:hover .mytooltiptext {
+  visibility: visible;
+  opacity: 1;
+}

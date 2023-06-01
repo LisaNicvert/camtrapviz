@@ -178,12 +178,20 @@ importServer <- function(id) {
       for (i in 1:nrow(df)){
         wid <- df$widget[i]
         label <- df$label[i]
+        details <- df$details[i]
         if (df$empty_allowed[i]) {
           # Add "optional" in label
           label <- paste(label, "(optional)")
         }
         res[[i]] <- selectInput(NS(id, wid),
-                                label, choices = NULL,
+                                label = htmltools::tags$span(label,
+                                                             htmltools::tags$div(
+                                                               class = "mytooltip",
+                                                               icon("circle-info"),
+                                                               htmltools::tags$p(class = "mytooltiptext",
+                                                                                   details)
+                                                  )), 
+                                choices = NULL,
                                 ...)
       }
       return(res)
@@ -348,7 +356,13 @@ importServer <- function(id) {
     # Create CRS widget
     output$ui_crs_col_records <- renderUI({
       selectizeInput(NS(id, crs_records$widget),
-                     crs_records$label,
+                     label = htmltools::tags$span(crs_records$label,
+                                                  htmltools::tags$div(
+                                                    class = "mytooltip",
+                                                    icon("circle-info"),
+                                                    htmltools::tags$p(class = "mytooltiptext",
+                                                                      crs_records$details)
+                                                    )),
                      choices = NULL,
                      options = list(placeholder = 'Select a coordinate reference system'))
     })
@@ -392,7 +406,13 @@ importServer <- function(id) {
     # Create CRS widget
     output$ui_crs_col <- renderUI({
       selectizeInput(NS(id, crs_cameras$widget), 
-                     crs_cameras$label,
+                     label = htmltools::tags$span(crs_records$label,
+                                                  htmltools::tags$div(
+                                                    class = "mytooltip",
+                                                    icon("circle-info"),
+                                                    htmltools::tags$p(class = "mytooltiptext",
+                                                                      crs_records$details)
+                                                  )),
                      choices = NULL,
                      options = list(placeholder = 'Select a coordinate reference system'))
     })
