@@ -4,7 +4,12 @@
 \alias{prepare_cameras}
 \title{Prepare cameras}
 \usage{
-prepare_cameras(dat, cam_columns, split = FALSE)
+prepare_cameras(
+  dat,
+  cam_columns = colnames(dat$data$deployments),
+  split = FALSE,
+  cam_col = "deploymentID"
+)
 }
 \arguments{
 \item{dat}{The data. It can be either a list with one component \verb{$data}
@@ -16,7 +21,10 @@ are in the \verb{$data} slot with two components:
 }}
 
 \item{cam_columns}{A list of columns names that indicate
-relevant colums to consider for the deployments data.
+relevant columns to consider for the deployments data.
+If missing, and \code{split = FALSE},
+will default to all columns in \code{dat$data$deployments}. Else,
+it is required.
 These columns are moved to the beginning of the cameras table
 (\code{dat$data$deployments}).
 If \code{split} is \code{TRUE}, these names are also extracted from
@@ -25,6 +33,10 @@ If \code{split} is \code{TRUE}, these names are also extracted from
 \item{split}{should camera data be extracted from the records?
 If yes, a cameras table will be created and replace the value
 of \code{dat$data$deployments}.}
+
+\item{cam_col}{name of the camera column (to know which
+column to keep in \code{dat$data$observations} if \code{split = TRUE}).
+Must be in \code{cam_columns}.}
 }
 \value{
 The dataset with "pre-cleaned" cameras data:
@@ -34,7 +46,8 @@ the columns indicated in \code{cam_columns}. This allows to filter
 for instance between duplicated cameras names.
 \item if \code{split} is \code{TRUE}, \code{dat$data$deployments} is replaced with
 data extracted from \code{dat$data$observations}
-(only the columns indicated in \code{cam_columns}).
+(only the columns indicated in \code{cam_columns}) and removes the
+these columns from \code{dat$data$observations} (except \code{cam_name})
 }
 }
 \description{

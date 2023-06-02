@@ -2,6 +2,7 @@ library(camtrapR)
 library(camtraptor)
 library(lubridate)
 library(dplyr)
+library(testthat)
 
 # Load example data ------------------------------------------------------------
 data("mica")

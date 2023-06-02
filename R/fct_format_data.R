@@ -120,7 +120,10 @@ add_tryformats <- function(castlist,
 #' + `$deployments` (cameras table)
 #' + `$observations` (records table)
 #' @param cam_columns A list of columns names that indicate 
-#' relevant colums to consider for the deployments data. 
+#' relevant columns to consider for the deployments data. 
+#' If missing, and `split = FALSE`,
+#' will default to all columns in `dat$data$deployments`. Else,
+#' it is required.
 #' These columns are moved to the beginning of the cameras table
 #' (`dat$data$deployments`).
 #' If `split` is `TRUE`, these names are also extracted from
@@ -128,6 +131,9 @@ add_tryformats <- function(castlist,
 #' @param split should camera data be extracted from the records?
 #' If yes, a cameras table will be created and replace the value
 #' of `dat$data$deployments`.
+#' @param cam_col name of the camera column (to know which 
+#' column to keep in `dat$data$observations` if `split = TRUE`).
+#' Must be in `cam_columns`.
 #'
 #' @return The dataset with "pre-cleaned" cameras data:
 #' + the cameras table is filtered to keep unique rows across 
@@ -135,17 +141,32 @@ add_tryformats <- function(castlist,
 #' for instance between duplicated cameras names.
 #' + if `split` is `TRUE`, `dat$data$deployments` is replaced with 
 #' data extracted from `dat$data$observations` 
-#' (only the columns indicated in `cam_columns`).
-prepare_cameras <- function(dat, cam_columns, split = FALSE) {
+#' (only the columns indicated in `cam_columns`) and removes the
+#' these columns from `dat$data$observations` (except `cam_name`)
+prepare_cameras <- function(dat, cam_columns = colnames(dat$data$deployments), 
+                            split = FALSE,
+                            cam_col = "deploymentID") {
   
   # Initialize results
   res <- dat
+  
+  # Check cam_col is in cam_columns
+  if (split) {
+    if(!(cam_col %in% cam_columns)) {
+      stop("cam_col should be in cam_columns.")
+    }
+  }
   
   if (split) { # Manual file input
     # Split data
     cameras <- dat$data$observations |>
       dplyr::select(all_of(unname(unlist(cam_columns))))
     res$data$deployments <- cameras
+    
+    # Remove camera columns
+    to_remove <- cam_columns[cam_columns != cam_col]
+    res$data$observations <- dat$data$observations |>
+      dplyr::select(-all_of(unname(unlist(to_remove))))
   }
   
   # Select unique rows for camera table
@@ -300,6 +321,7 @@ clean_data <- function(dat,
   cameras_colnames <- as.list(names(cam_type))
   res <- prepare_cameras(dat, 
                          cam_columns = cameras_colnames, 
+                         cam_col = cam_col_records,
                          split = split)
   
   # Records ---

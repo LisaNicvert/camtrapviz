@@ -8,6 +8,8 @@
 # Script Description: tests for plotting functions
 
 library(testthat)
+library(ggplot2)
+library(ggiraph)
 
 test_that("Plot points", {
   
@@ -139,7 +141,7 @@ test_that("Plot density", {
                                         "Time: ", after_stat(x)),
                        data_id = after_stat(x)),
                    alpha = 0.7,
-                   biwidth = 1) +
+                   binwidth = 1) +
     geom_line(aes(x = x, y = density)) +
     scale_x_continuous(breaks = seq(0, 24, by = 4)) +
     ggtitle("Estimated density") +
