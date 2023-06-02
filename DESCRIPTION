@@ -3,7 +3,7 @@ Title: Vizualise Camera Trap Data
 Version: 0.0.0.9000
 Authors@R: person("Lisa", "Nicvert", email = "lisa.nicvert@univ-lyon1.fr", role = c("aut", "cre"))
 Description: Compute and visualize common descriptors for camera trap data. A Shiny app allowing to do so interactively and without any code is also implemented.
-License: GPL (>= 3)
+License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
