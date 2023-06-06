@@ -1,14 +1,70 @@
-.main-header .logo {
-  font-family: "Courier New" monospace;
-  font-weight: bold;
-  font-size: 24px;
+/* General formatting ------------------------------------------- */
+/* Define font */
+body {
+  font-family: 'Ubuntu', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 400;
 }
 
+/* Headers inherit font */
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+  font-family: inherit;
+}
+
+/* Format logo */
+.skin-blue .main-header .logo {
+  background-color: #006d77;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1.8em;
+}
+/* Logo hovering */
+.skin-blue .main-header .logo:hover {
+  background-color: #00464d;
+}
+
+/* Link color */
+a {
+  color: #006d77;
+}
+
+/* Box padding */
+.box {
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+/* Modules titles ------------------------------------------- */
+/* Main header (modules) */
+h2 {
+  margin-top:0;
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #006d77
+}
+
+/* Horizontal line */
+hr {
+  margin-top: 5px;
+  height: 3px;
+  background-color: #006d77;
+}
+
+/* Navbar ------------------------------------------- */
+.skin-blue .main-header .navbar {
+  background-color: #006d77;
+}
+.skin-blue .main-header .navbar .sidebar-toggle:hover {
+  background-color: #00464d;
+}
+
+/* Tooltip ------------------------------------------- */
 /* Tooltip container */
 .mytooltip {
   position: relative;
   display: inline-block;
-  width: 20em;
+  width: 15em;
   color:#4179c3;
   left:0.5em;
 }
@@ -20,6 +76,7 @@
   text-align: left;
   display: inline-block;
   color: #fff;
+  font-weight: 400;
   padding: 0.5em;
   border-radius: 6px;
  
@@ -48,3 +105,4 @@
   visibility: visible;
   opacity: 1;
 }
+

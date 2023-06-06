@@ -6,7 +6,6 @@
 ui <- function() {
   dashboardPage(
     # title = "camtrapviz",
-    skin = "black",
     dashboardHeader(
       title = "Camtrapviz"
       # title = box(
@@ -57,6 +56,7 @@ ui <- function() {
                 fluidRow(
                   box(width = 12,
                       h2("Data import"),
+                      htmltools::hr(),
                       importUI("import")
                       )
                 )
@@ -68,6 +68,7 @@ ui <- function() {
                 fluidRow(
                   box(width = 12,
                       h2("Select data"),
+                      htmltools::hr(),
                       selectUI("select")
                   )
                 )
@@ -79,6 +80,7 @@ ui <- function() {
                 fluidRow(
                   box(width = 12,
                       h2("Survey summary"),
+                      htmltools::hr(),
                       summaryUI("summary"),
                   )
                 )
@@ -90,6 +92,7 @@ ui <- function() {
                 fluidRow(
                   box(width = 12,
                       h2("All species analyses"),
+                      htmltools::hr(),
                       allspeciesUI("allspecies")
                       )
                 )
@@ -101,6 +104,7 @@ ui <- function() {
                 fluidRow(
                   box(width = 12,
                       h2("One species analyses"),
+                      htmltools::hr(),
                       onespeciesUI("onespecies"),
                       # Download
                       column(width = 12,
