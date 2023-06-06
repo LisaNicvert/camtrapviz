@@ -35,6 +35,18 @@ a {
   padding-bottom: 20px;
 }
 
+/* Column margin */
+.nomargin {
+  margin: 0;
+  padding: 0;
+}
+.nomarginleft {
+  padding: 0 1em 0 0;
+}
+.nomarginright {
+ padding: 0 0 0 1em;
+}
+
 /* Modules titles ------------------------------------------- */
 /* Main header (modules) */
 h2 {
@@ -59,12 +71,31 @@ hr {
   background-color: #00464d;
 }
 
+/* Upload head ------------------------------------------- */
+/* Div class */
+.upload_head {
+  height: 90px;
+  position: relative;
+}
+
+/* Import buttons position */
+#import-records_input {
+  position: absolute;
+  bottom:   0;
+}
+
+#import-cameras_input {
+  position: absolute;
+  bottom:   0;
+}
+
 /* Tooltip ------------------------------------------- */
 /* Tooltip container */
 .mytooltip {
   position: relative;
   display: inline-block;
   width: 15em;
+  margin: 0 -15em 0 0;
   color:#4179c3;
   left:0.5em;
 }
@@ -89,6 +120,7 @@ hr {
   transition: opacity 0.3s;
 }
 
+/* Lil tooltip arrow */
 .mytooltip .mytooltiptext::after {
   content: " ";
   position: absolute;

@@ -4,13 +4,15 @@ importUI <- function(id) {
   # Create namespace variable
   ns <- NS(id)
   tagList(
-# Input type --------------------------------------------------------------
+    # Input type --------------------------------------------------------------
+    br(),
     radioButtons(NS(id, "input_type"),
-                 label = h3("Input type"),
+                 label = "How to you want to import data?",
                  choices = list("Load example file" = 1,
                                 "Upload file" = 2),
                  inline = TRUE,
                  selected = 1),
+    br(),
 
 # Example files widgets ---------------------------------------------------
 
@@ -19,93 +21,72 @@ importUI <- function(id) {
                                      selectInput(NS(id, "example_file"), "Dataset",
                                                  choices = c("mica", "recordTableSample"))),
                               column(8,
-                                     style = "margin-top: 25px;", # To align with selectInput
-                                     textOutput(NS(id, "dyntext")))
-                     )
+                                     style = "margin-top: 30px;", # To align with selectInput
+                                     textOutput(NS(id, "dyntext"))),
+                     ),
+                     br()
     ),
 
 # Upload files widgets ----------------------------------------------------
 
 conditionalPanel(condition = "input.input_type == 2", ns = ns,
-                 h4("Records table"),
-                 fluidRow(column(4,
-                                 shinyFilesButton(NS(id, 'records_input'), 
-                                                  style = "margin-bottom: 25px",
-                                                  label = 'Choose records table', 
-                                                  title = 'Choose file',
-                                                  multiple = FALSE),
-                                 conditionalPanel(condition = "output.records_extension !== 'json'", ns = ns,
-                                                  separator_widget(NS(id, "records")))
+                 fluidRow(column(6,
+                                 h4("Records table"),
+                                 htmltools::div(
+                                   class = "upload_head",
+                                   shinyFilesButton(NS(id, 'records_input'), 
+                                                    style = "margin-bottom: 25px",
+                                                    label = 'Choose records table', 
+                                                    title = 'Choose file',
+                                                    multiple = FALSE)
                                  ),
-                          column(8,
-                                 uiOutput(NS(id, "mandatory_records_col")),
-                                 radioButtons(NS(id, "datetime_or_timestamp"),
-                                              "Date / time column(s)",
-                                              choices = c("Date and time" = "date_time",
-                                                          "Timestamp" = "timestamp"), 
-                                              inline = TRUE),
-                                 conditionalPanel(condition = "input.datetime_or_timestamp == 'date_time'", ns = ns,
-                                                  uiOutput(NS(id, "datetime_records_col"))
-                                                  ),
-                                 conditionalPanel(condition = "input.datetime_or_timestamp == 'timestamp'", ns = ns,
-                                                  uiOutput(NS(id, "timestamp_records_col"))
+                                 uiOutput(NS(id, "records_col"))
                                  ),
-                                 conditionalPanel(condition = "!input.import_cameras && output.records_extension !== 'json'",
+                          column(6,
+                                 h4("Cameras table"),
+                                 htmltools::div(
+                                   class = "upload_head",
+                                   conditionalPanel(condition = "output.records_extension !== 'json'",
+                                                    ns = ns,
+                                                    # Display only if it is not a JSON file
+                                                    checkboxInput(NS(id, "import_cameras"),
+                                                                  "Import cameras table"),
+                                                    
+                                   ),
+                                   conditionalPanel(condition = "input.import_cameras && output.records_extension !== 'json'",
+                                                    ns = ns,
+                                                    # Display only if it is not a JSON file and user wants to import a camera
+                                                    shinyFilesButton(NS(id, "cameras_input"), 
+                                                                     style = "margin-bottom: 25px",
+                                                                     label = 'Choose cameras table', 
+                                                                     title = 'Choose file',
+                                                                     multiple = FALSE))
+                                   ),
+                                 conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
                                                   ns = ns,
-                                                  uiOutput(NS(id, "mandatory_widgets_cov_col_records")),
-                                                  uiOutput(NS(id, "ui_crs_col_records")),
-                                                  uiOutput(NS(id, "optional_widgets_cov_col_records"))
-                                                  ),
-                                 uiOutput(NS(id, "optional_records_col"))
-                                 ) # End column for records selectInput
-                          ), # End fluidRow
-                 br(),
-                 h4("Cameras table"),
-                 conditionalPanel(condition = "output.records_extension !== 'json'",
-                                  ns = ns,
-                                  checkboxInput(NS(id, "import_cameras"),
-                                                "Import cameras table")
-                                  ),
-                 conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
-                                  ns = ns,
-                                  # Display if user wants to import a camera or if it is a json file
-                                  fluidRow(column(4,
-                                                  conditionalPanel(condition = "output.records_extension !== 'json'",
-                                                                   ns = ns,
-                                                                   # Display only if not json file
-                                                                   shinyFilesButton(NS(id, "cameras_input"), 
-                                                                                    style = "margin-bottom: 25px",
-                                                                                    label = 'Choose cameras table', 
-                                                                                    title = 'Choose file',
-                                                                                    multiple = FALSE),
-                                                                   separator_widget(NS(id, "cameras")))
-                                                  ),
-                                                  column(8,
-                                                         uiOutput(NS(id, "mandatory_cameras_col")),
-                                                         uiOutput(NS(id, "ui_crs_col")),
-                                                         uiOutput(NS(id, "optional_cameras_col"))
-                                                         ))
-                                  ) # conditional cameras table panel
+                                                  # Display if user wants to import a camera or if it is a json file
+                                                  uiOutput(NS(id, "cameras_col"))
+                                 )
+                                 ) # Cameras column
+                          ),
+                 br()
                  ), # conditionalPanel upload file widgets
 
 # File previews -----------------------------------------------------------
-
-                 tabsetPanel(
-                   tabPanel("Raw data preview",
-                            conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
-                                             ns = ns,
-                                             h4("Records table"),
-                                             dataTableOutput(NS(id, "raw_records")),
-                                             conditionalPanel(condition = "input.input_type == 1 || input.import_cameras || output.records_extension === 'json'",
-                                                              ns = ns,
-                                                              h4("Cameras table"),
-                                                              dataTableOutput(NS(id, "raw_cameras"))
-                                             )
-                            )
-                   ),
-                   tabPanel("Cleaned data preview",
-                            conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
-                                             ns = ns,
+                 conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
+                                  ns = ns,
+                                  tabsetPanel(
+                                    tabPanel("Raw data preview",
+                                              h4("Records table"),
+                                              dataTableOutput(NS(id, "raw_records")),
+                                              conditionalPanel(condition = "input.input_type == 1 || input.import_cameras || output.records_extension === 'json'",
+                                                               ns = ns,
+                                                               h4("Cameras table"),
+                                                               dataTableOutput(NS(id, "raw_cameras"))
+                                              )
+                                            
+                                    ),
+                                    tabPanel("Cleaned data preview",
                                              actionButton(NS(id, "code_import"), 
                                                           "Show data cleaning code", icon("code"),
                                                           style = "margin-top: 25px; margin-bottom: 15px;"),
@@ -115,9 +96,9 @@ conditionalPanel(condition = "input.input_type == 2", ns = ns,
                                              dataTableOutput(NS(id, "cameras")),
                                              downloadButton(NS(id, "downolad_cleaned_data"),
                                                             label = "Downolad cleaned data")
-                            )
-                   )
-                 ) # End tabsetPanel
+                                    )
+                                 ) # End tabsetPanel
+                 ) # End conditional panel
     ) # End taglist
 }
 
@@ -165,34 +146,86 @@ importServer <- function(id) {
       }
     }
     
+    # Create a widget
+    # 
+    # @param wid widget ID
+    # @param label widget label
+    # @param details details to display when hovering (i)
+    # @param empty_allowed are empty values allowed? if yes, 
+    # will add "(optional)" to tha label
+    # @param selectize use selectizeInput insetad of selectInput?
+    # @param ... additional arguments passed to selectInput
+    # 
+    # @return A selectInput element
+    create_widget <- function(wid, label, details, empty_allowed, 
+                              selectize = FALSE, width = 12,
+                              class = "nomargin",
+                              ...) {
+      if (empty_allowed) {
+        # Add "optional" in label
+        label <- paste(label, "(optional)")
+      }
+      
+      selectwidth = "100%"
+      
+      if (selectize) {
+        res <- column(width,
+                      class = class,
+                      selectizeInput(NS(id, wid),
+                              label = htmltools::tags$span(label,
+                                                           htmltools::tags$div(
+                                                             class = "mytooltip",
+                                                             icon("circle-info"),
+                                                             htmltools::tags$p(class = "mytooltiptext",
+                                                                               details)
+                                                           )), 
+                              choices = NULL,
+                              width = selectwidth,
+                              ...))
+      } else {
+        res <- column(width,
+                      class = class,
+                      selectInput(NS(id, wid),
+                          label = htmltools::tags$span(label,
+                                                      htmltools::tags$div(
+                                                        class = "mytooltip",
+                                                        icon("circle-info"),
+                                                        htmltools::tags$p(class = "mytooltiptext",
+                                                                          details)
+                                                      )), 
+                          choices = NULL,
+                          width = selectwidth,
+                          ...))
+      }
+      
+      return(res)
+    }
+    
     # Create a list of widgets
     # 
     # @param df A dataframe with columns
-    #   widget, label, empty_allowed, type
+    #   widget, label, empty_allowed, details
     # @param ... additional arguments passed to selectInput
     # 
     # @return A list of selectInput
-    create_widget_list <- function(df, ...) {
+    create_widget_list <- function(df, selectize = FALSE,
+                                   width = rep(12, nrow(df)),
+                                   class = rep("nomargin", nrow(df)),
+                                   ...) {
+      n <- nrow(df)
+      res <- vector(mode = "list", length = n)
       
-      res <- list()
-      for (i in 1:nrow(df)){
+      for (i in 1:n){
         wid <- df$widget[i]
         label <- df$label[i]
         details <- df$details[i]
-        if (df$empty_allowed[i]) {
-          # Add "optional" in label
-          label <- paste(label, "(optional)")
-        }
-        res[[i]] <- selectInput(NS(id, wid),
-                                label = htmltools::tags$span(label,
-                                                             htmltools::tags$div(
-                                                               class = "mytooltip",
-                                                               icon("circle-info"),
-                                                               htmltools::tags$p(class = "mytooltiptext",
-                                                                                   details)
-                                                  )), 
-                                choices = NULL,
-                                ...)
+        empty_allowed <- df$empty_allowed[i]
+        widthi <- width[i]
+        classi <- class[i]
+        res[[i]] <- create_widget(wid, label, details, empty_allowed,
+                                  selectize = selectize,
+                                  width = widthi,
+                                  class = classi)
       }
       return(res)
     }
@@ -260,6 +293,10 @@ importServer <- function(id) {
     
 # Useful variables from widgets df ----------------------------------------
     
+    # Get widgets order (records)
+    records_widgets_with_crs <- records_widgets
+    cameras_widgets_with_crs <- cameras_widgets
+    
     # Get CRS spec
     crs_records <- records_widgets |>
       filter(widget == "crs_col")
@@ -320,112 +357,109 @@ importServer <- function(id) {
     })
 
 # Create records widgets ----------------------------------------------------------
-    # We create the records selecters not all at once to control ordering
-    # in the UI
-    
-## Mandatory selecters -----------------------------------------------------
-    mandatory <- records_widgets |>
-      dplyr::filter(type == "records") |>
-      dplyr::filter(empty_allowed == FALSE)
-    mandatory_widgets <- create_widget_list(mandatory)
-    
-    
-## Date-time/timestamp selecters -----------------------------------------------------
-    # Create timestamp selecter
-    timestamp <- records_widgets |>
-      dplyr::filter(type == "timestamp")
-    timestamp_widgets <- create_widget_list(timestamp)
-    
-    # Create date/time selecters
-    datetime <- records_widgets |>
-      dplyr::filter(type == "date_time")
-    datetime_widgets <- create_widget_list(datetime)
-    
-## Cameras in records selecters -----------------------------------------------------
-    # Crete camera selecters
-    cov <- records_widgets |>
-      dplyr::filter(type == "cameras")
-    mandatory_cov <- cov |> 
-      dplyr::filter(empty_allowed == FALSE)
-    optional_cov <- cov |> 
-      dplyr::filter(empty_allowed == TRUE)
 
-    mandatory_widgets_cov <- create_widget_list(mandatory_cov)
-    optional_widgets_cov <- create_widget_list(optional_cov)
+## Create automated records ------------------------------------------------
+    records_widths <- c(12, 12,
+                        6, 6, 
+                        12,
+                        6, 6, 
+                        12,
+                        6, 6, 
+                        12, 12)
+    records_class <- c("nomargin", "nomargin",
+                       "nomarginleft", "nomarginright",
+                       "nomargin",
+                       "nomarginleft", "nomarginright",
+                       "nomargin",
+                       "nomarginleft", "nomarginright",
+                       "nomargin", "nomargin")
+    records_widgets_w <- create_widget_list(records_widgets_with_crs,
+                                            width = records_widths,
+                                            class = records_class,
+                                            selectize = TRUE)
+    names(records_widgets_w) <- records_widgets_with_crs$widget
     
-    # Create CRS widget
-    output$ui_crs_col_records <- renderUI({
-      selectizeInput(NS(id, crs_records$widget),
-                     label = htmltools::tags$span(crs_records$label,
-                                                  htmltools::tags$div(
-                                                    class = "mytooltip",
-                                                    icon("circle-info"),
-                                                    htmltools::tags$p(class = "mytooltiptext",
-                                                                      crs_records$details)
-                                                    )),
-                     choices = NULL,
-                     options = list(placeholder = 'Select a coordinate reference system'))
-    })
+## Create data/datetime radio buttons --------------------------------------
+    
+    # Create radio button
+    radio <- tagList("datetime_or_timestamp" = column(12, 
+                                                      class = "nomargin",
+                                                      radioButtons(NS(id, "datetime_or_timestamp"),
+                                                                   "Date / time column(s)",
+                                                                   choices = c("Date and time" = "date_time",
+                                                                               "Timestamp" = "timestamp"), 
+                                                                   inline = TRUE)
+                                                      )
+                     )
+    
+## Finalize widget list ----------------------------------------------------
+    
+    # Update CRS widget value
     updateSelectizeInput(session = session,
                          crs_records$widget,
                          choices = epsg,
                          selected = "4326",
                          server = TRUE)
-    
 
-## Create optional selecters ------------------------------------------------------
-    optional <- records_widgets |>
-      dplyr::filter(type == "records") |>
-      dplyr::filter(empty_allowed == TRUE)
-    optional_widgets <- create_widget_list(optional)
+    #  Append radio
+    records_widgets_w <- append(records_widgets_w, 
+                                radio,
+                                after = 2)
     
+    # Add date/datetime conditional panel
+    records_widgets_w[["date_col"]] <- conditionalPanel(condition = "input.datetime_or_timestamp == 'date_time'", 
+                                                        ns = NS(id),
+                                                        records_widgets_w[["date_col"]]
+                                                        )
+    records_widgets_w[["time_col"]] <- conditionalPanel(condition = "input.datetime_or_timestamp == 'date_time'", 
+                                                        ns = NS(id),
+                                                        records_widgets_w[["time_col"]]
+                                                        )
+    records_widgets_w[["timestamp_col"]] <- conditionalPanel(condition = "input.datetime_or_timestamp == 'timestamp'", 
+                                                             ns = NS(id),
+                                                             records_widgets_w[["timestamp_col"]]
+    )
+    
+    # Add cameras conditional panel
+    camera_records_widget <- records_widgets_with_crs |> 
+      filter(type == "cameras")
+    camera_records_widget <- camera_records_widget$widget
+    
+    records_widgets_w[camera_records_widget] <- lapply(records_widgets_w[camera_records_widget],
+                                                       function(e) {
+                                                         conditionalPanel(condition = "!input.import_cameras && output.records_extension !== 'json'",
+                                                                          ns = NS(id),
+                                                                          e)}
+                                                       )
 
-## Render UI elements ------------------------------------------------------
+    # Render UI
+    output$records_col <- renderUI(records_widgets_w)
     
-    output$mandatory_records_col <- renderUI(mandatory_widgets)
-    output$datetime_records_col <- renderUI(datetime_widgets)
-    output$timestamp_records_col <- renderUI(timestamp_widgets)
-    output$mandatory_widgets_cov_col_records <- renderUI(mandatory_widgets_cov)
-    output$optional_widgets_cov_col_records <- renderUI(optional_widgets_cov)
-    output$optional_records_col <- renderUI(optional_widgets)
-    
-
 # Create cameras widgets --------------------------------------------------
-    # We create the cameras selecters not all at once to control ordering
-    # in the UI
-
-## Create widgets ----------------------------------------------------------
-    mandatory_cam <- cameras_widgets |> 
-      dplyr::filter(empty_allowed == FALSE)
-    optional_cam <- cameras_widgets |> 
-      dplyr::filter(empty_allowed == TRUE)
     
-    mandatory_widgets_cam <- create_widget_list(mandatory_cam)
-    optional_widgets_cam <- create_widget_list(optional_cam)
+    # Create widgets
+    cameras_widths <- c(12, 
+                        6, 6,
+                        12,
+                        6, 6)
+    cameras_class <- c("nomargin",
+                       "nomarginleft", "nomarginright",
+                       "nomargin",
+                       "nomarginleft", "nomarginright")
+    cameras_widgets_w <- create_widget_list(cameras_widgets_with_crs,
+                                            width = cameras_widths,
+                                            class = cameras_class,
+                                            selectize = TRUE)
+    names(cameras_widgets_w) <- cameras_widgets_with_crs$widget
     
-    # Create CRS widget
-    output$ui_crs_col <- renderUI({
-      selectizeInput(NS(id, crs_cameras$widget), 
-                     label = htmltools::tags$span(crs_records$label,
-                                                  htmltools::tags$div(
-                                                    class = "mytooltip",
-                                                    icon("circle-info"),
-                                                    htmltools::tags$p(class = "mytooltiptext",
-                                                                      crs_records$details)
-                                                  )),
-                     choices = NULL,
-                     options = list(placeholder = 'Select a coordinate reference system'))
-    })
+    # Update CRS widget value
     updateSelectizeInput(session = session,
                          crs_cameras$widget, 
                          choices = epsg,
                          selected = "4326",
                          server = TRUE)
-
-## Render UI elements ------------------------------------------------------
-
-    output$mandatory_cameras_col <- renderUI(mandatory_widgets_cam)
-    output$optional_cameras_col <- renderUI(optional_widgets_cam)
+    # Render UI
+    output$cameras_col <- renderUI(cameras_widgets_w)
     
 # Read files --------------------------------------------------------------
 
