@@ -5,16 +5,16 @@
 selectUI <- function(id) {
   ns <- NS(id)
   tagList(
+    # Select values -----------------------------------------------------------
     column(width = 6,
+           class = "nomarginleft",
            h3("Species"),
-
-# Select values -----------------------------------------------------------
-
            select_values(prefix = NS(id, "spp"),
                          item = "species"),
            textOutput(NS(id, "species_list"))
            ),
     column(width = 6,
+           class = "nomarginright",
            h3("Cameras"),
            select_values(prefix = NS(id, "cam"),
                          item = "cameras"),

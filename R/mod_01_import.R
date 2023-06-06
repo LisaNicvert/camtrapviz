@@ -293,15 +293,9 @@ importServer <- function(id) {
     
 # Useful variables from widgets df ----------------------------------------
     
-    # Get widgets order (records)
+    # Save the complete df
     records_widgets_with_crs <- records_widgets
     cameras_widgets_with_crs <- cameras_widgets
-    
-    # Get CRS spec
-    crs_records <- records_widgets |>
-      filter(widget == "crs_col")
-    crs_cameras <- cameras_widgets |>
-      filter(widget == "crs_col_cov")
     
     # Get widgets that correspond to columns to choose in the data
     records_widgets <- records_widgets |>
@@ -333,8 +327,6 @@ importServer <- function(id) {
     cameras_to_update <- cameras_widgets
     cameras_to_update <- cameras_to_update$widget
     
-    
-
 # Define mappings for example datasets ------------------------------------
 
     example_mapping_records <- list(mica = get_example_mapping(records_widgets, 
@@ -396,7 +388,7 @@ importServer <- function(id) {
     
     # Update CRS widget value
     updateSelectizeInput(session = session,
-                         crs_records$widget,
+                         "crs_col",
                          choices = epsg,
                          selected = "4326",
                          server = TRUE)
@@ -454,7 +446,7 @@ importServer <- function(id) {
     
     # Update CRS widget value
     updateSelectizeInput(session = session,
-                         crs_cameras$widget, 
+                         "crs_col_cov", 
                          choices = epsg,
                          selected = "4326",
                          server = TRUE)
@@ -828,15 +820,15 @@ importServer <- function(id) {
     crs <- reactive({
       if (input$input_type == 1) { # Example file
         if(input$example_file == "mica") {
-          res <- crs_cameras[["mica"]]
+          res <- cameras_widgets_with_crs$mica[cameras_widgets_with_crs$widget == "crs_col_cov"]
         } else {
-          res <- crs_cameras[["recordTableSample"]]
+          res <- cameras_widgets_with_crs$recordTableSample[cameras_widgets_with_crs$widget == "crs_col_cov"]
         }
       } else if (input$input_type == 2) { # Manual import file
         if (input$import_cameras || records_extension() == "json") { # Import a camera file
-          res <- input[[crs_cameras$widget]]
+          res <- input[["crs_col_cov"]]
         } else { # Don't import a camera file
-          res <- input[[crs_records$widget]]
+          res <- input[["crs_col"]]
         }
       }
       return(as.numeric(res))

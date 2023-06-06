@@ -79,7 +79,7 @@ ui <- function() {
         tabItem(tabName = "summary",
                 fluidRow(
                   box(width = 12,
-                      h2("Survey summary"),
+                      h2("Data overview"),
                       htmltools::hr(),
                       summaryUI("summary"),
                   )
