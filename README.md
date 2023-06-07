@@ -58,6 +58,6 @@ vignette("summarize", package = "camtrapviz")
 
 The vignette `plots` exemplifies different plots.
 
-```{r}
+```r
 vignette("plots", package = "camtrapviz")
 ```

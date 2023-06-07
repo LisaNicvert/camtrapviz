@@ -1,5 +1,5 @@
 ---
-title: "plots"
+title: "Plots"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{plots}
@@ -14,12 +14,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, message=FALSE, results='hide'}
 library(camtrapviz)
 library(dplyr)
 ```
 
-This vignette demonstrates how this package can be used to plot camera trap data.
+This vignette demonstrates hogitw this package can be used to plot camera trap data.
 
 ## Import and prepare data
 

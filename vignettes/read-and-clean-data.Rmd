@@ -1,5 +1,5 @@
 ---
-title: "read-and-clean-data"
+title: "Read and clean data"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{read-and-clean-data}
