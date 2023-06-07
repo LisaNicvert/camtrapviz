@@ -8,45 +8,22 @@ selectUI <- function(id) {
     # Select values -----------------------------------------------------------
     column(width = 6,
            class = "nomarginleft",
-           h3("Species"),
            select_values(prefix = NS(id, "spp"),
                          item = "species"),
            textOutput(NS(id, "species_list"))
            ),
     column(width = 6,
            class = "nomarginright",
-           h3("Cameras"),
            select_values(prefix = NS(id, "cam"),
                          item = "cameras"),
            textOutput(NS(id, "cameras_list"))
            ),
-
-# Preview -----------------------------------------------------------------
-    column(width = 12,
-           h3("Filtered data preview"),
-           tabsetPanel(
-             tabPanel("Records",
-                      br(),
-                      column(width = 12,
-                             dataTableOutput(NS(id, "rec_filter_preview"))
-                             )
-                      ),
-             tabPanel("Cameras",
-                      br(),
-                      column(width = 12,
-                             dataTableOutput(NS(id, "cam_filter_preview"))
-                             )
-                      )
-             )
-           ),
-
+    
     # Show code ---------------------------------------------------------------
-      
-    column(width = 12,
-           actionButton(NS(id, "code_filter"), 
-                        "Show data filtering code", icon("code"),
-                        style = "margin-top: 25px; margin-bottom: 15px;")
-    )
+    actionButton(NS(id, "code_filter"), 
+                 "Show data filtering code", icon("code"),
+                 style = "margin-top: 25px; margin-bottom: 15px;")
+    
   )
 }
 
@@ -225,22 +202,6 @@ selectServer <- function(id,
         
       }, varname = "dat_filtered")
       
-      # Data preview ------------------------------------------------------------
-      output$rec_filter_preview <- renderDataTable({
-        DT::datatable(dat_filtered()$data$observations,
-                      filter = "none",
-                      selection = "none",
-                      options = list(scrollX = TRUE))
-        
-      })
-      
-      output$cam_filter_preview <- renderDataTable({
-        DT::datatable(dat_filtered()$data$deployments,
-                      filter = "none",
-                      selection = "none",
-                      options = list(scrollX = TRUE))
-      })
-      
       # Print code --------------------------------------------------------------
       
       observeEvent(input$code_filter, {
@@ -251,7 +212,6 @@ selectServer <- function(id,
       
       
       # Return values -----------------------------------------------------------
-      
       return(list(camtrap_data = dat_filtered))
     }
   )

@@ -6,7 +6,6 @@ onespeciesUI <- function(id) {
 
 # Choose species ----------------------------------------------------------
 
-    h3("Choose species"),
     fluidRow(column(width = 12,
                     selectInput(NS(id, "species"),
                                    label = "Choose species",

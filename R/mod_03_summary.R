@@ -42,6 +42,7 @@ summaryUI <- function(id) {
     h3("Camera activity"),
     outputCodeButton(girafeOutput(NS(id, "plot_occurrences"),
                                   height = "500px")),
+    br(),
 
 # Tables ------------------------------------------------------------------
     h3("Summary tables"),

@@ -5,7 +5,6 @@ importUI <- function(id) {
   ns <- NS(id)
   tagList(
     # Input type --------------------------------------------------------------
-    br(),
     radioButtons(NS(id, "input_type"),
                  label = "How to you want to import data?",
                  choices = list("Load example file" = 1,

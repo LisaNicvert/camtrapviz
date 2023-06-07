@@ -47,6 +47,11 @@ a {
  padding: 0 0 0 1em;
 }
 
+/* Button rounding */
+.btn {
+  border-radius: 4px;
+}
+
 /* Modules titles ------------------------------------------- */
 /* Main header (modules) */
 h2 {
@@ -59,6 +64,7 @@ h2 {
 /* Horizontal line */
 hr {
   margin-top: 5px;
+  margin-bottom: 40px;
   height: 3px;
   background-color: #006d77;
 }

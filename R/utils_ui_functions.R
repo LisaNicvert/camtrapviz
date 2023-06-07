@@ -64,34 +64,46 @@ select_values <- function(prefix, item) {
   
   tagList(
     radioButtons(paste(prefix, "manually", sep = "_"), 
-                 label = paste0("How to choose ", item, "?"), 
+                 label = paste("Choose", item), 
                  choices = c("Manually" = "manually",
-                             "Other column" = "other_col"), 
+                             "Based on other column" = "other_col"), 
                  inline = TRUE),
     # Here to access the value of the radioButtons we use another JS way to access a value
     # usually we use input.val but here we use input['val'] because of the modules namespace
     # that will modify prefix -> ns-prefix
+    conditionalPanel(condition = paste0("input['", prefix, "_manually'] == 'manually'"), 
+                     # Case we choose the item manually
+                     column(12,
+                            class = "nomargin",
+                            # Adjusted div to match default height of Shiny selectizeInput container
+                            div(style = "height:63.5px; margin-bottom:15px",
+                                shinyWidgets::pickerInput(paste(prefix, "select", sep = "_"),
+                                                          paste(gsub("(^[[:alpha:]])", 
+                                                                     "\\U\\1", item, perl = TRUE), # capitalize wird
+                                                                "list"), 
+                                                          multiple = TRUE,
+                                                          options = list(
+                                                            `actions-box` = TRUE,
+                                                            `dropup-auto` = FALSE),
+                                                          choices = NULL)
+                            )
+                            )
+    ),
     conditionalPanel(condition = paste0("input['", prefix, "_manually'] == 'other_col'"), 
+                     # Case we choose the item based on other column
                      column(width = 6,
+                            class = "nomarginleft",
                             selectizeInput(paste(prefix, "col", sep = "_"),
                                            "Choose a column", 
                                            choices = NULL)
                             ),
                      column(width = 6,
+                            class = "nomarginright",
                             selectizeInput(paste(prefix, "col_val", sep = "_"),
                                            "Which value(s)?", 
                                            multiple = TRUE,
                                            choices = NULL)
                             )
-                     ),
-    # column(width = 12,
-           shinyWidgets::pickerInput(paste(prefix, "select", sep = "_"),
-                                     paste("Select", item), 
-                          multiple = TRUE,
-                          options = list(
-                            `actions-box` = TRUE,
-                            `dropup-auto` = FALSE),
-                          choices = NULL)
-    # )
+                     )
   )
 }
