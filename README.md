@@ -2,7 +2,7 @@
 
 *This package is currently under development*
 
-`camtrapviz` is a R and Shiny package designed to make it easier to visualize and summarize camera trap data for which species have already been identified.
+`camtrapviz` is a R and Shiny package designed to make it easier to visualize and summarize camera trap data for which species have already been identified. The package website can be found at: <https://lisanicvert.github.io/camtrapviz/>.
 
 For the moment, this package allows to:
 
@@ -58,6 +58,6 @@ vignette("summarize", package = "camtrapviz")
 
 The vignette `plots` exemplifies different plots.
 
-```r
+``` r
 vignette("plots", package = "camtrapviz")
 ```

@@ -8,6 +8,13 @@
 \description{
 Compute and visualize common descriptors for camera trap data. A Shiny app allowing to do so interactively and without any code is also implemented.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://lisanicvert.github.io/camtrapviz/}
+}
+
+}
 \author{
 \strong{Maintainer}: Lisa Nicvert \email{lisa.nicvert@univ-lyon1.fr}
 

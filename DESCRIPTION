@@ -39,3 +39,4 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+URL: https://lisanicvert.github.io/camtrapviz/

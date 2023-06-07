@@ -2,6 +2,6 @@ rstudio
 .Rhistory
 .Rproj.user
 preliminary_tests/*
-docs/to_do_Shiny.ods
 inst/doc
-docs/.~*
+docs_misc/.~*
+docs

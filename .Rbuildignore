@@ -1,8 +1,12 @@
 ^LICENSE\.md$
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^docs$
+^docs_misc$
 ^preliminary_tests$
 ^rstudio$
 ^data-raw$
 ^www$
+^_pkgdown\.yml$
+^pkgdown$
+^\.github$
+^docs$
