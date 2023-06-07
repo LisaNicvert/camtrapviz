@@ -2,7 +2,7 @@
 title: "Plots"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{plots}
+  %\VignetteIndexEntry{Plots}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,7 +12,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
 ```{r setup, message=FALSE, results='hide'}
