@@ -35,7 +35,7 @@ ui <- function() {
     dashboardBody(
       htmltools::tags$head(
         # css_dep()
-        htmltools::includeCSS("www/theme.css")
+        htmltools::includeCSS("./www/theme.css")
       ),
       tabItems(
 
