@@ -16,7 +16,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Lisa Nicvert \email{lisa.nicvert@univ-lyon1.fr}
+\strong{Maintainer}: Lisa Nicvert \email{lisa.nicvert@univ-lyon1.fr} (\href{https://orcid.org/0009-0006-5763-0865}{ORCID})
 
 }
 \keyword{internal}

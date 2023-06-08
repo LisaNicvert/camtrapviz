@@ -8,6 +8,10 @@
 # Script Description: variables available in the Shiny app
 
 
+# Resource path -----------------------------------------------------------
+shiny::addResourcePath('www', 
+                       system.file('app/www', package = "camtrapviz"))
+
 # Widgets dataframes --------------------------------------------------------
 
 

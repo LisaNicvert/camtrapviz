@@ -5,7 +5,6 @@
 ^preliminary_tests$
 ^rstudio$
 ^data-raw$
-^www$
 ^_pkgdown\.yml$
 ^pkgdown$
 ^\.github$
