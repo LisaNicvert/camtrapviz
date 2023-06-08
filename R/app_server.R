@@ -6,7 +6,6 @@
 #' @param session Shiny session
 #'
 #' @return The server generating functions for Shiny
-#' @export
 server <- function(input, output, session) {
   
   # Import reactives --------------------------------------------------------

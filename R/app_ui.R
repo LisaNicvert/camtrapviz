@@ -1,8 +1,6 @@
 #' UI-generating function
 #'
 #' @return The UI (HTML code)
-#' 
-#' @export
 ui <- function() {
   dashboardPage(
     # title = "camtrapviz",
@@ -17,9 +15,9 @@ ui <- function() {
 
 # Sidebar -----------------------------------------------------------------
 
-      
+
       sidebarMenu(
-        menuItem("Data import", tabName = "dataimport", 
+        menuItem("Data import", tabName = "dataimport",
                  icon = icon("th-list")),
         menuItem("Select data", tabName = "selectdata",
                  icon = icon("filter")),
@@ -31,15 +29,19 @@ ui <- function() {
                  icon = icon("dice-one"))
       )
     ),
+
+# Body --------------------------------------------------------------------
+
     dashboardBody(
       htmltools::tags$head(
-        htmltools::includeCSS("www/theme.css")
+        css_dep()
+        # htmltools::includeCSS("./www/theme.css")
       ),
       tabItems(
 
 # Data import -------------------------------------------------------------
 
-        
+
         tabItem(tabName = "dataimport",
                 fluidRow(
                   box(width = 12,
@@ -98,7 +100,7 @@ ui <- function() {
                       column(width = 12,
                              align = "center",
                              style = "margin-top: 25px",
-                             downloadButton("download_script", 
+                             downloadButton("download_script",
                                             "Download script")
                              )
                       )
@@ -108,5 +110,4 @@ ui <- function() {
     ) # End dashboardBody
   ) # End dashboardPage
 }
-  
- 
+

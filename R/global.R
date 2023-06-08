@@ -9,8 +9,15 @@
 
 
 # Resource path -----------------------------------------------------------
-shiny::addResourcePath('www', 
-                       system.file('app/www', package = "camtrapviz"))
+css_dep <- function() {
+  htmltools::htmlDependency(
+    name = "css_dep",
+    version = utils::packageVersion("camtrapviz"),
+    package = "camtrapviz",
+    src = "./www",
+    stylesheet = "theme.css"
+  )
+}
 
 # Widgets dataframes --------------------------------------------------------
 
