@@ -26,11 +26,8 @@ Imports:
     tidyr,
     ggiraph,
     shinymeta,
-    styler,
     tibble,
     leaflet,
-    shinyAce,
-    rgdal,
     sf,
     shinyWidgets,
     htmltools,
@@ -41,3 +38,5 @@ Suggests:
     rmarkdown
 VignetteBuilder: knitr
 URL: https://lisanicvert.github.io/camtrapviz/
+Depends: 
+    R (>= 2.10)

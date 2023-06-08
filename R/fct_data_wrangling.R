@@ -145,7 +145,8 @@ summarize_cameras <- function(df, cam_col,
     # Create timestamp column
     camsum$timestamp <- paste(camsum[[date_col]],
                               camsum[[time_col]])
-    camsum$timestamp <- as.POSIXct(camsum$timestamp)
+    camsum$timestamp <- as.POSIXct(camsum$timestamp,
+                                   tz = "UTC")
     # Set timestamp_col to 'timestamp'
     timestamp_col <- "timestamp"
   }
@@ -181,7 +182,7 @@ summarize_cameras <- function(df, cam_col,
       
       # Cast to POSIX
       setup_df[[setup_col]] <- as.POSIXct(setup_df[[setup_col]],
-                                          tz = lubridate::tz(camsum$timestamp))
+                                          tz = lubridate::tz(camsum$setup))
       
       # Get indices to replace in camsum
       # We will replace all these indices because they are not null
@@ -199,6 +200,10 @@ summarize_cameras <- function(df, cam_col,
       # Get non-NA retrieval
       retrieval_df <- retrieval_df |>
         filter(!is.na(.data[[retrieval_col]]))
+      
+      # Cast to POSIX
+      retrieval_df[[retrieval_col]] <- as.POSIXct(retrieval_df[[retrieval_col]],
+                                                  tz = lubridate::tz(camsum$setup))
       
       # Get indices to replace in camsum
       # We will replace all these indices because they are not null
@@ -227,10 +232,10 @@ summarize_cameras <- function(df, cam_col,
   # if we did not filter out everything, recompute sampling_length
   if (nrow(camsum_sampling_time) != 0) {
     # Cast to character
-    camsum_sampling_time$setup <- as.character(camsum_sampling_time$setup, 
-                                               format = date_format)
-    camsum_sampling_time$retrieval <- as.character(camsum_sampling_time$retrieval, 
-                                                   format = date_format)
+    camsum_sampling_time$setup <- format(camsum_sampling_time$setup, 
+                                         format = date_format)
+    camsum_sampling_time$retrieval <- format(camsum_sampling_time$retrieval, 
+                                             format = date_format)
     
     mat <- camtrapR::cameraOperation(camsum_sampling_time,
                                      stationCol = cam_col,

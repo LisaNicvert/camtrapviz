@@ -34,18 +34,6 @@ ui <- function() {
     dashboardBody(
       htmltools::tags$head(
         htmltools::includeCSS("www/theme.css")
-        # htmltools::tags$link(rel = "stylesheet",
-        #                      type = "text/css", href = here("www/theme.css"))
-        
-        #   htmltools::tags$style(htmltools::HTML('.control-label{
-        #                                             color: blue;
-        #                                         }
-        #                                         p {
-        #                                           color:red;
-        #                                         }
-        #                                         '
-        #                                         )
-        #              )
       ),
       tabItems(
 

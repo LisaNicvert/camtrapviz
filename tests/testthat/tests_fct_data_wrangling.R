@@ -172,7 +172,8 @@ test_that("Summarize cameras with NA in setup/retrieval", {
                            cam_col_dfcam = "cameraID", 
                            setup_col = "Setup.Date")
   expected <- kga |> filter(cameraID == "KGA_A02") |> 
-    mutate(dtime = as.POSIXct(paste(eventDate, eventTime))) |>
+    mutate(dtime = as.POSIXct(paste(eventDate, eventTime),
+                              tz = "UTC")) |>
     summarise(mintime = min(dtime))
   expected <- expected$mintime
   
@@ -199,7 +200,8 @@ test_that("Summarize cameras with NA in setup/retrieval", {
                            dfcam = kga_cameras,
                            cam_col_dfcam = "cameraID", 
                            setup_col = "Setup.Date")
-  expected <- as.POSIXct(kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A02"])
+  expected <- as.POSIXct(kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A02"],
+                         tz = "UTC")
   expect_equal(res$setup[res$cameraID == "KGA_A02"], expected)
   expect_true(is.na(res$retrieval[res$cameraID == "KGA_A02"]))
   
@@ -214,13 +216,15 @@ test_that("Summarize cameras with NA in setup/retrieval", {
                            cam_col_dfcam = "cameraID", 
                            setup_col = "Setup.Date")
   expected <- kga_test2 |> filter(cameraID == "KGA_A03") |> 
-    mutate(dtime = as.POSIXct(paste(eventDate, eventTime))) |>
+    mutate(dtime = as.POSIXct(paste(eventDate, eventTime),
+                              tz = "UTC")) |>
     summarise(mintime = min(dtime),
               maxtime = max(dtime))
   expect_equal(res$setup[res$cameraID == "KGA_A03"], expected$mintime)
   expect_equal(res$retrieval[res$cameraID == "KGA_A03"], expected$maxtime)
   
-  expected <- as.POSIXct(kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A02"])
+  expected <- as.POSIXct(kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A02"],
+                         tz = "UTC")
   expect_equal(res$setup[res$cameraID == "KGA_A02"], expected)
   expect_true(is.na(res$retrieval[res$cameraID == "KGA_A02"]))
   

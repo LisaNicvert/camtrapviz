@@ -4,3 +4,4 @@ rstudio
 preliminary_tests/*
 inst/doc
 docs_misc/.~*
+tests/testthat/Rplots.pdf

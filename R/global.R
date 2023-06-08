@@ -167,9 +167,3 @@ cameras_widgets <- cameras_widgets |>
                                     "Setup_date", recordTableSample)) |>
   mutate(recordTableSample = ifelse(widget == "retrieval_col_cov", 
                                     "Retrieval_date", recordTableSample))
-
-# CRS formats -------------------------------------------------------------
-epsg_df <-rgdal::make_EPSG()
-
-epsg <- as.list(epsg_df$code)
-names(epsg) <- paste0(epsg_df$note, " (EPSG:", epsg ,")")
