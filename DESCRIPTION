@@ -1,7 +1,10 @@
 Package: camtrapviz
 Title: Vizualise Camera Trap Data
 Version: 0.0.0.9000
-Authors@R: person("Lisa", "Nicvert", email = "lisa.nicvert@univ-lyon1.fr", role = c("aut", "cre"))
+Authors@R: person("Lisa", "Nicvert", 
+                  email = "lisa.nicvert@univ-lyon1.fr", 
+                  role = c("aut", "cre"),
+                  comment = c(ORCID = "0009-0006-5763-0865"))
 Description: Compute and visualize common descriptors for camera trap data. A Shiny app allowing to do so interactively and without any code is also implemented.
 License: GPL (>= 2)
 Encoding: UTF-8
