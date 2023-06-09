@@ -7,6 +7,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+This vignette demonstrates how the functions included in this package can be used to read and clean different data formats.
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -18,8 +20,6 @@ knitr::opts_chunk$set(
 library(camtrapviz)
 # library(jsonlite)
 ```
-
-This vignette demonstrates how the functions included in this package can be used to read and clean different data formats.
 
 ## Write data in tempfile
 

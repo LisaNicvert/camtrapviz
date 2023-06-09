@@ -46,7 +46,7 @@ ui <- function() {
                   box(width = 12,
                       h2("Data import"),
                       htmltools::hr(),
-                      # tags$img(src='img/photo.png', 
+                      # tags$img(src='images/photo.png',
                       #          height = "30px",width = "30px"),
                       importUI("import")
                       )

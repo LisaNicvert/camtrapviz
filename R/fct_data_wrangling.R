@@ -699,10 +699,10 @@ time_to_circular <- function(time,
 #'
 #' @param time The time of the day (must be an object of class
 #' `times` from the `chron` package)
-#' @param k Number of mixxture components (number of modes
-#' in the final ditribution)
+#' @param k Number of mixture components (number of modes
+#' in the final distribution)
 #'
-#' @return A mixture moden of von Mises distributions of class
+#' @return A mixture model of von Mises distributions of class
 #' `movMF`.
 #' 
 #' @export
