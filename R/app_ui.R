@@ -8,7 +8,7 @@ ui <- function() {
       title = "Camtrapviz"
       # title = box(
       #   tags$p("Camtrapviz"),
-      #   tags$img(src='www/photo.png')
+      #   tags$img(src='img/photo.png', height = "20px",width = "20px")
       # )
       ),
     dashboardSidebar(
@@ -46,6 +46,8 @@ ui <- function() {
                   box(width = 12,
                       h2("Data import"),
                       htmltools::hr(),
+                      # tags$img(src='img/photo.png', 
+                      #          height = "30px",width = "30px"),
                       importUI("import")
                       )
                 )

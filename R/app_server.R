@@ -59,8 +59,9 @@ server <- function(input, output, session) {
     content = function(file) {
       ec <- shinymeta::newExpansionContext()
       shinymeta::buildRmdBundle(
-        "R/report.Rmd", 
-        file, 
+        report_template = system.file("Rmd/report.Rmd",
+                                      package = "camtrapviz"),
+        output_zip_path = file, 
         vars = list(data_cleaning = expandChain(invisible(import_val$camtrap_data()), 
                                                 .expansionContext = ec),
                     data_filtering = expandChain(invisible(select_val$camtrap_data()),
