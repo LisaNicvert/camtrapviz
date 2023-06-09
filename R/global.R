@@ -12,7 +12,7 @@
 
 css_dep <- function() {
   htmltools::htmlDependency(
-    name = "zzz_css_dep",
+    name = "css_dep",
     version = utils::packageVersion("camtrapviz"),
     package = "camtrapviz",
     src = "www",
