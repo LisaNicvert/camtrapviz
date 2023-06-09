@@ -9,12 +9,13 @@
 
 
 # Resource path -----------------------------------------------------------
+
 css_dep <- function() {
   htmltools::htmlDependency(
-    name = "css_dep",
+    name = "zzz_css_dep",
     version = utils::packageVersion("camtrapviz"),
     package = "camtrapviz",
-    src = "./www",
+    src = "www",
     stylesheet = "theme.css"
   )
 }
