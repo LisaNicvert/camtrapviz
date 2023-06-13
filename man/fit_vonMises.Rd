@@ -10,11 +10,11 @@ fit_vonMises(time, k)
 \item{time}{The time of the day (must be an object of class
 \code{times} from the \code{chron} package)}
 
-\item{k}{Number of mixxture components (number of modes
-in the final ditribution)}
+\item{k}{Number of mixture components (number of modes
+in the final distribution)}
 }
 \value{
-A mixture moden of von Mises distributions of class
+A mixture model of von Mises distributions of class
 \code{movMF}.
 }
 \description{

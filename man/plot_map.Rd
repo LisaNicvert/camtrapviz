@@ -9,6 +9,8 @@ plot_map(
   lat_col,
   lon_col,
   crs = 4326,
+  width = NULL,
+  height = NULL,
   cam_col,
   color = "black",
   highlight_color = "red",
@@ -28,6 +30,10 @@ column}
 
 \item{crs}{EPSG code for the coordinate reference system (CRS)
 Defaults to EPSG:4326, which is the code for WGS84 standard.}
+
+\item{width}{Map width}
+
+\item{height}{Map height}
 
 \item{cam_col}{Name of the camera name column}
 

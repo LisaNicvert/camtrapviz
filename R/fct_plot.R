@@ -26,6 +26,9 @@
 #' @param interactive Logical; make the plot interactive with `ggiraph`?
 #' @param cameras_list A character vector of all cameras that should appeat
 #' on the plot (optional)
+#' @param textsize Base text size for the axis text 
+#' (axes titles are 1.2 times bigger)
+#' @param ptsize Size for the points in the plot
 #'
 #' @details If `date_col` and `time_col` are provided along with
 #' `timestamp_col`, they will be ignored.
@@ -50,7 +53,9 @@ plot_points <- function(df,
                         cameras_list = NULL,
                         date_col = NULL,
                         time_col = NULL,
-                        interactive = TRUE) {
+                        interactive = TRUE,
+                        textsize = 10,
+                        ptsize = 1.5) {
   
   # Initialize plotting data
   dfp <- df
@@ -95,16 +100,18 @@ plot_points <- function(df,
                           data_id = .data[[camera_col]]
     )) +
       scale_y_discrete(drop = FALSE) +
-      geom_point_interactive(show.legend = FALSE)
+      geom_point_interactive(show.legend = FALSE, size = ptsize)
   } else {
     gg <- ggplot(dfp, aes(x = .data[[timestamp_col]], 
                           y = .data[[camera_col]],
                           col = .data[[spp_col]])) +
-      geom_point(show.legend = FALSE)
+      geom_point(show.legend = FALSE, size = ptsize)
   }
   
   gg <- gg +
     theme_linedraw() + 
+    theme(axis.text = element_text(size = textsize),
+          axis.title = element_text(size = textsize*1.2)) +
     xlab("Date") +
     ylab("Camera")
   
@@ -198,6 +205,8 @@ plot_species_bars <- function(df,
 #' so that the maximum corresponds to 300m, and radii smaller than
 #' 10 will be set to 10m. 
 #' @param label label to display when hovering over the map points
+#' @param width Map width
+#' @param height Map height
 #'
 #' @return a `leaflet` map representing cameras as points.
 #' If the CRS of the input data is different from EPSG:4326 (WGS84), 
@@ -217,6 +226,7 @@ plot_species_bars <- function(df,
 plot_map <- function(df, 
                      lat_col, lon_col, 
                      crs = 4326,
+                     width = NULL, height = NULL,
                      cam_col,
                      color = "black",
                      highlight_color = "red",
@@ -262,7 +272,8 @@ plot_map <- function(df,
     label <- df_sf[[cam_col]]
   }
   
-  leaflet(df_sf) |> 
+  leaflet(df_sf,
+          width = width, height = height) |> 
     addTiles() |> 
     addCircleMarkers(data = df_sf,
                label = label,

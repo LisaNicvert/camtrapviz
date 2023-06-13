@@ -12,7 +12,9 @@ plot_points(
   cameras_list = NULL,
   date_col = NULL,
   time_col = NULL,
-  interactive = TRUE
+  interactive = TRUE,
+  textsize = 10,
+  ptsize = 1.5
 )
 }
 \arguments{
@@ -38,6 +40,11 @@ to be of class \code{times} (else, results are not guaranteed).
 It can be \code{NULL} if \code{timestamp_col} is provided.}
 
 \item{interactive}{Logical; make the plot interactive with \code{ggiraph}?}
+
+\item{textsize}{Base text size for the axis text
+(axes titles are 1.2 times bigger)}
+
+\item{ptsize}{Size for the points in the plot}
 }
 \value{
 A \code{ggplot} object representing time on the x-axis
