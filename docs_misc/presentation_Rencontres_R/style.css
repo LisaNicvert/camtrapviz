@@ -1,0 +1,59 @@
+.title {
+  font-size: 45px !important;
+  text-align: left !important;
+  padding: 0 20px 0 20px !important;
+}
+
+.subtitle {
+  font-size: 30px !important;
+  text-align: left !important;
+  padding: 0 20px 0 20px !important;
+}
+
+.source {
+  color:grey !important;
+  font-size:0.5em;
+  font-style: italic;
+}
+
+.quarto-title-author-name {
+  font-size: 30px !important;
+  text-align: left !important;
+}
+
+.quarto-title-affiliation {
+  font-size: 20px !important;
+  text-align: left !important;
+}
+
+.headerl {
+  font-family: "Source Sans Pro", "Helvetica", "sans-serif";
+  width: 69.5%;
+  display: inline-block;
+  text-align: left;
+  z-index: -1;
+}
+
+.headerr {
+  font-family: "Source Sans Pro", "Helvetica", "sans-serif";
+  text-align: right;
+  display: inline-block;
+  width: 29.5%;
+  z-index: -1;
+}
+
+.topbar {
+  padding: 10px;
+  box-sizing: border-box;
+  position: absolute;
+  width: 100%;
+  z-index: -1;
+}
+
+.headerl #title-slide{
+  visibility: hidden;
+}
+
+.info-box {
+  margin: 0 !important;
+}
