@@ -20,9 +20,12 @@ selectUI <- function(id) {
            ),
     
     # Show code ---------------------------------------------------------------
-    actionButton(NS(id, "code_filter"), 
-                 "Show data filtering code", icon("code"),
-                 style = "margin-top: 25px; margin-bottom: 15px;")
+    column(width = 12,
+           class = "nomargin",
+           actionButton(NS(id, "code_filter"), 
+                        "Show data filtering code", icon("code"),
+                        style = "margin-top: 25px; margin-bottom: 15px;")
+    )
     
   )
 }
