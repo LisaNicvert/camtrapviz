@@ -1,23 +1,28 @@
+/* Title slide ------------------------------ */
 .title {
-  font-size: 45px !important;
+  font-size: 65px !important;
   text-align: left !important;
-  padding: 0 20px 0 20px !important;
+  margin-bottom: 30px !important;
+  /* padding: 0 20px 0 20px !important; */
 }
 
-.subtitle {
-  font-size: 30px !important;
-  text-align: left !important;
-  padding: 0 20px 0 20px !important;
+#title-slide {
+  height: 699px !important;
 }
 
-.source {
-  color:grey !important;
-  font-size:0.5em;
-  font-style: italic;
+.quarto-title-authors {
+  display: block !important;
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+.quarto-title-author {
+  padding: 0 !important;
+  width: 38%;
 }
 
 .quarto-title-author-name {
-  font-size: 30px !important;
+  font-size: 35px !important;
   text-align: left !important;
 }
 
@@ -26,34 +31,72 @@
   text-align: left !important;
 }
 
-.headerl {
-  font-family: "Source Sans Pro", "Helvetica", "sans-serif";
-  width: 69.5%;
-  display: inline-block;
-  text-align: left;
-  z-index: -1;
+.subtitle {
+  font-size: 35px !important;
+  text-align: left !important;
+  position: absolute !important;
+  bottom:0 !important;
+  width: 100% !important;
+  text-align: center !important;
+  margin: 0 !important;
+  /* padding: 0 20px 0 20px !important; */
 }
 
-.headerr {
-  font-family: "Source Sans Pro", "Helvetica", "sans-serif";
-  text-align: right;
-  display: inline-block;
-  width: 29.5%;
-  z-index: -1;
-}
+/* Content ------------------------------ */
 
-.topbar {
-  padding: 10px;
-  box-sizing: border-box;
-  position: absolute;
-  width: 100%;
-  z-index: -1;
-}
-
-.headerl #title-slide{
-  visibility: hidden;
+.source {
+  position: absolute !important;
+  bottom: 45px !important; /* 35 + 10 (no diapo) */
+  padding: 5px !important;
+  left: 0 !important;
+  color:grey !important;
+  font-size: 24px;
 }
 
 .info-box {
   margin: 0 !important;
+}
+
+figcaption {
+  margin-top: 0 !important;
+  text-align: center !important;
+}
+
+.small {
+  font-size: 0.5em;
+}
+
+.slide-number {
+  font-size: 25px !important;
+}
+
+
+table {
+  margin-bottom: 30px !important;
+  display:block !important;
+}
+
+table caption{
+  text-align: left;
+  font-size: 1.2em;
+}
+
+.logo {
+  height: 70px !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+
+.namelogo {
+  margin-left: -15px !important;
+  color: black !important;
+}
+
+.quarto-figure {
+  margin-bottom: 0 !important;
+}
+
+#arrow {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }
