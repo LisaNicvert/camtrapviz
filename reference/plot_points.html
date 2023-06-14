@@ -24,6 +24,7 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/activity-patterns.html">Activity patterns</a>
     <a class="dropdown-item" href="../articles/plots.html">Plots</a>
     <a class="dropdown-item" href="../articles/read-and-clean-data.html">Read and clean data</a>
     <a class="dropdown-item" href="../articles/summarize.html">Summarize</a>
@@ -58,7 +59,9 @@
 <span>  cameras_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  date_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  interactive <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  interactive <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  textsize <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  ptsize <span class="op">=</span> <span class="fl">1.5</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -101,6 +104,15 @@ It can be <code>NULL</code> if <code>timestamp_col</code> is provided.</p></dd>
 
 <dt>interactive</dt>
 <dd><p>Logical; make the plot interactive with <code>ggiraph</code>?</p></dd>
+
+
+<dt>textsize</dt>
+<dd><p>Base text size for the axis text
+(axes titles are 1.2 times bigger)</p></dd>
+
+
+<dt>ptsize</dt>
+<dd><p>Size for the points in the plot</p></dd>
 
 </dl></div>
     <div class="section level2">
