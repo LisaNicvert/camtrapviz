@@ -1,7 +1,7 @@
 ---
 title: "Camtrapviz, une interface Shiny pour visualiser les données de pièges photographiques"
 lang: fr 
-subtitle: "23 juin 2023 -- Rencontres R, Avignon"
+subtitle: "21 juin 2023 -- Rencontres R, Avignon"
 title-slide-attributes:
     data-background-image: "img/steenbok_kga.png"
     data-background-color: "black"
@@ -42,7 +42,7 @@ editor: visual
 # include-in-header: header.html
 ```
 
-## Pièges photos (camera traps)
+## Pièges photos (camtraps)
 
 ::: columns
 ::: {.column width="38%"}
@@ -215,29 +215,13 @@ ggplot(d_vm) +
 
 ## Camtrapviz, c'est une app Shiny
 
-::: {layout-ncol="3"}
+::: {layout-ncol="2"}
 ![](img/data_import.png){fig-align="center" width="90%"}
-
-![](img/select_data.png){fig-align="center"}
 
 ![](img/one_species.png){fig-align="center" width="90%"}
 :::
 
-## Camtrapviz, c'est aussi un package
-
--   Utilisation en dehors de l'interface Shiny
-
--   Installation facile
-
--   Documentation
-
-::: {style="height: 300px; display: flex; align-items: center; justify-content: center;"}
-![](img/open-box.png){style="align:center;" width="300"}
-:::
-
-[Icône de package : juicy_fish - Flaticon](https://www.flaticon.com/free-icons/gift){.source}
-
-## Exporter le code depuis l'interface
+## Exporter le code depuis l'app Shiny
 
 Le package `Shinymeta` permet de générer le code R pour reproduire l'analyse Shiny
 
@@ -277,6 +261,20 @@ shiny::actionButton("download",
 :::
 
 [Icône d'interface : Freepik - Flaticon](https://www.flaticon.com/free-icons/interface){.source}
+
+## Camtrapviz, c'est aussi un package
+
+-   Utilisation en dehors de l'interface Shiny
+
+-   Installation facile
+
+-   Documentation
+
+::: {style="height: 300px; display: flex; align-items: center; justify-content: center;"}
+![](img/open-box.png){style="align:center;" width="300"}
+:::
+
+[Icône de package : juicy_fish - Flaticon](https://www.flaticon.com/free-icons/gift){.source}
 
 ## Pourquoi cette app ?
 
