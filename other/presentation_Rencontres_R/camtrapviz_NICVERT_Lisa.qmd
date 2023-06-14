@@ -1,0 +1,309 @@
+---
+title: "Camtrapviz, une interface Shiny pour visualiser les données de pièges photographiques"
+lang: fr 
+subtitle: "23 juin 2023 -- Rencontres R, Avignon"
+title-slide-attributes:
+    data-background-image: "img/steenbok_kga.png"
+    data-background-color: "black"
+center-title-slide: false
+author: 
+  - name: Lisa Nicvert
+    attributes:
+      corresponding: true
+    affiliations:
+      - ref: LBBE
+  - name: Stéphane Dray
+    affiliations:
+      - ref: LBBE
+  - name: Hervé Fritz
+    affiliations:
+      - ref: REHABS
+      - ref: SRU
+affiliations: 
+  - id: LBBE
+    name: "Laboratoire de Biométrie et Biologie Évolutive, Villeurbanne (France)"
+  - id: REHABS
+    name: REHABS International Research Laboratory, George (Afrique du Sud)
+  - id: SRU
+    name: Sustainability Research Unit, George (Afrique du Sud)
+format: 
+  revealjs:
+    menu: false
+    slide-number: c
+    show-slide-number: all
+    embed-resources: true
+    highlight-style: github-dark
+css: style.css
+engine: knitr
+editor: visual
+---
+
+```{r, echo = FALSE, include=FALSE}
+# include-in-header: header.html
+```
+
+## Pièges photos (camera traps)
+
+::: columns
+::: {.column width="38%"}
+![Piège photo sur le terrain](img/camtrap.JPG){fig-align="center" width="100%"}
+:::
+
+::: {.column width="58%"}
+-   Appareils photos à déclenchement automatique
+
+-   Savoir quelles espèces sont présentes, quand et où
+
+::: {style="margin-top:-12px;"}
+```{r, echo = FALSE}
+#| fig-height: 4
+#| fig-align: center
+#| fig-cap: Déploiement de pièges photos
+
+library(osmdata)
+library(sf)
+library(ggplot2)
+
+df <- data.frame(camera = c("CAM1", "CAM2", "CAM3", "CAM4", "CAM5", "CAM6", "CAM7"),
+                 y = c(43.950081465388585, 43.946059924977085, 43.94465155102897, 43.94815644688126, 43.95025381375583, 43.947599972351384, 43.951992669189345),
+                 x = c(4.805660436864711, 4.812026521857088, 4.806330012251259, 4.810211472373779, 4.815946815376822, 4.802491001212102, 4.810184964209477))
+df_sf <- sf::st_as_sf(df, 
+                      coords = c("x", "y"),
+                      crs = 4326)
+
+coords <- matrix(c(4.79, 4.825, 43.94123246419298, 43.95496633866567), 
+                 byrow = TRUE, 
+                 nrow = 2, ncol = 2, 
+                 dimnames = list(c('x','y'), c('min','max'))) 
+location <- coords |> opq()
+
+water <- location %>%
+   add_osm_feature(key = "natural", 
+                   value = c("water")) %>%
+   osmdata_sf()
+trees <- location %>%
+   add_osm_feature(key = "natural", 
+                   value = c("wood")) %>% osmdata_sf()
+
+ggplot(df_sf) +
+  geom_sf(data = trees$osm_polygons,
+          fill = 'chartreuse4') +
+  geom_sf(data = water$osm_multipolygons, 
+          fill = 'lightblue') +
+  geom_sf(data = df_sf, 
+          size =  4) +
+  geom_sf_text(data = df_sf, 
+               size = 8,
+               aes(label = camera), 
+               hjust = -0.2) +
+  coord_sf(xlim = c(coords[1], coords[1,2]),
+           ylim = c(coords[2], coords[2,2]), 
+           expand = FALSE) +
+  theme_void() +
+  theme(panel.background = element_rect(fill = '#c0e59f'))
+```
+:::
+:::
+:::
+
+[Photo : Karoo NP, Lisa Nicvert \| Fond de carte : © contributeurs OpenStreetMap]{.source}
+
+## Données
+
+Photos → données tabulées :
+
+::: {style="font-size: 0.7em; align-items:left; text-align:left;"}
+| Espèce   | Date       | Heure    | Piège photo | ... |
+|----------|------------|----------|-------------|-----|
+| elephant | 2023-21-06 | 14:57:12 | CAM1        |     |
+| elephant | 2023-24-06 | 06:06:42 | CAM2        |     |
+| gnou     | 2023-24-06 | 07:42:11 | CAM1        |     |
+
+: **Observations**
+
+| Piège photo | Latitude | Longitude | ... |
+|-------------|----------|-----------|-----|
+| CAM1        | 43.9790  | 4.8909    |     |
+| CAM2        | 43.9500  | 4.8159    |     |
+| CAM3        | 43.9521  | 4.8074    |     |
+
+: **Pièges photos**
+:::
+
+## Analyses
+
+-   **Indicateurs descriptifs :** nombre de pièges photos actifs
+
+-   **Graphiques :** cartes
+
+-   **Analyses spécifiques aux pièges photos :** activité temporelle des espèces
+
+::: {layout="[10, -1, 12, -1, 12]" layout-valign="center"}
+```{r}
+# Get dependencies
+library(shinydashboard)
+dashboard_ui <- dashboardPage(
+  dashboardHeader(),
+  dashboardSidebar(),
+  dashboardBody()
+)
+dashboard_dep <- htmltools::findDependencies(dashboard_ui)
+
+my_dashboard_box <- function() {
+  htmltools::tagList(
+    shinydashboard::infoBox("Trapping nights", 
+                            icon = shiny::icon("clock"),
+                            color = 'fuchsia',
+                            fill = TRUE,
+                            value = 55,
+                            width = 12), 
+    dashboard_dep)
+}
+
+my_dashboard_box()
+```
+
+```{r, echo = FALSE, out.width = '300px', out.height='230px'}
+library(camtrapviz)
+
+plot_map(df_sf, 
+         cam_col = "camera",
+         lat_col = "y", 
+         lon_col = "x", 
+         circle_radii = 5) 
+```
+
+```{r, echo = FALSE, fig.width=6, fig.height=4}
+library(camtrapviz)
+library(ggplot2)
+
+dat <- read.csv("https://raw.githubusercontent.com/LisaNicvert/camtrapHawkes/main/data/camtrap_data/data.csv")
+
+# Convert hours to times format
+dat$eventTime <- chron::times(dat$eventTime)
+
+# Select the desired species
+impala_records <- dat[dat$snapshotName == "impala", ]
+
+# Fit distribution
+vm <- fit_vonMises(impala_records$eventTime, k = 3)
+d_vm <- vonMises_density(vm)
+
+impala_plot <- impala_records
+impala_plot$eventTime <- as.numeric(impala_plot$eventTime) * 24
+
+ggplot(d_vm) +
+        geom_histogram(data = impala_plot, 
+                       aes(x = eventTime,
+                           y = after_stat(density)),
+                       binwidth = 1,
+                       alpha = 0.7) +
+        geom_line(aes(x = x, y = density), 
+                  linewidth = 1.2) +
+        scale_x_continuous(breaks = seq(0, 24, by = 4)) +
+  xlab("Heure de la journée") +
+  ylab("Densité") +
+  theme_linedraw() +
+  theme(axis.text = element_text(size = 18),
+        axis.title = element_text(size = 18*1.2))
+```
+:::
+
+## Camtrapviz, c'est une app Shiny
+
+![](img/camtrapviz_menu.png){fig-align="center"}
+
+## Camtrapviz, c'est une app Shiny
+
+::: {layout-ncol="3"}
+![](img/data_import.png){fig-align="center" width="90%"}
+
+![](img/select_data.png){fig-align="center"}
+
+![](img/one_species.png){fig-align="center" width="90%"}
+:::
+
+## Camtrapviz, c'est aussi un package
+
+-   Utilisation en dehors de l'interface Shiny
+
+-   Installation facile
+
+-   Documentation
+
+::: {style="height: 300px; display: flex; align-items: center; justify-content: center;"}
+![](img/open-box.png){style="align:center;" width="300"}
+:::
+
+[Icône de package : juicy_fish - Flaticon](https://www.flaticon.com/free-icons/gift){.source}
+
+## Exporter le code depuis l'interface
+
+Le package `Shinymeta` permet de générer le code R pour reproduire l'analyse Shiny
+
+::: columns
+::: {.column style="text-align:center; width:60%; margin-bottom:20px;"}
+```{r}
+#| fig-align: center
+shiny::actionButton("button", 
+                    "Show data cleaning code",
+                    shiny::icon("code"),
+                    style = "padding: 10px; font-size:24px; border-radius:4px;")
+```
+:::
+
+::: {.column style="text-align:center; width:40%; margin-bottom:20px;"}
+```{r}
+shiny::actionButton("download", 
+                    "Download script",
+                    shiny::icon("download"),
+                    style = "padding: 10px; font-size:24px; border-radius:4px;")
+```
+:::
+:::
+
+::: columns
+::: {.column style="display:inline-block; width:60%;"}
+![](img/data_cleaning_code.png){width="100%"}
+:::
+
+::: {.column style="display:inline-block; margin-top:12px; width:40%;"}
+![](img/web-interface.png){width="110" fig-align="center"}
+
+![](img/down-arrow.png){#arrow fig-align="center" width="60"}
+
+![](img/rmd-logo.png){width="110" fig-align="center"}
+:::
+:::
+
+[Icône d'interface : Freepik - Flaticon](https://www.flaticon.com/free-icons/interface){.source}
+
+## Pourquoi cette app ?
+
+-   Visualiser facilement les données de pièges photos
+
+-   En s'appuyant sur l'écosystème R en écologie
+
+![](img/R_Allison_Horst.png){fig-align="center" height="400"}
+
+[Dessin : Allison Horst](https://allisonhorst.com/everything-else){.source}
+
+## Merci !
+
+Code disponible sur GitHub: <https://github.com/LisaNicvert/camtrapviz>
+
+![](img/QR_code.png){fig-align="center" height="350"}
+
+::: {layout-ncol="4" layout-valign="center" style="position: absolute; bottom: 55px; left:176.2085px;"}
+![](img/github-mark.png){.logo}
+
+[LisaNicvert](https://github.com/LisaNicvert){.namelogo style="margin-right: 50px;"}
+
+![](img/twitter.png){.logo}
+
+[\@lisanicvert](https://twitter.com/lisanicvert){.namelogo}
+:::
+
+[Photo : steenbok (Snapshot Safari, modifié par Lisa Nicvert)]{.source}
+
+![](img/steenbok_kga_detoure.png){style="position:absolute; bottom:20px; right:-40px; width:220px;"}

@@ -1,7 +1,7 @@
 ^LICENSE\.md$
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^docs_misc$
+^other$
 ^preliminary_tests$
 ^rstudio$
 ^data-raw$

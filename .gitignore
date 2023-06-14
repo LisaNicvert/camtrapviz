@@ -3,6 +3,6 @@ rstudio
 .Rproj.user
 preliminary_tests/*
 inst/doc
-docs_misc/.~*
+other/.~*
 tests/testthat/Rplots.pdf
 www/
