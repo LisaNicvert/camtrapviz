@@ -37,8 +37,12 @@ summaryUI <- function(id) {
 
     # textOutput(NS(id, "sel")),
     h3("Map"),
-    outputCodeButton(leafletOutput(NS(id, "plot_map"),
-                                   height = "500px")),
+    outputCodeButton(tagList(
+      checkboxInput(NS(id, "display_camnames"), 
+                    label = "Show camera names on map"),
+      leafletOutput(NS(id, "plot_map"),
+                    height = "500px")
+    )),
     h3("Camera activity"),
     outputCodeButton(girafeOutput(NS(id, "plot_occurrences"),
                                   height = "500px")),
@@ -235,6 +239,7 @@ summaryServer <- function(id,
                lon_col = ..(unname(mapping_cameras()$lon_col)),
                crs = ..(crs()),
                cam_col = ..(cam_col_cam()),
+               display_camnames = ..(input$display_camnames),
                color = "black")
     })
     

@@ -8,6 +8,8 @@ plot_map(
   df,
   lat_col,
   lon_col,
+  popup = NULL,
+  display_camnames = FALSE,
   crs = 4326,
   width = NULL,
   height = NULL,
@@ -16,7 +18,7 @@ plot_map(
   highlight_color = "red",
   circle_radii = 3,
   rescale = FALSE,
-  label
+  label = NULL
 )
 }
 \arguments{
@@ -27,6 +29,12 @@ column}
 
 \item{lon_col}{Name of the longitude (or the projected y-coordinate)
 column}
+
+\item{popup}{A vector of characters to display in the popup for
+each camera. It must have the same length as the number of cameras
+in df and it must be ordered in the same way as the cameras in df.}
+
+\item{display_camnames}{Display camera names on the map?}
 
 \item{crs}{EPSG code for the coordinate reference system (CRS)
 Defaults to EPSG:4326, which is the code for WGS84 standard.}

@@ -207,6 +207,10 @@ plot_species_bars <- function(df,
 #' @param label label to display when hovering over the map points
 #' @param width Map width
 #' @param height Map height
+#' @param popup A vector of characters to display in the popup for 
+#' each camera. It must have the same length as the number of cameras
+#' in df and it must be ordered in the same way as the cameras in df.
+#' @param display_camnames Display camera names on the map?
 #'
 #' @return a `leaflet` map representing cameras as points.
 #' If the CRS of the input data is different from EPSG:4326 (WGS84), 
@@ -225,6 +229,8 @@ plot_species_bars <- function(df,
 #'          cam_col = "Station")
 plot_map <- function(df, 
                      lat_col, lon_col, 
+                     popup = NULL,
+                     display_camnames = FALSE,
                      crs = 4326,
                      width = NULL, height = NULL,
                      cam_col,
@@ -232,7 +238,7 @@ plot_map <- function(df,
                      highlight_color = "red",
                      circle_radii = 3,
                      rescale = FALSE,
-                     label) {
+                     label = NULL) {
   
   if(!is.null(crs)) { # Specify the CRS
     df_sf <- sf::st_as_sf(df, 
@@ -268,22 +274,48 @@ plot_map <- function(df,
     # circle_radii[circle_radii < 3] <- 3 # Set min to 3
   }
   
-  if (missing(label)) {
+  if (is.null(label)) {
     label <- df_sf[[cam_col]]
   }
   
-  leaflet(df_sf,
-          width = width, height = height) |> 
+  if (is.null(popup)) {
+    popup = paste0("Camera: ", df_sf[[cam_col]])
+  }
+  
+  if (display_camnames) {
+    label_pt <- popup
+    labeldir_pt <- "left"
+  } else {
+    label_pt <- label
+    labeldir_pt <- "auto"
+  }
+  
+  
+  lmap <- leaflet(df_sf,
+                  width = width, height = height) |> 
     addTiles() |> 
     addCircleMarkers(data = df_sf,
-               label = label,
+               label = label_pt,
                layerId = df_sf[[cam_col]],
-               popup = paste0("Camera: ", df_sf[[cam_col]]),
+               popup = popup,
                stroke = FALSE,
                fillOpacity = 0.8,
                fillColor = color,
-               radius = circle_radii
+               radius = circle_radii,
+               labelOptions = labelOptions(direction = labeldir_pt)
                # highlightOptions = highlightOptions(fillColor = highlight_color,
                #                                     color = highlight_color)
                )
+  
+  if (display_camnames) {
+    lmap <- lmap |> 
+      addLabelOnlyMarkers(data = df_sf,
+                          label = df_sf[[cam_col]],
+                          labelOptions = labelOptions(noHide = TRUE, 
+                                                      direction = 'right', 
+                                                      offset =  c(6, 0),
+                                                      textOnly = TRUE))
+  }
+  
+  lmap
 }

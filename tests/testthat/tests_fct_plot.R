@@ -121,6 +121,27 @@ test_that("Plot map (labels)", {
            label = labels)
 })
 
+test_that("Plot map (labels displayed on map)", {
+  
+  # Unnamed labels ---
+  labels <- c("AAA", "BBB", "CCC")
+  plot_map(camtraps,
+           lat_col = "utm_y",
+           lon_col = "utm_x",
+           crs = 32650, # Here we use the EPSG code for UTM zone 50N
+           cam_col = "Station",
+           label = labels,
+           display_camnames = TRUE)
+  
+  # Default labels ---
+  plot_map(camtraps,
+           lat_col = "utm_y",
+           lon_col = "utm_x",
+           crs = 32650, # Here we use the EPSG code for UTM zone 50N
+           cam_col = "Station",
+           display_camnames = TRUE)
+})
+
 test_that("Plot density", {
   # Prepare test data ---
   testdat <- kga |> dplyr::select(snapshotName, eventTime) |> 
