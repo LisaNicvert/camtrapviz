@@ -243,28 +243,60 @@ summaryServer <- function(id,
                color = "black")
     })
     
-    # Girafe observer
-    observeEvent(input$plot_occurrences_selected, {
-      clicked_point <- input$plot_occurrences_selected
+    # Modify leaflet map
+    observe({
+      validate(need(selected_camera(), "Waiting to select a camera"))
+      validate(need(output$plot_map, "Wait for the plot"))
       
-      camdf <- camtrap_data()$data$deployments
-      lat <- camdf[[mapping_cameras()$lat_col]][camdf[[mapping_cameras()$cam_col]] == clicked_point]
-      lon <- camdf[[mapping_cameras()$lon_col]][camdf[[mapping_cameras()$cam_col]] == clicked_point]
+      df_cam <- camtrap_data()$data$deployments
+      
+      color <- rep("black", nrow(df_cam))
 
-      leafletProxy(mapId = "plot_map", session) |> 
-        removeMarker(layerId = clicked_point) |>
-        addCircleMarkers(lng = lon,
-                         lat = lat,
-                         layerId = clicked_point,
-                         options = popupOptions(closeButton = FALSE),
-                         color = "red")
+      if(!is.null(selected_camera())) {
+        color[df_cam[[mapping_cameras()$cam_col]] == selected_camera()] <- "red"
+      }
+      
+      update_map(map_id = "plot_map",
+                 session = session,
+                 df_cam, 
+                 lat_col = mapping_cameras()$lat_col,
+                 lon_col = mapping_cameras()$lon_col,
+                 crs = crs(),
+                 cam_col = cam_col_cam(),
+                 display_camnames = input$display_camnames,
+                 color = color)
+      
     })
+    
+    # Modify ggiraph selection
+    observe({
+      # cat("Modify ggiraph -------------- \n")
+      modif <- ifelse(selected_camera() %in% unique(camtrap_data()$data$observations[[mapping_records()$cam_col]]),
+                      selected_camera(), character(0))
+      # cat(modif)
+      # cat("\n")
+      session$sendCustomMessage(type = NS(id, 'plot_occurences_set'), 
+                                message = modif)
+    })
+    
+    selected_camera <- reactiveVal()
+    
+    observeEvent(input$plot_occurrences_selected, {
+      selected_camera(input$plot_occurrences_selected)
+    })
+    observeEvent(input$plot_map_marker_click, {
+      selected_camera(input$plot_map_marker_click$id)
+    })
+    observeEvent(input$plot_map_click, {
+      selected_camera(NULL)
+    })
+    
     
     # For debugging
     output$sel <- renderText({
-      paste(paste("Leaflet:", paste(input$plot_map_shape_click, collapse = ", ")),
-            paste("Girafe:", input$plot_occurrences_selected)
-            )
+      paste(paste("selected_camera", selected_camera()),
+            paste("Leaflet:", paste(input$plot_map_marker_click$id, collapse = ", ")),
+            paste("Girafe:", input$plot_occurrences_selected)            )
     })
 
     

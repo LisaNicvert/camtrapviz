@@ -75,7 +75,7 @@ test_that("Plot map (radii)", {
            lon_col = "utm_x",
            crs = 32650, # Here we use the EPSG code for UTM zone 50N
            cam_col = "Station",
-           circle_radii = radii,
+           radius = radii,
            rescale = TRUE)
   
   # Don't rescale
@@ -84,7 +84,7 @@ test_that("Plot map (radii)", {
            lon_col = "utm_x",
            crs = 32650, # Here we use the EPSG code for UTM zone 50N
            cam_col = "Station",
-           circle_radii = radii)
+           radius = radii)
   
   # Named radii ---
   
@@ -95,7 +95,7 @@ test_that("Plot map (radii)", {
            lon_col = "utm_x",
            crs = 32650, # Here we use the EPSG code for UTM zone 50N
            cam_col = "Station",
-           circle_radii = radii,
+           radius = radii,
            rescale = TRUE)
   
   # Not all radii
@@ -105,8 +105,32 @@ test_that("Plot map (radii)", {
            lon_col = "utm_x",
            crs = 32650, # Here we use the EPSG code for UTM zone 50N
            cam_col = "Station",
-           circle_radii = radii,
+           radius = radii,
            rescale = FALSE)
+})
+
+test_that("Plot map (colors)", {
+  
+  # Color vector ---
+  cols <- c("red", "blue", "yellow")
+  plot_map(camtraps,
+           lat_col = "utm_y",
+           lon_col = "utm_x",
+           crs = 32650, # Here we use the EPSG code for UTM zone 50N
+           cam_col = "Station",
+           color = cols)
+  
+  # With NA radius ---
+  cols <- c("red", "blue", "yellow")
+  radius <- c(NA, 4, 4)
+  plot_map(camtraps,
+           lat_col = "utm_y",
+           lon_col = "utm_x",
+           crs = 32650, # Here we use the EPSG code for UTM zone 50N
+           cam_col = "Station",
+           color = cols, 
+           radius = radius)
+  
 })
 
 test_that("Plot map (labels)", {

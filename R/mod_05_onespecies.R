@@ -260,7 +260,7 @@ onespeciesServer <- function(id,
                lon_col = ..(unname(mapping_cameras()$lon_col)),
                crs = ..(crs()),
                cam_col = ..(cam_col_cam()),
-               circle_radii = abundance,
+               radius = abundance,
                color = "black",
                label = labels,
                rescale = TRUE)

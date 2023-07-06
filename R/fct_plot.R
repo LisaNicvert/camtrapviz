@@ -101,6 +101,7 @@ plot_points <- function(df,
     )) +
       scale_y_discrete(drop = FALSE) +
       geom_point_interactive(show.legend = FALSE, size = ptsize)
+      
   } else {
     gg <- ggplot(dfp, aes(x = .data[[timestamp_col]], 
                           y = .data[[camera_col]],
@@ -197,9 +198,9 @@ plot_species_bars <- function(df,
 #' @param crs EPSG code for the coordinate reference system (CRS)
 #' Defaults to EPSG:4326, which is the code for WGS84 standard.
 #' @param cam_col Name of the camera name column
-#' @param color color for the points
-#' @param highlight_color color to use when hovering over a point
-#' @param circle_radii A named vector of radii tu use for the cirles. Names
+#' @param color color for the points (can be a unique value or a character vector,
+#' in the same order as the rows of df)
+#' @param radius A named vector of radii tu use for the cirles. Names
 #' correspond to camera names.
 #' @param rescale rescale circles? If `TRUE`, radii will be linearly resized 
 #' so that the maximum corresponds to 300m, and radii smaller than
@@ -235,10 +236,15 @@ plot_map <- function(df,
                      width = NULL, height = NULL,
                      cam_col,
                      color = "black",
-                     highlight_color = "red",
-                     circle_radii = 3,
+                     radius = 3,
                      rescale = FALSE,
                      label = NULL) {
+  
+  if (length(color) != 1) {
+    if (length(color) != nrow(df)) {
+      stop("color must be either the same length as df or of length one")
+    }
+  }
   
   if(!is.null(crs)) { # Specify the CRS
     df_sf <- sf::st_as_sf(df, 
@@ -251,27 +257,32 @@ plot_map <- function(df,
                           coords = c(lon_col, lat_col))
   }
   
+  # Color as a vector
+  if (length(color) == 1) {
+    color <- rep(color, nrow(df_sf))
+  }
+  
   # Reorder radii if named
-  if (length(circle_radii) != 0 & !is.null(names(circle_radii))) {
-    circle_radii <- reorder_named_values(circle_radii, names = df[[cam_col]],
+  if (length(radius) != 0 & !is.null(names(radius))) {
+    radius <- reorder_named_values(radius, names = df[[cam_col]],
                                          keep_all_names = TRUE)
   }
   
   # Set custom color and placeholder for NA values
-  if (NA %in% circle_radii) {
+  if (NA %in% radius) {
     # NA color
-    color <- rep(color, length(circle_radii))
-    color[which(is.na(circle_radii))] <- "purple"
+    
+    color[which(is.na(radius))] <- "purple"
     # Placeholder value
-    circle_radii[which(is.na(circle_radii))] <- 0
+    radius[which(is.na(radius))] <- 0
   }
   
-  circle_radii <- unname(circle_radii)
+  radius <- unname(radius)
   
   # Rescale radii measures
   if (rescale) {
-    circle_radii <- 3 + circle_radii*(20/max(circle_radii)) # set max to 20
-    # circle_radii[circle_radii < 3] <- 3 # Set min to 3
+    radius <- 3 + radius*(20/max(radius)) # set max to 20
+    # radius[radius < 3] <- 3 # Set min to 3
   }
   
   if (is.null(label)) {
@@ -298,13 +309,12 @@ plot_map <- function(df,
                label = label_pt,
                layerId = df_sf[[cam_col]],
                popup = popup,
+               popupOptions = popupOptions(closeOnClick = TRUE),
                stroke = FALSE,
                fillOpacity = 0.8,
                fillColor = color,
-               radius = circle_radii,
+               radius = radius,
                labelOptions = labelOptions(direction = labeldir_pt)
-               # highlightOptions = highlightOptions(fillColor = highlight_color,
-               #                                     color = highlight_color)
                )
   
   if (display_camnames) {
@@ -318,4 +328,139 @@ plot_map <- function(df,
   }
   
   lmap
+}
+
+
+#' Update map
+#' 
+#' Update a leaflet map
+
+#' @param map_id ID of the map to update
+#'
+#' @param session Shiny session
+#' @param df A dataframe containing cameras information
+#' @param lat_col Name of the latitude (or the projected y-coordinate) 
+#' column
+#' @param lon_col Name of the longitude (or the projected y-coordinate) 
+#' column
+#' @param crs EPSG code for the coordinate reference system (CRS)
+#' Defaults to EPSG:4326, which is the code for WGS84 standard.
+#' @param cam_col Name of the camera name column
+#' @param color color for the points (can be a unique value or a character vector,
+#' in the same order as the rows of df)
+#' @param radius A named vector of radii tu use for the cirles. Names
+#' correspond to camera names.
+#' @param rescale rescale circles? If `TRUE`, radii will be linearly resized 
+#' so that the maximum corresponds to 300m, and radii smaller than
+#' 10 will be set to 10m. 
+#' @param label label to display when hovering over the map points
+#' @param popup A vector of characters to display in the popup for 
+#' each camera. It must have the same length as the number of cameras
+#' in df and it must be ordered in the same way as the cameras in df.
+#' @param display_camnames Display camera names on the map?
+#'
+#' @return a `leaflet` map representing cameras as points.
+#' If the CRS of the input data is different from EPSG:4326 (WGS84), 
+#' data are re-projected using WGS84.
+#' When hovering over a camera, it becomes red and its name is shown.
+#' When clicking on a camera, a popup displaying the camera name appears.
+update_map <- function(map_id,
+                       session,
+                       df, 
+                       lat_col, lon_col, 
+                       popup = NULL,
+                       display_camnames = FALSE,
+                       crs = 4326,
+                       cam_col,
+                       color = "black",
+                       radius = 3,
+                       rescale = FALSE,
+                       label = NULL) {
+  if (length(color) != 1) {
+    if (length(color) != nrow(df)) {
+      stop("color must be either the same length as df or of length one")
+    }
+  }
+  
+  if(!is.null(crs)) { # Specify the CRS
+    df_sf <- sf::st_as_sf(df, 
+                          coords = c(lon_col, lat_col),
+                          crs = as.numeric(crs))
+    # Reproject in WGS84 (a.k.a. EPSG:4326)
+    df_sf <- sf::st_transform(df_sf, 4326)
+  } else { # Let leaflet choose the CRS
+    df_sf <- sf::st_as_sf(df, 
+                          coords = c(lon_col, lat_col))
+  }
+  
+  # Color as a vector
+  if (length(color) == 1) {
+    color <- rep(color, nrow(df_sf))
+  }
+  
+  # Reorder radii if named
+  if (length(radius) != 0 & !is.null(names(radius))) {
+    radius <- reorder_named_values(radius, names = df[[cam_col]],
+                                   keep_all_names = TRUE)
+  }
+  
+  # Set custom color and placeholder for NA values
+  if (NA %in% radius) {
+    # NA color
+    
+    color[which(is.na(radius))] <- "purple"
+    # Placeholder value
+    radius[which(is.na(radius))] <- 0
+  }
+  
+  radius <- unname(radius)
+  
+  # Rescale radii measures
+  if (rescale) {
+    radius <- 3 + radius*(20/max(radius)) # set max to 20
+    # radius[radius < 3] <- 3 # Set min to 3
+  }
+  
+  if (is.null(label)) {
+    label <- df_sf[[cam_col]]
+  }
+  
+  if (is.null(popup)) {
+    popup = paste0("Camera: ", df_sf[[cam_col]])
+  }
+  
+  if (display_camnames) {
+    label_pt <- popup
+    labeldir_pt <- "left"
+  } else {
+    label_pt <- label
+    labeldir_pt <- "auto"
+  }
+  
+  leafletProxy(mapId = map_id, session) |>
+    clearMarkers() |>
+    addCircleMarkers(data = df_sf,
+                     label = label_pt,
+                     layerId = df_sf[[cam_col]],
+                     popup = popup,
+                     popupOptions = popupOptions(closeOnClick = TRUE),
+                     stroke = FALSE,
+                     fillOpacity = 0.8,
+                     fillColor = color,
+                     radius = radius,
+                     labelOptions = labelOptions(direction = labeldir_pt)
+    )
+  
+  if (display_camnames) {
+    leafletProxy(mapId = map_id, session) |>
+      addLabelOnlyMarkers(data = df_sf,
+                          label = lapply(paste0("<span style='color:", color, 
+                                                "'>", df_sf[[cam_col]], 
+                                                "<span>"), 
+                                         htmltools::HTML),
+                          labelOptions = labelOptions(noHide = TRUE, 
+                                                      direction = 'right', 
+                                                      offset =  c(6, 0),
+                                                      textOnly = TRUE))
+  }
 }
