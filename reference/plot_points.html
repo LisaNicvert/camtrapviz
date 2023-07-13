@@ -54,14 +54,25 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_points</span><span class="op">(</span></span>
 <span>  <span class="va">df</span>,</span>
 <span>  <span class="va">camera_col</span>,</span>
-<span>  <span class="va">spp_col</span>,</span>
 <span>  <span class="va">timestamp_col</span>,</span>
-<span>  cameras_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  date_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  interactive <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  cameras_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  points_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  caminfo <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  caminfo_camera_col <span class="op">=</span> <span class="va">camera_col</span>,</span>
+<span>  caminfo_setup <span class="op">=</span> <span class="st">"setup"</span>,</span>
+<span>  caminfo_retrieval <span class="op">=</span> <span class="st">"retrieval"</span>,</span>
+<span>  interactive <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  textsize <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  ptsize <span class="op">=</span> <span class="fl">1.5</span></span>
+<span>  ptsize <span class="op">=</span> <span class="fl">1.5</span>,</span>
+<span>  alpha_rect <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  col_rect <span class="op">=</span> <span class="cn">NA</span>,</span>
+<span>  height_rect <span class="op">=</span> <span class="fl">0.2</span>,</span>
+<span>  fill_rect <span class="op">=</span> <span class="st">"grey42"</span>,</span>
+<span>  xlab <span class="op">=</span> <span class="st">"Date"</span>,</span>
+<span>  ylab <span class="op">=</span> <span class="st">"Camera"</span>,</span>
+<span>  cols <span class="op">=</span> <span class="st">"black"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -75,19 +86,10 @@
 <dd><p>Name of the camera column</p></dd>
 
 
-<dt>spp_col</dt>
-<dd><p>Name of the species column</p></dd>
-
-
 <dt>timestamp_col</dt>
 <dd><p>Name of the timestamp column. If it
 is a datetime, it must be of class POSIXct. It can be <code>NULL</code>
 if <code>date_col</code> and <code>time_col</code> are provided.</p></dd>
-
-
-<dt>cameras_list</dt>
-<dd><p>A character vector of all cameras that should appeat
-on the plot (optional)</p></dd>
 
 
 <dt>date_col</dt>
@@ -102,6 +104,36 @@ to be of class <code>times</code> (else, results are not guaranteed).
 It can be <code>NULL</code> if <code>timestamp_col</code> is provided.</p></dd>
 
 
+<dt>cameras_list</dt>
+<dd><p>A character vector of all cameras that should appeat
+on the plot (optional)</p></dd>
+
+
+<dt>points_col</dt>
+<dd><p>Name of the column to use for the color of data points
+(defaults to species column). If the graph is interactive,
+this will also be displayed in the labels. It is interpred as a discrete color scale.</p></dd>
+
+
+<dt>caminfo</dt>
+<dd><p>Dataframe containing camera information. Must have at least one column
+with the camera ID, the setup and the retrieval date.</p></dd>
+
+
+<dt>caminfo_camera_col</dt>
+<dd><p>Name of the camera column in caminfo file.</p></dd>
+
+
+<dt>caminfo_setup</dt>
+<dd><p>Name of the setup column in caminfo file. The column
+must be coercible to POSIX (eg a Date).</p></dd>
+
+
+<dt>caminfo_retrieval</dt>
+<dd><p>Name of the retrieval column in caminfo file. The column
+must be coercible to POSIX (eg a Date).</p></dd>
+
+
 <dt>interactive</dt>
 <dd><p>Logical; make the plot interactive with <code>ggiraph</code>?</p></dd>
 
@@ -113,6 +145,43 @@ It can be <code>NULL</code> if <code>timestamp_col</code> is provided.</p></dd>
 
 <dt>ptsize</dt>
 <dd><p>Size for the points in the plot</p></dd>
+
+
+<dt>alpha_rect</dt>
+<dd><p>transparency of the rectangle plotted for the sampling period
+(when <code>caminfo</code> is given)</p></dd>
+
+
+<dt>col_rect</dt>
+<dd><p>stroke color of the rectangle plotted for the sampling period
+(when <code>caminfo</code> is given)</p></dd>
+
+
+<dt>height_rect</dt>
+<dd><p>height of the rectangle plotted for the sampling period
+(when <code>caminfo</code> is given). The height is centered on the middle. 2 corresponds
+th the space between the y-axis ticks entirely filled.</p></dd>
+
+
+<dt>fill_rect</dt>
+<dd><p>fill color of the rectangle plotted for the sampling period
+(when <code>caminfo</code> is given)</p></dd>
+
+
+<dt>xlab</dt>
+<dd><p>Label for the x-axis</p></dd>
+
+
+<dt>ylab</dt>
+<dd><p>Label for the y-axis</p></dd>
+
+
+<dt>cols</dt>
+<dd><p>Color palette for the points. Can be either a palette
+with as many colors as the levels of <code>points_col</code> or a single color name.
+In case <code>cols</code> is the vector it can be named with values of <code>points_col</code>
+and will correspont to the mapping between colors and <code>points_col</code>.
+Else the mapping is done by alphabetical order.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -133,11 +202,24 @@ different species.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"recordTableSample"</span>, package <span class="op">=</span> <span class="st">"camtrapR"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">recordTableSample</span><span class="op">$</span><span class="va">DateTimeOriginal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.POSIXlt.html" class="external-link">as.POSIXct</a></span><span class="op">(</span><span class="va">recordTableSample</span><span class="op">$</span><span class="va">DateTimeOriginal</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Without camera samplking information</span></span></span>
 <span class="r-in"><span><span class="fu">plot_points</span><span class="op">(</span><span class="va">recordTableSample</span>, </span></span>
 <span class="r-in"><span>            camera_col <span class="op">=</span> <span class="st">"Station"</span>, </span></span>
-<span class="r-in"><span>            timestamp_col <span class="op">=</span> <span class="st">"DateTimeOriginal"</span>, </span></span>
-<span class="r-in"><span>            spp_col <span class="op">=</span> <span class="st">"Species"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>            timestamp_col <span class="op">=</span> <span class="st">"DateTimeOriginal"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot_points-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># With camera sampling information</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"camtraps"</span>, package <span class="op">=</span> <span class="st">"camtrapR"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">camtraps</span><span class="op">$</span><span class="va">Setup_date</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="va">camtraps</span><span class="op">$</span><span class="va">Setup_date</span>, </span></span>
+<span class="r-in"><span>                               format <span class="op">=</span> <span class="st">"%d/%m/%Y"</span><span class="op">)</span> </span></span>
+<span class="r-in"><span><span class="va">camtraps</span><span class="op">$</span><span class="va">Retrieval_date</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="va">camtraps</span><span class="op">$</span><span class="va">Retrieval_date</span>, </span></span>
+<span class="r-in"><span>                                   format <span class="op">=</span> <span class="st">"%d/%m/%Y"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">plot_points</span><span class="op">(</span><span class="va">recordTableSample</span>, </span></span>
+<span class="r-in"><span>            camera_col <span class="op">=</span> <span class="st">"Station"</span>, </span></span>
+<span class="r-in"><span>            timestamp_col <span class="op">=</span> <span class="st">"DateTimeOriginal"</span>,</span></span>
+<span class="r-in"><span>            caminfo <span class="op">=</span> <span class="va">camtraps</span>,</span></span>
+<span class="r-in"><span>            caminfo_setup <span class="op">=</span> <span class="st">"Setup_date"</span>,</span></span>
+<span class="r-in"><span>            caminfo_retrieval <span class="op">=</span> <span class="st">"Retrieval_date"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot_points-2.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
