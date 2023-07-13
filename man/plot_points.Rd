@@ -7,14 +7,25 @@
 plot_points(
   df,
   camera_col,
-  spp_col,
   timestamp_col,
-  cameras_list = NULL,
   date_col = NULL,
   time_col = NULL,
-  interactive = TRUE,
+  cameras_list = NULL,
+  points_col = NULL,
+  caminfo = NULL,
+  caminfo_camera_col = camera_col,
+  caminfo_setup = "setup",
+  caminfo_retrieval = "retrieval",
+  interactive = FALSE,
   textsize = 10,
-  ptsize = 1.5
+  ptsize = 1.5,
+  alpha_rect = 0.5,
+  col_rect = NA,
+  height_rect = 0.2,
+  fill_rect = "grey42",
+  xlab = "Date",
+  ylab = "Camera",
+  cols = "black"
 )
 }
 \arguments{
@@ -22,14 +33,9 @@ plot_points(
 
 \item{camera_col}{Name of the camera column}
 
-\item{spp_col}{Name of the species column}
-
 \item{timestamp_col}{Name of the timestamp column. If it
 is a datetime, it must be of class POSIXct. It can be \code{NULL}
 if \code{date_col} and \code{time_col} are provided.}
-
-\item{cameras_list}{A character vector of all cameras that should appeat
-on the plot (optional)}
 
 \item{date_col}{Name of the date column. It is assumed
 to be of class \code{Date} (else, results are not guaranteed).
@@ -39,12 +45,53 @@ It can be \code{NULL} if \code{timestamp_col} is provided.}
 to be of class \code{times} (else, results are not guaranteed).
 It can be \code{NULL} if \code{timestamp_col} is provided.}
 
+\item{cameras_list}{A character vector of all cameras that should appeat
+on the plot (optional)}
+
+\item{points_col}{Name of the column to use for the color of data points
+(defaults to species column). If the graph is interactive,
+this will also be displayed in the labels. It is interpred as a discrete color scale.}
+
+\item{caminfo}{Dataframe containing camera information. Must have at least one column
+with the camera ID, the setup and the retrieval date.}
+
+\item{caminfo_camera_col}{Name of the camera column in caminfo file.}
+
+\item{caminfo_setup}{Name of the setup column in caminfo file. The column
+must be coercible to POSIX (eg a Date).}
+
+\item{caminfo_retrieval}{Name of the retrieval column in caminfo file. The column
+must be coercible to POSIX (eg a Date).}
+
 \item{interactive}{Logical; make the plot interactive with \code{ggiraph}?}
 
 \item{textsize}{Base text size for the axis text
 (axes titles are 1.2 times bigger)}
 
 \item{ptsize}{Size for the points in the plot}
+
+\item{alpha_rect}{transparency of the rectangle plotted for the sampling period
+(when \code{caminfo} is given)}
+
+\item{col_rect}{stroke color of the rectangle plotted for the sampling period
+(when \code{caminfo} is given)}
+
+\item{height_rect}{height of the rectangle plotted for the sampling period
+(when \code{caminfo} is given). The height is centered on the middle. 2 corresponds
+th the space between the y-axis ticks entirely filled.}
+
+\item{fill_rect}{fill color of the rectangle plotted for the sampling period
+(when \code{caminfo} is given)}
+
+\item{xlab}{Label for the x-axis}
+
+\item{ylab}{Label for the y-axis}
+
+\item{cols}{Color palette for the points. Can be either a palette
+with as many colors as the levels of \code{points_col} or a single color name.
+In case \code{cols} is the vector it can be named with values of \code{points_col}
+and will correspont to the mapping between colors and \code{points_col}.
+Else the mapping is done by alphabetical order.}
 }
 \value{
 A \code{ggplot} object representing time on the x-axis
@@ -61,8 +108,20 @@ If \code{date_col} and \code{time_col} are provided along with
 \examples{
 data("recordTableSample", package = "camtrapR")
 recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal)
+# Without camera samplking information
 plot_points(recordTableSample, 
             camera_col = "Station", 
-            timestamp_col = "DateTimeOriginal", 
-            spp_col = "Species")
+            timestamp_col = "DateTimeOriginal")
+# With camera sampling information
+data("camtraps", package = "camtrapR")
+camtraps$Setup_date <- as.Date(camtraps$Setup_date, 
+                               format = "\%d/\%m/\%Y") 
+camtraps$Retrieval_date <- as.Date(camtraps$Retrieval_date, 
+                                   format = "\%d/\%m/\%Y")
+plot_points(recordTableSample, 
+            camera_col = "Station", 
+            timestamp_col = "DateTimeOriginal",
+            caminfo = camtraps,
+            caminfo_setup = "Setup_date",
+            caminfo_retrieval = "Retrieval_date")
 }

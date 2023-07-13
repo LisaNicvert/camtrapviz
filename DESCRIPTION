@@ -38,7 +38,8 @@ Imports:
     movMF
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    RColorBrewer
 VignetteBuilder: knitr
 URL: https://lisanicvert.github.io/camtrapviz/
 Depends: 

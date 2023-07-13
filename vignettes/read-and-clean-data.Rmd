@@ -18,7 +18,6 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(camtrapviz)
-# library(jsonlite)
 ```
 
 ## Write data in tempfile
@@ -57,43 +56,6 @@ write.csv(recordcam, recordcamfile,
           row.names = FALSE)
 ```
 
-
-```{r}
-# camtrapDP ------------------------------------------
-# data(mica, package = "camtraptor")
-# 
-# # Create subfolder
-# dir.create(paste0(tempdir(), "/DP"))
-# 
-# # Convert to JSON
-# jsonlist <- mica[names(mica) != "data"]
-# jsoncontent <- jsonlite::toJSON(jsonlist)
-# 
-# # Write files
-# recordfileDP <- paste0(tempdir(), "/DP/observations.csv")
-# camtrapfileDP <- paste0(tempdir(), "/DP/deployments.csv")
-# mediafileDP <- paste0(tempdir(), "/DP/media.csv")
-# jsonfile <- paste0(tempdir(), "/DP/datapackage.json")
-# 
-# obs <- mica$data$observations
-# obs$timestamp <- as.character(obs$timestamp, 
-#                               format = "%Y-%m-%dT%H:%M:%S%z")
-# obs$classificationTimestamp <- as.character(obs$classificationTimestamp, 
-#                                             format = "%Y-%m-%dT%H:%M:%S%z")
-# write.csv(obs, recordfileDP, 
-#           row.names = FALSE, 
-#           na = "",
-#           quote = FALSE)
-# write.csv(mica$data$deployments, camtrapfileDP, 
-#           row.names = FALSE, 
-#           na = "",
-#           quote = FALSE)
-# write.csv(mica$data$media, mediafileDP, 
-#           row.names = FALSE, 
-#           na = "",
-#           quote = FALSE)
-# write(jsoncontent, jsonfile)
-```
 
 ## Records and cameras in separate csv files (2 csv files)
 
@@ -173,6 +135,9 @@ dat_clean <- clean_data(dat,
 ## CamtrapDP format (json file)
 
 ### Read data
+```{r}
+# dat <- read_data(records_path = "https://raw.githubusercontent.com/tdwg/camtrap-dp/1.0-rc.1/example/datapackage.json")
+```
 
 ### Clean data
 

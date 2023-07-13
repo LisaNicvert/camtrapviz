@@ -279,7 +279,7 @@ summaryServer <- function(id,
                                 message = modif)
     })
     
-    selected_camera <- reactiveVal()
+    selected_camera <- shiny::reactiveVal()
     
     observeEvent(input$plot_occurrences_selected, {
       selected_camera(input$plot_occurrences_selected)
@@ -316,10 +316,11 @@ summaryServer <- function(id,
         "# ggplot plot"
         gg <- plot_points(..(camtrap_data())$data$observations,
                           camera_col = ..(cam_col_rec()),
-                          spp_col = ..(spp_col()),
+                          points_col = ..(spp_col()),
                           timestamp_col = ..(unname(mapping_records()$timestamp_col)),
                           time_col = ..(unname(mapping_records()$time_col)),
                           date_col = ..(unname(mapping_records()$date_col)),
+                          interactive = TRUE,
                           cameras_list = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
         
         "# ggiraph plot (interactive)"

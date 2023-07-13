@@ -19,7 +19,7 @@ test_that("Plot points", {
   p <- plot_points(df,
                    camera_col = "Station",
                    timestamp_col = "DateTimeOriginal",
-                   spp_col = "Species")
+                   points_col = "Species")
   
   br <- as.character(ggplot2::layer_scales(p)$y$get_breaks())
   expect_equal(br, unique(df$Station))
@@ -29,11 +29,188 @@ test_that("Plot points", {
   p <- plot_points(df, 
                    camera_col = "Station",
                    timestamp_col = "DateTimeOriginal",
-                   spp_col = "Species",
+                   points_col = "Species",
                    cameras_list = cameras_list)
   br <- as.character(ggplot2::layer_scales(p)$y$get_breaks())
   expect_equal(br, cameras_list)
+  
+  # With custom labels
+  labels <- c(x = "Date (in French)",
+              y = "Stations used in this project")
+  p <- plot_points(df, 
+                   camera_col = "Station",
+                   timestamp_col = "DateTimeOriginal",
+                   points_col = "Species",
+                   ylab = labels[["y"]],
+                   xlab = labels[["x"]])
+  expect_equal(p$labels$y, labels[["y"]])
+  expect_equal(p$labels$x, labels[["x"]])
 })
+
+test_that("Plot points (different parameter combinations)", {
+  df <- recordTableSample
+  df$DateTimeOriginal <- as.POSIXct(df$DateTimeOriginal)
+  
+  # Default parameters ---
+  expect_no_error(plot_points(df,
+                              camera_col = "Station",
+                              timestamp_col = "DateTimeOriginal"))
+  
+  # Color points as species ---
+  p <- plot_points(df,
+                   camera_col = "Station",
+                   timestamp_col = "DateTimeOriginal",
+                   points_col = "Species")
+  expect_equal(as_label(p$mapping[[3]]), "Species")
+  
+  # Color points as species ---
+  p <- plot_points(df,
+                   camera_col = "Station",
+                   timestamp_col = "DateTimeOriginal",
+                   points_col = "Species")
+  expect_equal(as_label(p$mapping[[3]]), "Species")
+  
+  # Interactive graph ---
+  p <- plot_points(df,
+                   camera_col = "Station",
+                   timestamp_col = "DateTimeOriginal",
+                   interactive = TRUE)
+  expect_true("GeomInteractivePoint" %in% class(p$layers[[1]]$geom))
+  
+  # Interactive graph with colours and tooltip ---
+  p <- plot_points(df,
+                   camera_col = "Station",
+                   timestamp_col = "DateTimeOriginal",
+                   points_col = "Species",
+                   interactive = TRUE)
+  expect_true("GeomInteractivePoint" %in% class(p$layers[[1]]$geom)) # Interactive
+  expect_equal(as_label(p$mapping[[3]]), "Species") # Color
+  expect_equal(as_label(p$layers[[1]]$mapping[[1]]),
+               "paste(.data[[\"Species\"]], .data[[\"DateTimeOriginal\"]], sep = \": \")") # Tooltip
+
+  # Interactive graph with no color and tooltip ---
+  p <- plot_points(df,
+                   camera_col = "Station",
+                   timestamp_col = "DateTimeOriginal",
+                   interactive = TRUE)
+  expect_true("GeomInteractivePoint" %in% class(p$layers[[1]]$geom)) # Interactive
+  expect_equal(length(p$mapping), 2) # No color
+  expect_equal(as_label(p$layers[[1]]$mapping[[1]]),
+               "DateTimeOriginal") # Tooltip without species
+
+})
+
+test_that("Plot points (colors)", {
+  df <- recordTableSample
+  df$DateTimeOriginal <- as.POSIXct(df$DateTimeOriginal)
+  
+  # Unique color ---
+  plot_points(df,
+              camera_col = "Station",
+              timestamp_col = "DateTimeOriginal",
+              cols = "deeppink")
+  
+  # Species colors ---
+  plot_points(df,
+              camera_col = "Station",
+              timestamp_col = "DateTimeOriginal",
+              points_col = "Species")
+  
+  # Custom species colors ---
+  spp <- unique(df$Species)
+  pal <- RColorBrewer::brewer.pal(length(spp), "Set2")
+  plot_points(df,
+              camera_col = "Station",
+              timestamp_col = "DateTimeOriginal",
+              points_col = "Species",
+              cols = pal)
+  
+  # Named species colors ---
+  shuf <- sample(1:length(pal), size = length(pal), replace = FALSE)
+  pal2 <- pal[shuf]
+  names(pal2) <- spp[shuf]
+  plot_points(df,
+              camera_col = "Station",
+              timestamp_col = "DateTimeOriginal",
+              points_col = "Species",
+              cols = pal2)
+})
+
+test_that("Plot points with rectangles", {
+  
+  df <- recordTableSample
+  df$DateTimeOriginal <- as.POSIXct(df$DateTimeOriginal)
+  
+  caminfo <- camtraps
+  caminfo$Setup_date <- as.Date(caminfo$Setup_date, 
+                                format = "%d/%m/%Y") 
+  caminfo$Retrieval_date <- as.Date(caminfo$Retrieval_date, 
+                                    format = "%d/%m/%Y")
+  
+  # Normal case ---
+  plot_points(df,
+              camera_col = "Station",
+              timestamp_col = "DateTimeOriginal",
+              caminfo = caminfo,
+              caminfo_setup = "Setup_date",
+              caminfo_retrieval = "Retrieval_date")
+  
+  # Cameras as factors ---
+  df_fac <- df |> 
+    mutate(Station = factor(Station))
+  
+  ggplot(df, aes(x = DateTimeOriginal, y = Station,
+                 col = NULL)) + 
+    geom_point()
+  
+  plot_points(df_fac,
+              camera_col = "Station",
+              timestamp_col = "DateTimeOriginal",
+              points_col = "Species",
+              caminfo = caminfo,
+              caminfo_setup = "Setup_date",
+              caminfo_retrieval = "Retrieval_date")
+  
+  # Some more sampling ---
+  row <- caminfo[1,]
+  row$Station <- "StationD"
+  caminfo_plus <- caminfo |> 
+    bind_rows(row)
+  
+  expect_warning(plot_points(df,
+                             camera_col = "Station",
+                             timestamp_col = "DateTimeOriginal",
+                             points_col = "Species",
+                             caminfo = caminfo_plus,
+                             caminfo_setup = "Setup_date",
+                             caminfo_retrieval = "Retrieval_date"))
+  
+  # Some more cameras ---
+  # Factor
+  df_fac <- df |> 
+    mutate(Station = factor(Station, 
+                            levels = c(unique(Station), "StationD")))
+  
+  expect_warning(plot_points(df_fac,
+                             camera_col = "Station",
+                             timestamp_col = "DateTimeOriginal",
+                             points_col = "Species",
+                             caminfo = caminfo,
+                             caminfo_setup = "Setup_date",
+                             caminfo_retrieval = "Retrieval_date"))
+  # Data points ---
+  camdup <- df |> 
+    filter(Station == "StationA") |> 
+    mutate(Station = "StationD")
+  df_plus <- df |> bind_rows(camdup)
+  expect_warning(plot_points(df_plus,
+                             camera_col = "Station",
+                             timestamp_col = "DateTimeOriginal",
+                             points_col = "Species",
+                             caminfo = caminfo,
+                             caminfo_setup = "Setup_date",
+                             caminfo_retrieval = "Retrieval_date"))
+  })
 
 test_that("Plot species bars", {
   df <- data.frame(species = c("cat", "cat", "cat", "cow", "rabbit", NA),
