@@ -42,10 +42,14 @@ summaryUI <- function(id) {
                     label = "Show camera names on map"),
       leafletOutput(NS(id, "plot_map"),
                     height = "500px")
-    )),
+      )),
     h3("Camera activity"),
-    outputCodeButton(girafeOutput(NS(id, "plot_occurrences"),
-                                  height = "500px")),
+    outputCodeButton(tagList(
+      checkboxInput(NS(id, "points_boxes"), 
+                    "Display sampling period"), 
+      girafeOutput(NS(id, "plot_occurrences"),
+                   height = "500px")
+      )),
     br(),
 
 # Tables ------------------------------------------------------------------
@@ -310,6 +314,12 @@ summaryServer <- function(id,
       width <- max(8,
                    unitw/(1 + exp(-24*unitw)))
       
+      if (input$points_boxes) {
+        caminfo <- cameras_values()
+      } else {
+        caminfo <- NULL
+      }
+      
       metaExpr({
         "# Species occurrences plot ---"
         
@@ -320,6 +330,7 @@ summaryServer <- function(id,
                           timestamp_col = ..(unname(mapping_records()$timestamp_col)),
                           time_col = ..(unname(mapping_records()$time_col)),
                           date_col = ..(unname(mapping_records()$date_col)),
+                          caminfo = ..(caminfo),
                           interactive = TRUE,
                           cameras_list = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
         
