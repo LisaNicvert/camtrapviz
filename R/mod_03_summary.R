@@ -314,39 +314,63 @@ summaryServer <- function(id,
       width <- max(8,
                    unitw/(1 + exp(-24*unitw)))
       
-      if (input$points_boxes) {
-        caminfo <- cameras_values()
-      } else {
-        caminfo <- NULL
+      # Duplicate code for lisibility
+      if (input$points_boxes) { # Add cameras_values
+        metaExpr({
+          "# Species occurrences plot ---"
+          
+          "# ggplot plot"
+          gg <- plot_points(..(camtrap_data())$data$observations,
+                            camera_col = ..(cam_col_rec()),
+                            points_col = ..(spp_col()),
+                            timestamp_col = ..(unname(mapping_records()$timestamp_col)),
+                            time_col = ..(unname(mapping_records()$time_col)),
+                            date_col = ..(unname(mapping_records()$date_col)),
+                            caminfo = ..(cameras_values()),
+                            interactive = TRUE,
+                            cameras_list = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
+          
+          "# ggiraph plot (interactive)"
+          gi <- ggiraph::girafe(ggobj = gg,
+                                width_svg = ..(width),
+                                height_svg = ..(height))
+          gi <- ggiraph::girafe_options(gi,
+                                        opts_zoom(min = 0.5, max = 10),
+                                        opts_hover_inv(css = "opacity:0.3"),
+                                        opts_selection_inv(css = "opacity:0.3"),
+                                        opts_selection(type = "single"),
+                                        opts_hover(css = "")
+          )
+          gi
+        }, bindToReturn = TRUE)
+      } else { # No cameras_values
+        metaExpr({
+          "# Species occurrences plot ---"
+          
+          "# ggplot plot"
+          gg <- plot_points(..(camtrap_data())$data$observations,
+                            camera_col = ..(cam_col_rec()),
+                            points_col = ..(spp_col()),
+                            timestamp_col = ..(unname(mapping_records()$timestamp_col)),
+                            time_col = ..(unname(mapping_records()$time_col)),
+                            date_col = ..(unname(mapping_records()$date_col)),
+                            interactive = TRUE,
+                            cameras_list = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
+          
+          "# ggiraph plot (interactive)"
+          gi <- ggiraph::girafe(ggobj = gg,
+                                width_svg = ..(width),
+                                height_svg = ..(height))
+          gi <- ggiraph::girafe_options(gi,
+                                        opts_zoom(min = 0.5, max = 10),
+                                        opts_hover_inv(css = "opacity:0.3"),
+                                        opts_selection_inv(css = "opacity:0.3"),
+                                        opts_selection(type = "single"),
+                                        opts_hover(css = "")
+          )
+          gi
+        }, bindToReturn = TRUE)
       }
-      
-      metaExpr({
-        "# Species occurrences plot ---"
-        
-        "# ggplot plot"
-        gg <- plot_points(..(camtrap_data())$data$observations,
-                          camera_col = ..(cam_col_rec()),
-                          points_col = ..(spp_col()),
-                          timestamp_col = ..(unname(mapping_records()$timestamp_col)),
-                          time_col = ..(unname(mapping_records()$time_col)),
-                          date_col = ..(unname(mapping_records()$date_col)),
-                          caminfo = ..(caminfo),
-                          interactive = TRUE,
-                          cameras_list = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
-        
-        "# ggiraph plot (interactive)"
-        gi <- ggiraph::girafe(ggobj = gg,
-                              width_svg = ..(width),
-                              height_svg = ..(height))
-        gi <- ggiraph::girafe_options(gi,
-                                      opts_zoom(min = 0.5, max = 10),
-                                      opts_hover_inv(css = "opacity:0.3"),
-                                      opts_selection_inv(css = "opacity:0.3"),
-                                      opts_selection(type = "single"),
-                                      opts_hover(css = "")
-                                      )
-        gi
-      }, bindToReturn = TRUE)
       
     })
     
