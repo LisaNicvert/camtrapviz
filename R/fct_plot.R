@@ -54,6 +54,17 @@
 #' In case `cols` is the vector it can be named with values of `points_col`
 #' and will correspont to the mapping between colors and `points_col`.
 #' Else the mapping is done by alphabetical order.
+#' @param date_breaks Character describing x-axis ticks spacing (e.g. "10 day"). 
+#' For the possible values, see documentation of `ggplot2::scale_y_datetime` for the
+#' argument `date_breaks`.
+#' @param text_x_angle Tilting angle for the x-axis text.
+#' @param date_format Character string encoding the display format for x-axis
+#' labels.
+#' @param date_limits Vector of the lower and upper limit of the x-axis  (must be a
+#' POSIX). The timezone should be the same as the timezone defined in the `timezone`
+#' argument.
+#' @param timezone Timezone code. For the possible values, refer to the
+#' `timezone` argument of `ggplot2::scale_y_datetime`.
 #'
 #' @details If `date_col` and `time_col` are provided along with
 #' `timestamp_col`, they will be ignored.
@@ -96,7 +107,12 @@ plot_points <- function(df,
                         caminfo_retrieval = "retrieval",
                         interactive = FALSE,
                         textsize = 10,
+                        text_x_angle = 0,
                         ptsize = 1.5,
+                        date_breaks = NULL,
+                        date_format = "%b %d",
+                        date_limits = NULL,
+                        timezone = "UTC",
                         alpha_rect = 0.5,
                         col_rect = "black",
                         height_rect = 0.8,
@@ -131,7 +147,6 @@ plot_points <- function(df,
     if( !(caminfo_retrieval %in% colnames(caminfo))) {
       stop("caminfo_retrieval must be a column of caminfo.")
     }
-    
     if( !(caminfo_camera_col %in% colnames(caminfo))) {
       stop("caminfo_camera_col must be a column of caminfo.")
     }
@@ -309,9 +324,29 @@ plot_points <- function(df,
   }
   
   gg <- gg +
-    theme_linedraw() + 
-    theme(axis.text = element_text(size = textsize),
-          axis.title = element_text(size = textsize*1.2)) +
+    theme_linedraw(base_size = textsize) + 
+    { if (!is.null(date_breaks) & !is.null(date_limits)) 
+      ggplot2::scale_x_datetime(breaks = seq(date_limits[1],
+                                             date_limits[2],
+                                             by = date_breaks),
+                                limits = date_limits,
+                                timezone = timezone,
+                                date_labels = date_format) } +
+    { if (!is.null(date_breaks) & is.null(date_limits) ) 
+      ggplot2::scale_x_datetime(date_breaks = date_breaks,
+                                limits = date_limits,
+                                timezone = timezone,
+                                date_labels = date_format) } +
+    { if (is.null(date_breaks)) 
+      ggplot2::scale_x_datetime(limits = date_limits,
+                                timezone = timezone,
+                                date_labels = date_format) } +
+    theme(axis.text.x = element_text(angle = text_x_angle, 
+                                     hjust = ifelse(text_x_angle %% 180 == 0,
+                                                    0.5, 1),
+                                     vjust = ifelse(text_x_angle %% 90 == 0,
+                                                    0.5, 1))
+          ) +
     xlab(xlab) +
     ylab(ylab)
   

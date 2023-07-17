@@ -18,7 +18,12 @@ plot_points(
   caminfo_retrieval = "retrieval",
   interactive = FALSE,
   textsize = 10,
+  text_x_angle = 0,
   ptsize = 1.5,
+  date_breaks = NULL,
+  date_format = "\%b \%d",
+  date_limits = NULL,
+  timezone = "UTC",
   alpha_rect = 0.5,
   col_rect = "black",
   height_rect = 0.8,
@@ -68,7 +73,23 @@ must be coercible to POSIX (eg a Date).}
 \item{textsize}{Base text size for the axis text
 (axes titles are 1.2 times bigger)}
 
+\item{text_x_angle}{Tilting angle for the x-axis text.}
+
 \item{ptsize}{Size for the points in the plot}
+
+\item{date_breaks}{Character describing x-axis ticks spacing (e.g. "10 day").
+For the possible values, see documentation of \code{ggplot2::scale_y_datetime} for the
+argument \code{date_breaks}.}
+
+\item{date_format}{Character string encoding the display format for x-axis
+labels.}
+
+\item{date_limits}{Vector of the lower and upper limit of the x-axis  (must be a
+POSIX). The timezone should be the same as the timezone defined in the \code{timezone}
+argument.}
+
+\item{timezone}{Timezone code. For the possible values, refer to the
+\code{timezone} argument of \code{ggplot2::scale_y_datetime}.}
 
 \item{alpha_rect}{transparency of the rectangle plotted for the sampling period
 (when \code{caminfo} is given)}

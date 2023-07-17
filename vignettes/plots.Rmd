@@ -81,7 +81,7 @@ plot_points(recordTableSample,
 
 Various options are available to customize this graph:
 
-```{r}
+```{r, echo = TRUE}
 spp <- unique(recordTableSample$Species)
 pal <- RColorBrewer::brewer.pal(length(spp), "Purples")
 
@@ -92,11 +92,17 @@ plot_points(recordTableSample,
             caminfo = camtraps,
             caminfo_setup = "Setup_date",
             caminfo_retrieval = "Retrieval_date",
-            fill_rect = "grey",
-            alpha_rect = 0.2,
+            fill_rect = "darkgoldenrod1",
+            alpha_rect = 0.6,
             col_rect = NA, 
             height_rect = 0.5,
             ptsize = 3,
+            date_breaks = "1 month",
+            date_limits = as.POSIXct(c("2009-02-01",
+                                       "2009-06-01"),
+                                     tz = "UTC"),
+            date_format = "%a %d %B",
+            text_x_angle = 45,
             cols = pal)
 ```
 
