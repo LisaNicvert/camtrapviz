@@ -98,9 +98,9 @@ plot_points <- function(df,
                         textsize = 10,
                         ptsize = 1.5,
                         alpha_rect = 0.5,
-                        col_rect = NA,
-                        height_rect = 0.2,
-                        fill_rect = "grey42",
+                        col_rect = "black",
+                        height_rect = 0.8,
+                        fill_rect = NA,
                         xlab = "Date",
                         ylab = "Camera",
                         cols = "black") {
@@ -226,17 +226,34 @@ plot_points <- function(df,
     caminfo[[caminfo_setup]] <- as.POSIXct(caminfo[[caminfo_setup]])
     caminfo[[caminfo_retrieval]] <- as.POSIXct(caminfo[[caminfo_retrieval]])
     
-    gg <- gg +
-      ggplot2::geom_rect(data = caminfo,
-                         aes(xmin = .data[[caminfo_setup]],
-                         xmax = .data[[caminfo_retrieval]],
-                         ymin = as.numeric(.data[[caminfo_camera_col]]) - height_rect/2,
-                         ymax = as.numeric(.data[[caminfo_camera_col]]) + height_rect/2
-                     ),
-                     inherit.aes = FALSE,
-                     alpha = alpha_rect,
-                     col = col_rect,
-                     fill = fill_rect)
+    if (!interactive) {
+      gg <- gg +
+        ggplot2::geom_rect(data = caminfo,
+                           aes(xmin = .data[[caminfo_setup]],
+                               xmax = .data[[caminfo_retrieval]],
+                               ymin = as.numeric(.data[[caminfo_camera_col]]) - height_rect/2,
+                               ymax = as.numeric(.data[[caminfo_camera_col]]) + height_rect/2
+                           ),
+                           inherit.aes = FALSE,
+                           alpha = alpha_rect,
+                           col = col_rect,
+                           fill = fill_rect)
+    } else {
+      gg <- gg +
+        ggiraph::geom_rect_interactive(data = caminfo,
+                                       aes(xmin = .data[[caminfo_setup]],
+                                           xmax = .data[[caminfo_retrieval]],
+                                           ymin = as.numeric(.data[[caminfo_camera_col]]) - height_rect/2,
+                                           ymax = as.numeric(.data[[caminfo_camera_col]]) + height_rect/2,
+                                           tooltip = paste("From", .data[[caminfo_setup]], 
+                                                           "to", .data[[caminfo_retrieval]])
+                                       ),
+                                       inherit.aes = FALSE,
+                                       alpha = alpha_rect,
+                                       col = col_rect,
+                                       fill = fill_rect)
+    }
+    
   }
   
   if (interactive) {

@@ -83,7 +83,7 @@ Various options are available to customize this graph:
 
 ```{r}
 spp <- unique(recordTableSample$Species)
-pal <- RColorBrewer::brewer.pal(length(spp), "Set2")
+pal <- RColorBrewer::brewer.pal(length(spp), "Purples")
 
 plot_points(recordTableSample, 
             camera_col = "Station", 
@@ -92,9 +92,10 @@ plot_points(recordTableSample,
             caminfo = camtraps,
             caminfo_setup = "Setup_date",
             caminfo_retrieval = "Retrieval_date",
-            fill_rect = NA,
-            col_rect = "black", 
-            height_rect = 0.3,
+            fill_rect = "grey",
+            alpha_rect = 0.2,
+            col_rect = NA, 
+            height_rect = 0.5,
             ptsize = 3,
             cols = pal)
 ```

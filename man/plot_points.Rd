@@ -20,9 +20,9 @@ plot_points(
   textsize = 10,
   ptsize = 1.5,
   alpha_rect = 0.5,
-  col_rect = NA,
-  height_rect = 0.2,
-  fill_rect = "grey42",
+  col_rect = "black",
+  height_rect = 0.8,
+  fill_rect = NA,
   xlab = "Date",
   ylab = "Camera",
   cols = "black"
