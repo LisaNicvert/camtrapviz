@@ -383,7 +383,7 @@ plot_species_bars <- function(df,
                               spp_col, 
                               count_col = NULL,
                               obs_col = NULL,
-                              interactive = TRUE,
+                              interactive = FALSE,
                               NA_count_placeholder = NA) {
   
   # Summarize species
@@ -414,7 +414,8 @@ plot_species_bars <- function(df,
   gg <- gg +
     coord_flip() +
     theme_linedraw() +
-    ylab("Count") +
+    ylab(ifelse(is.null(count_col), 
+                "Capture events", "Individuals")) +
     theme(axis.title.y = element_blank())
   
   return(gg)

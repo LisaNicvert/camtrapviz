@@ -9,7 +9,7 @@ plot_species_bars(
   spp_col,
   count_col = NULL,
   obs_col = NULL,
-  interactive = TRUE,
+  interactive = FALSE,
   NA_count_placeholder = NA
 )
 }

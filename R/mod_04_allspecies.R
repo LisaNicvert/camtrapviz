@@ -1,8 +1,29 @@
 # UI ----------------------------------------------------------------------
 
 allspeciesUI <- function(id) {
+  # Create namespace variable
+  ns <- NS(id)
   tagList(
-        
+# Counts per species ------------------------------------------------------
+    h3("Species count"),
+    fluidRow(
+      column(width = 4,
+             conditionalPanel(condition = "output.count_col",
+                              ns = ns,
+                              radioButtons(NS(id, "bars_count"),
+                                           label = "Show count of:",
+                                           choices = list("Capture events" = "npic",
+                                                          "Individuals" = "nindiv"))
+                              ),
+             # textOutput(NS(id, "count")),
+             selectInput(NS(id, "facet"), 
+                         label = "Facetting variable",
+                         choices = NULL)
+      ),
+      column(width = 8,
+             outputCodeButton(girafeOutput(NS(id, "plot_species")))
+      )
+    ),
 # Diversity map -----------------------------------------------------------
 
     h3("Diversity map"),
@@ -17,19 +38,6 @@ allspeciesUI <- function(id) {
       column(width = 8,
              outputCodeButton(leafletOutput(NS(id, "plot_diversity"),
                                             height = "400px"))
-      )
-    ),
-    
-# Counts per species ------------------------------------------------------
-    h3("Species count"),
-    fluidRow(
-      column(width = 4,
-             selectInput(NS(id, "facet"), 
-                         label = "Facetting variable",
-                         choices = NULL)
-      ),
-      column(width = 8,
-             outputCodeButton(girafeOutput(NS(id, "plot_species")))
       )
     )
   )
@@ -71,6 +79,22 @@ allspeciesServer <- function(id,
     })
     
 
+# Was count provided? -----------------------------------------------------
+    count_col <- reactive({
+      unname(mapping_records()$count_col)
+    })
+    
+    output$count_col <- reactive({
+      if ( is.null(count_col()) ) {
+        return(FALSE)
+      } else {
+        return(TRUE)
+      }
+    })
+    
+    outputOptions(output, 'count_col', 
+                  suspendWhenHidden = FALSE)
+
 # Compute diversity indices -----------------------------------------------
   diversity_df <- metaReactive({
     "# Summarize species and cameras ---"
@@ -92,6 +116,47 @@ allspeciesServer <- function(id,
                   selection = "none",
                   options = list(scrollX = TRUE))
   }, bindToReturn = TRUE, varname = "diversity_table")
+
+
+# Plot species ------------------------------------------------------------
+  
+  output$plot_species <- metaRender2(renderGirafe, {
+    
+    # Set height
+    nspecies <- nrow(summarize_species(camtrap_data()$data$observations,
+                                       species_col = spp_col(), 
+                                       obs_col = obs_col()))
+    unit <- nspecies/6
+    height <- max(5, 
+                  unit/(1 + exp(-12*unit)))
+    
+    if (input$bars_count == "nindiv") {
+      # user wants to see count_col: set count_col to name of count_col
+      count_col <- count_col()
+    } else if (input$bars_count == "npic") { 
+      # user wants to see npic: set count_col to NULL
+      count_col <- NULL
+    }
+    
+    metaExpr({
+      "# Species abundance barplot ---"
+      "# ggplot plot"
+      gg <- plot_species_bars(..(camtrap_data())$data$observations, 
+                              spp_col = ..(spp_col()),
+                              obs_col = ..(obs_col()),
+                              count_col = ..(count_col),
+                              interactive = TRUE)
+      
+      "# ggiraph plot (interactive)"
+      gi <- ggiraph::girafe(ggobj = gg,
+                            width_svg = 8,
+                            height_svg = ..(height))
+      gi <- ggiraph::girafe_options(gi,
+                                    opts_zoom(min = 0.5, max = 10))
+      gi
+    })
+    
+  })
   
 # Plot map ----------------------------------------------------------------
     
@@ -117,46 +182,18 @@ allspeciesServer <- function(id,
                rescale = TRUE)
     })
     
-# Plot species ------------------------------------------------------------
-
-    output$plot_species <- metaRender2(renderGirafe, {
-      # Set height
-      nspecies <- nrow(summarize_species(camtrap_data()$data$observations,
-                                         species_col = spp_col(), 
-                                         obs_col = obs_col()))
-      unit <- nspecies/6
-      height <- max(5, 
-                    unit/(1 + exp(-12*unit)))
-      metaExpr({
-        "# Species abundance barplot ---"
-        "# ggplot plot"
-        gg <- plot_species_bars(..(camtrap_data())$data$observations, 
-                                spp_col = ..(spp_col()),
-                                obs_col = ..(obs_col()),
-                                count_col = ..(unname(mapping_records()$count_col)))
-        
-        "# ggiraph plot (interactive)"
-        gi <- ggiraph::girafe(ggobj = gg,
-                              width_svg = 8,
-                              height_svg = ..(height))
-        gi <- ggiraph::girafe_options(gi,
-                                      opts_zoom(min = 0.5, max = 10))
-        gi
-      })
-      
-    })
-    
 
 # Plots code --------------------------------------------------------------
-    # Map ---
-    observeEvent(input$plot_diversity_output_code, {
-      code <- expandChain(output$plot_diversity())
-      displayCodeModal(code)
-    })
-    
+
     # Species bars ---
     observeEvent(input$plot_species_output_code, {
       code <- expandChain(output$plot_species())
+      displayCodeModal(code)
+    })
+  
+    # Map ---
+    observeEvent(input$plot_diversity_output_code, {
+      code <- expandChain(output$plot_diversity())
       displayCodeModal(code)
     })
     
