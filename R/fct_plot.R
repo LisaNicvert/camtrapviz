@@ -50,10 +50,16 @@
 #' (defaults to species column). If the graph is interactive,
 #' this will also be displayed in the labels. It is interpred as a discrete color scale.
 #' @param cols Color palette for the points. Can be either a palette
-#' with as many colors as the levels of `points_col` or a single color name.
-#' In case `cols` is the vector it can be named with values of `points_col`
-#' and will correspont to the mapping between colors and `points_col`.
-#' Else the mapping is done by alphabetical order.
+#' or a single color name.
+#' If a single color name is provided, but `points_col` has several values,
+#' this parameter will be overriden with the default palette.
+#' If a palette of colors is provided in `cols`, the values will be matched with
+#' `points_col` values. `cols` can be named with values of `points_col`
+#' to map colors. Else, the mapping is done by alphabetical order.
+#' If a palette is provided, but has more colors than the values of `points_col`,
+#' a warning will be issued and a subset will be selected (based on names
+#' of the palette that are in the values of `points_col`, if applicable).
+#' If it has less colors, an error will be returned.
 #' @param date_breaks Character describing x-axis ticks spacing (e.g. "10 day"). 
 #' For the possible values, see documentation of `ggplot2::scale_y_datetime` for the
 #' argument `date_breaks`.
@@ -204,6 +210,8 @@ plot_points <- function(df,
                               levels = levels)
   
   if (!is.null(points_col)) {
+    # Coerce points col to factor
+    dfp[[points_col]] <- factor(dfp[[points_col]])
     gg <- ggplot(dfp,
                  aes(x = .data[[timestamp_col]], 
                      y = .data[[camera_col]],
@@ -297,7 +305,7 @@ plot_points <- function(df,
   # Define color palette
   if (!is.null(points_col)) {  # Points colors defined by another column
     ptcol <- sort(unique(dfp[[points_col]]))
-    if (length(cols) == 1) { # Override default
+    if (length(cols) == 1 && length(ptcol) != 1) { # Override default
       # This is RColorBrewer palette Dark2 (v1.1.3)
       pal <- c("#1B9E77", "#D95F02", "#7570B3", "#E7298A", 
                "#66A61E", "#E6AB02", "#A6761D", "#666666")
@@ -308,8 +316,23 @@ plot_points <- function(df,
       }
       names(cols) <- ptcol
     } else { # Check color length
-      if (length(cols) != length(ptcol)) {
-        warning("cols do not match points_col length")
+      if (length(cols) > length(ptcol)) {
+        warning("cols do not match points_col length: they will be truncated")
+        # Select color subset
+        if (is.null(names(cols))) { # Select first values
+          cols <- cols[1:length(ptcol)]
+        } else { # Select based on names
+          if (!all(as.character(ptcol) %in% names(cols))) {
+            warning("Some values of points_col are not in cols names: the first values of cols will be selected.")
+            cols <- cols[1:length(ptcol)]  
+            names(cols) <- NULL
+          } else { # All values are in the names
+            cols <- cols[as.character(ptcol)]
+          }
+          
+        }
+      } else if (length(cols) < length(ptcol)) {
+        stop("There are less colors in cols than there are values in points_col.")
       }
       # Add names (implicit: colors are ordered as the species in
       # alphabetical order)

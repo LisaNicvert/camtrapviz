@@ -305,14 +305,9 @@ summaryServer <- function(id,
 
     
     output$plot_occurrences <- metaRender2(renderGirafe, {
-      # Define height
-      unith <- ncameras()/4
-      height <- max(5, 
-                    unith/(1 + exp(-12*unith)))
-      # Define width
-      unitw <- as.numeric(daterange()[2] - daterange()[1], "days")/60 # One inch per 2 months
-      width <- max(8,
-                   unitw/(1 + exp(-24*unitw)))
+      hw <- get_hw(ncameras(), daterange())
+      height <- hw$height
+      width <- hw$width
       
       # Duplicate code for lisibility
       if (input$points_boxes) { # Add cameras_values

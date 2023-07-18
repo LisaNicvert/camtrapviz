@@ -109,10 +109,16 @@ th the space between the y-axis ticks entirely filled.}
 \item{ylab}{Label for the y-axis}
 
 \item{cols}{Color palette for the points. Can be either a palette
-with as many colors as the levels of \code{points_col} or a single color name.
-In case \code{cols} is the vector it can be named with values of \code{points_col}
-and will correspont to the mapping between colors and \code{points_col}.
-Else the mapping is done by alphabetical order.}
+or a single color name.
+If a single color name is provided, but \code{points_col} has several values,
+this parameter will be overriden with the default palette.
+If a palette of colors is provided in \code{cols}, the values will be matched with
+\code{points_col} values. \code{cols} can be named with values of \code{points_col}
+to map colors. Else, the mapping is done by alphabetical order.
+If a palette is provided, but has more colors than the values of \code{points_col},
+a warning will be issued and a subset will be selected (based on names
+of the palette that are in the values of \code{points_col}, if applicable).
+If it has less colors, an error will be returned.}
 }
 \value{
 A \code{ggplot} object representing time on the x-axis

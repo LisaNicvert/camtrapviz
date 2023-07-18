@@ -58,10 +58,13 @@ create_dashboard <- function(tagList,
 #' @param prefix the prefix to use for radioButtons and select(ize)Input
 #' widgets
 #' @param item The item name to display in the widgets labels
+#' @param manual_widget Widget to be displayed for manual choice.
+#' If not provided, will default to a pickerinput.
 #'
 #' @noRd
 #' @return A taglist of widgets
-select_values <- function(prefix, item) {
+select_values <- function(prefix, item, 
+                          manual_widget = NULL) {
   
   tagList(
     radioButtons(paste(prefix, "manually", sep = "_"), 
@@ -78,15 +81,19 @@ select_values <- function(prefix, item) {
                             class = "nomargin",
                             # Adjusted div to match default height of Shiny selectizeInput container
                             div(style = "height:63.5px; margin-bottom:15px",
-                                shinyWidgets::pickerInput(paste(prefix, "select", sep = "_"),
-                                                          paste(gsub("(^[[:alpha:]])", 
-                                                                     "\\U\\1", item, perl = TRUE), # capitalize wird
-                                                                "list"), 
-                                                          multiple = TRUE,
-                                                          options = list(
-                                                            `actions-box` = TRUE,
-                                                            `dropup-auto` = FALSE),
-                                                          choices = NULL)
+                                if (is.null(manual_widget)) {
+                                  shinyWidgets::pickerInput(paste(prefix, "select", sep = "_"),
+                                                            paste(gsub("(^[[:alpha:]])", 
+                                                                       "\\U\\1", item, perl = TRUE), # capitalize word
+                                                                  "list"), 
+                                                            multiple = TRUE,
+                                                            options = list(
+                                                              `actions-box` = TRUE,
+                                                              `dropup-auto` = FALSE),
+                                                            choices = NULL)
+                                } else {
+                                  manual_widget
+                                }
                             )
                             )
     ),

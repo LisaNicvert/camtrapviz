@@ -215,3 +215,31 @@ print_check_cameras <- function(cameras,
   
   return(msg)
 }
+
+
+# Plots -------------------------------------------------------------------
+
+#' Get height and width of a plot
+#' 
+#' Get the height and width of a plot in inches given ncam
+#' and daterange.
+#' 
+#' @param ncam Number of cameras
+#' @param daterange Date range
+#'
+#' @return Named list height and width
+#' @noRd
+get_hw <- function(ncam, daterange) {
+  
+  # Define height
+  unith <- ncam/4
+  height <- max(5, 
+                unith/(1 + exp(-12*unith)))
+  # Define width
+  unitw <- as.numeric(daterange[2] - daterange[1], "days")/60 # One inch per 2 months
+  width <- max(8,
+               unitw/(1 + exp(-24*unitw)))
+  
+  list(height = height,
+       width = width)
+}
