@@ -1,8 +1,8 @@
 ---
-title: "Summarize"
+title: "Summarize data"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Summarize}
+  %\VignetteIndexEntry{Summarize data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
