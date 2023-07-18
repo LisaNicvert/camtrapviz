@@ -1,6 +1,6 @@
-#' Run camtrapviz
+#' Run Shiny app
 #' 
-#' Runs the Shiny app to vizualise camera trap data
+#' Runs the Shiny app to visualize camera trap data.
 #'
 #' @param ... Arguments to pass to shiny::shinyApp besides server and ui
 #'
@@ -15,8 +15,8 @@ run_camtrapviz <- function(...) {
 #'
 #' @param ... Arguments to pass to shiny::shinyApp besides server and ui
 #'
+#' @noRd
 #' @return A working Shiny app
-#' @export
 importApp <- function(...) {
   
   module <- importUI("import")

@@ -5,6 +5,7 @@
 #' @param output Shiny output
 #' @param session Shiny session
 #'
+#' @noRd
 #' @return The server generating functions for Shiny
 server <- function(input, output, session) {
   

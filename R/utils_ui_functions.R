@@ -4,10 +4,9 @@
 #' 
 #' @param prefix The prefix to use for the widget id (will be "prefix_sep")
 #'
+#' @noRd
 #' @return A checkboxGroupInput with id "prefix_sep" to choose between comma, 
 #' tabulation and semicolon for the file separator
-#' 
-#' @export
 separator_widget <- function(prefix) {
   radioButtons(paste(prefix, "sep", sep = "_"),
                label = "File separator",
@@ -24,7 +23,8 @@ separator_widget <- function(prefix) {
 #' @param tagList The tagList
 #' @param menu_title The title to display for the tab menu
 #' @param dashboard_title Dashboard title
-#'
+#' 
+#' @noRd
 #' @return The tagList wrapped in the dashboard
 create_dashboard <- function(tagList, 
                              menu_title,
@@ -59,6 +59,7 @@ create_dashboard <- function(tagList,
 #' widgets
 #' @param item The item name to display in the widgets labels
 #'
+#' @noRd
 #' @return A taglist of widgets
 select_values <- function(prefix, item) {
   

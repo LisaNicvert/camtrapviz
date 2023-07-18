@@ -10,7 +10,7 @@
 
 # Cast --------------------------------------------------------------------
 
-#' Cast columns
+#' Cast columns types
 #' 
 #' Converts columns to a given format.
 #'
@@ -86,6 +86,7 @@ cast_columns <- function(df, cast_type) {
 #' @param names_to_add The names of the elements of `castlist` 
 #' for which to add a `tryFormats` element
 #'
+#' @noRd
 #' @return The original `castlist` where the specified elements
 #' have a new slot `tryFormats` which contains the `formats` vector.
 #' If the value of `castlist` to modify is `NULL`, will not add 
@@ -135,6 +136,7 @@ add_tryformats <- function(castlist,
 #' column to keep in `dat$data$observations` if `split = TRUE`).
 #' Must be in `cam_columns`.
 #'
+#' @noRd
 #' @return The dataset with "pre-cleaned" cameras data:
 #' + the cameras table is filtered to keep unique rows across 
 #' the columns indicated in `cam_columns`. This allows to filter 

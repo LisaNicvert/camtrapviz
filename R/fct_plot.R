@@ -7,9 +7,9 @@
 #
 # Script Description: plotting functions
 
-#' Plot points
+#' Plot species occurrences at cameras
 #' 
-#' Plot species occurrences at cameras as points
+#' Plot species occurrences at cameras as points in time.
 #'
 #' @param df The dataframe
 #' @param camera_col Name of the camera column
@@ -353,9 +353,9 @@ plot_points <- function(df,
   return(gg)
 }
 
-#' Plot species bars
+#' Barplot of species abundance
 #'
-#' Plot the barplot of species abundance
+#' Plot species abundance as a barplot.
 #'
 #' @param df The dataframe
 #' @param spp_col Name of the species column
@@ -420,7 +420,7 @@ plot_species_bars <- function(df,
   return(gg)
 }
 
-#' Plot map
+#' Plot cameras map
 #' 
 #' Plot a leaflet map representing cameras' coordinates as points.
 #' 
@@ -593,6 +593,7 @@ plot_map <- function(df,
 #' in df and it must be ordered in the same way as the cameras in df.
 #' @param display_camnames Display camera names on the map?
 #'
+#' @noRd
 #' @return a `leaflet` map representing cameras as points.
 #' If the CRS of the input data is different from EPSG:4326 (WGS84), 
 #' data are re-projected using WGS84.

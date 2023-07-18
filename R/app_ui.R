@@ -1,5 +1,6 @@
 #' UI-generating function
 #'
+#' @noRd
 #' @return The UI (HTML code)
 ui <- function() {
   dashboardPage(

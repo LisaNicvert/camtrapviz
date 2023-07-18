@@ -31,7 +31,7 @@ vector containing to the column \code{spp_col} of this dataframe.
 \itemize{
 \item a column named like \code{spp_col} containing unique species names.
 \item if \code{obs_col} is not \code{NULL}: a column named like \code{obs_col} containing corresponding
-observation type
+observation type.
 The rownames of this table are of the form ID_number and are a unique ID for
 the species.
 }

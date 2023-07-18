@@ -10,9 +10,9 @@
 
 # Cameras -----------------------------------------------------------------
 
-#' Get cameras
+#' Get unique cameras vector
 #' 
-#' Get a unique of all cameras present either in one list or in the
+#' Get a unique vector of all cameras present either in one list or in the
 #' other.
 #'
 #' @param cam1 Character vector of camera names.
@@ -285,7 +285,7 @@ summarize_cameras <- function(df, cam_col,
 #' vector containing to the column `spp_col` of this dataframe.
 #' + a column named like `spp_col` containing unique species names.
 #' + if `obs_col` is not `NULL`: a column named like `obs_col` containing corresponding
-#' observation type
+#' observation type.
 #' The rownames of this table are of the form ID_number and are a unique ID for
 #' the species.
 #' 
@@ -351,7 +351,7 @@ get_species <- function(df,
 }
 
 
-#' Get species count
+#' Get species count from a dataframe
 #'
 #' @param df a dataframe
 #' @param species_col name of the species column from the dataframe
@@ -619,8 +619,8 @@ get_diversity_table <- function(df, cam_col, spp_col,
 #'                                   "cat", "cat", "cow", "rabbit"),
 #'                       count = c(30, 30, 30, 30, 88, 1, 1),
 #'                       prop = c(1/3, 1/3, 1/3, 1, 88/90, 1/90, 1/90))
-#'get_diversity_indices(countdf, 
-#'                      spp_col = "species", cam_col = "camera")
+#' get_diversity_indices(countdf, 
+#'                       spp_col = "species", cam_col = "camera")
 get_diversity_indices <- function(count_df, spp_col, cam_col,
                                   count_col = "count",
                                   prop_col = "prop") {
@@ -695,7 +695,7 @@ time_to_circular <- function(time,
   return(timenum)
 }
 
-#' Fit a von Mises distribution.
+#' Fit a von Mises distribution
 #'
 #' @param time The time of the day (must be an object of class
 #' `times` from the `chron` package)
@@ -815,6 +815,7 @@ vonMises_density <- function(mod,
 #' @param keep_all_names If some values of `names` are not in
 #' the names of `vec`, should they be kept?
 #'
+#' @noRd
 #' @return The reordered vector `vec` with only names in `names`.
 #' Some values can be `NA` if `keep_all_names` is `TRUE`.
 reorder_named_values <- function(vec, names, 

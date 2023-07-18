@@ -14,7 +14,8 @@
 #' 
 #' @param line A line from a file
 #' @param default The default separator to use in case none work
-#'
+#' 
+#' @noRd
 #' @return The detected separator (looks for comma, semicolon and tab)
 get_separator <- function(line, default = ",") {
   
@@ -37,6 +38,7 @@ get_separator <- function(line, default = ",") {
 #' @param df a dataframe with columns col and widget
 #' @param col the name of the column to extract example mapping from
 #'
+#' @noRd
 #' @return A named character vector, excluding NA values in col
 get_example_mapping <- function(df, col) {
   
@@ -57,6 +59,7 @@ get_example_mapping <- function(df, col) {
 #' @param col  The column of the dataframe to extract
 #' @param widget_values The widgets to get the vector for
 #' 
+#' @noRd
 #' @return A named list containing the values of col, 
 #' names are the widget names
 get_named_list <- function(df, col, widget_values) {

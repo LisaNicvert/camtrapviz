@@ -19,7 +19,7 @@ A vector of unique cameras that are present in both vectors.
 NAs are kept and placed in the last position. Alphabetical order is used.
 }
 \description{
-Get a unique of all cameras present either in one list or in the
+Get a unique vector of all cameras present either in one list or in the
 other.
 }
 \examples{

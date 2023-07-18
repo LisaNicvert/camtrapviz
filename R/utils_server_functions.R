@@ -22,6 +22,7 @@
 #' @param empty_allowed logical; is it allowed to return 
 #' the character in `empty_placeholder` if there is no match?
 #'
+#' @noRd
 #' @return
 #' + if there was at least a match: all matched columns names 
 #' + if there was no match:
@@ -71,14 +72,13 @@ find_default_colname <- function(pattern, colnames,
 #' @param empty_placeholder  a character to use as placeholder
 #' if there is no match for some elements of `regex_list` in `colnames`.
 #'
+#' @noRd
 #' @return A list with the same names as `regex_list`. 
 #' Each element is the first (or the only) matched column name 
 #' for the corresponding regular expression in `regex_list`.
 #' If there was no match for one element:
 #'    + if `empty_allowed`, returns the empty placeholder
 #'    + else, returns `NULL`
-#' 
-#' @export
 #'
 #' @examples
 #' colnames <- c("speciesName", "CameraID", "Datetime")
@@ -129,7 +129,7 @@ find_default_colnames <- function(regex_list,
 
 # Summary module -------------------------------------------------------
 
-#' Get cameras not in
+#' Get non-shared cameras between two dataframes
 #'
 #' Using two dataframes in input, determine which cameras 
 #' are in one of the tables but not in the other one.
@@ -185,6 +185,7 @@ get_cameras_not_in <- function(dfrecords,
 #' the sentence will state that input cameras are not in the records 
 #' or in the cameras dataframe.
 #'
+#' @noRd
 #' @return A message describing which cameras are missing where. 
 #' If no cameras are missing (i.e. `cameras` is a vector of length
 #' zero), returns the empty string "".

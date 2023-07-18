@@ -1,4 +1,39 @@
 url: https://lisanicvert.github.io/camtrapviz/
 template:
   bootstrap: 5
-
+reference:
+- title: "Read and format data"
+  contents:
+  - read_data
+  - cast_columns
+  - clean_data
+  - filter_cameras_in_both_tables
+  - remove_rows_with_NA
+- title: "Summarize and explore data"
+  contents:
+  - get_cameras
+  - get_cameras_not_in
+  - get_nspecies
+  - get_species
+  - starts_with("summarize")
+- title: "Analyze data"
+  contents:
+  - get_diversity_indices
+  - get_diversity_table
+  - time_to_circular
+  - vonMises_density
+  - fit_vonMises
+- title: "Plot data"
+  contents:
+  - starts_with("plot")
+- title: "Run Shiny app"
+  contents:
+  - run_camtrapviz
+articles:
+- title: All vignettes
+  navbar: ~
+  contents: 
+  - read-and-clean-data
+  - summarize
+  - plots
+  - activity-patterns
