@@ -209,10 +209,16 @@ th the space between the y-axis ticks entirely filled.</p></dd>
 
 <dt>cols</dt>
 <dd><p>Color palette for the points. Can be either a palette
-with as many colors as the levels of <code>points_col</code> or a single color name.
-In case <code>cols</code> is the vector it can be named with values of <code>points_col</code>
-and will correspont to the mapping between colors and <code>points_col</code>.
-Else the mapping is done by alphabetical order.</p></dd>
+or a single color name.
+If a single color name is provided, but <code>points_col</code> has several values,
+this parameter will be overriden with the default palette.
+If a palette of colors is provided in <code>cols</code>, the values will be matched with
+<code>points_col</code> values. <code>cols</code> can be named with values of <code>points_col</code>
+to map colors. Else, the mapping is done by alphabetical order.
+If a palette is provided, but has more colors than the values of <code>points_col</code>,
+a warning will be issued and a subset will be selected (based on names
+of the palette that are in the values of <code>points_col</code>, if applicable).
+If it has less colors, an error will be returned.</p></dd>
 
 </dl></div>
     <div class="section level2">
