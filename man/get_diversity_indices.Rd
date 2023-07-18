@@ -59,5 +59,5 @@ countdf <- data.frame(camera = c("C1", "C1", "C1", "C2",
                       count = c(30, 30, 30, 30, 88, 1, 1),
                       prop = c(1/3, 1/3, 1/3, 1, 88/90, 1/90, 1/90))
 get_diversity_indices(countdf, 
-                     spp_col = "species", cam_col = "camera")
+                      spp_col = "species", cam_col = "camera")
 }

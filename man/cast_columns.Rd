@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_format_data.R
 \name{cast_columns}
 \alias{cast_columns}
-\title{Cast columns}
+\title{Cast columns types}
 \usage{
 cast_columns(df, cast_type)
 }

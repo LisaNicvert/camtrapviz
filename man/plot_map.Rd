@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_plot.R
 \name{plot_map}
 \alias{plot_map}
-\title{Plot map}
+\title{Plot cameras map}
 \usage{
 plot_map(
   df,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_app.R
 \name{run_camtrapviz}
 \alias{run_camtrapviz}
-\title{Run camtrapviz}
+\title{Run Shiny app}
 \usage{
 run_camtrapviz(...)
 }
@@ -13,5 +13,5 @@ run_camtrapviz(...)
 A working Shiny app
 }
 \description{
-Runs the Shiny app to vizualise camera trap data
+Runs the Shiny app to visualize camera trap data.
 }

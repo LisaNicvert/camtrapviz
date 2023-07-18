@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_data_wrangling.R
 \name{get_nspecies}
 \alias{get_nspecies}
-\title{Get species count}
+\title{Get species count from a dataframe}
 \usage{
 get_nspecies(df, species_col, obs_col = NULL, keep_NA = FALSE)
 }
@@ -21,7 +21,7 @@ ignore all species with \code{obs_col} value different from \code{animal}.
 If \code{keep_NA}, will count NA in the total species count.
 }
 \description{
-Get species count
+Get species count from a dataframe
 }
 \examples{
 df <- data.frame(obstype = c("animal", "animal", "animal", "animal", "blank"),

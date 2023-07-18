@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_plot.R
 \name{plot_points}
 \alias{plot_points}
-\title{Plot points}
+\title{Plot species occurrences at cameras}
 \usage{
 plot_points(
   df,
@@ -120,7 +120,7 @@ and cameras on the y-axis. Colors of the points correspond to
 different species.
 }
 \description{
-Plot species occurrences at cameras as points
+Plot species occurrences at cameras as points in time.
 }
 \details{
 If \code{date_col} and \code{time_col} are provided along with

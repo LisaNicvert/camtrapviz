@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils_server_functions.R
 \name{get_cameras_not_in}
 \alias{get_cameras_not_in}
-\title{Get cameras not in}
+\title{Get non-shared cameras between two dataframes}
 \usage{
 get_cameras_not_in(dfrecords, dfcameras, cam_col_records, cam_col_cameras)
 }

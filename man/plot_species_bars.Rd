@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_plot.R
 \name{plot_species_bars}
 \alias{plot_species_bars}
-\title{Plot species bars}
+\title{Barplot of species abundance}
 \usage{
 plot_species_bars(
   df,
@@ -37,7 +37,7 @@ count. The x-axis is the observed number of individuals and the y-axis
 are the different species.
 }
 \description{
-Plot the barplot of species abundance
+Plot species abundance as a barplot.
 }
 \examples{
 data("recordTableSample", package = "camtrapR")

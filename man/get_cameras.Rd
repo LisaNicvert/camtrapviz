@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_data_wrangling.R
 \name{get_cameras}
 \alias{get_cameras}
-\title{Get cameras}
+\title{Get unique cameras vector}
 \usage{
 get_cameras(cam1, cam2, NA.last = TRUE)
 }

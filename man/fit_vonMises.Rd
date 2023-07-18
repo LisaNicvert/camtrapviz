@@ -2,7 +2,7 @@
 % Please edit documentation in R/fct_data_wrangling.R
 \name{fit_vonMises}
 \alias{fit_vonMises}
-\title{Fit a von Mises distribution.}
+\title{Fit a von Mises distribution}
 \usage{
 fit_vonMises(time, k)
 }
@@ -18,7 +18,7 @@ A mixture model of von Mises distributions of class
 \code{movMF}.
 }
 \description{
-Fit a von Mises distribution.
+Fit a von Mises distribution
 }
 \examples{
 data("recordTableSample", package = "camtrapR")
