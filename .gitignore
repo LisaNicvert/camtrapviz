@@ -6,3 +6,4 @@ inst/doc
 other/.~*
 tests/testthat/Rplots.pdf
 www/
+docs/*
