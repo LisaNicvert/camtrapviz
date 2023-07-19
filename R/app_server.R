@@ -33,6 +33,7 @@ server <- function(input, output, session) {
 
   # Summary reactives -------------------------------------------------------
   summary_val <- summaryServer("summary",
+                               test = import_val$camtrap_data,
                                camtrap_data = select_val$camtrap_data,
                                mapping_records = import_val$mapping_records,
                                mapping_cameras = import_val$mapping_cameras,

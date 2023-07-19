@@ -82,6 +82,7 @@ summaryUI <- function(id) {
 # Server ------------------------------------------------------------------
 
 summaryServer <- function(id, 
+                          test,
                           camtrap_data, 
                           mapping_records,
                           mapping_cameras,
@@ -89,7 +90,7 @@ summaryServer <- function(id,
   moduleServer(id, function(input, output, session) {
     
 # Test reactive input -----------------------------------------------------
-    # stopifnot(is.reactive(camtrap_data))
+    stopifnot(is.reactive(camtrap_data))
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     stopifnot(is.reactive(crs))

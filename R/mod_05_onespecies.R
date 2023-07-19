@@ -51,6 +51,7 @@ onespeciesServer <- function(id,
   moduleServer(id, function(input, output, session) {
     
     # Test reactive input -----------------------------------------------------
+    stopifnot(is.reactive(camtrap_data))
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     stopifnot(is.reactive(crs))

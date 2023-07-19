@@ -1015,7 +1015,7 @@ importServer <- function(id) {
 
 # Return values -----------------------------------------------------------
     return(
-      list(camtrap_data = dat,
+      list(camtrap_data = reactive(dat()),
            mapping_records = reactive(mapping_records()),
            mapping_cameras = reactive(mapping_cameras()$mapping),
            crs = reactive(crs())
