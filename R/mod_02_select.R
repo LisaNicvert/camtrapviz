@@ -33,7 +33,8 @@ selectUI <- function(id) {
       ),
       column(width = 6,
              class = "nomarginright",
-             girafeOutput(NS(id, "plot_preview"))
+             girafeOutput(NS(id, "plot_preview"),
+                          height = "100%")
       )
     ),
     
@@ -62,7 +63,7 @@ selectServer <- function(id,
 
       # Test reactive input -----------------------------------------------------
       
-      # stopifnot(is.reactive(camtrap_data))
+      stopifnot(is.reactive(camtrap_data))
       stopifnot(is.reactive(mapping_records))
       stopifnot(is.reactive(mapping_cameras))
       
@@ -190,11 +191,6 @@ selectServer <- function(id,
       # Filter tables -----------------------------------------------------------
 
       dat_filtered <- metaReactive2({
-        # Validate statement
-        validate(need(input$daterange_select, "Wait for date range"))
-        validate(need(input$cam_select, "Wait for cameras selection"))
-        validate(need(input$spp_select, "Wait for species selection"))
-        
         
         # Get values to filter on ---
         # Get rows corresponding to selected obs_col
@@ -234,8 +230,9 @@ selectServer <- function(id,
           dat_filtered <- ..(camtrap_data())
           # Add rowid for plot (to know which rows have been discarded)
           if (!tibble::has_rownames(camtrap_data()$data$observations)) {
-            dat_filtered$data$observations <- dat_filtered$data$observations |> 
-              tibble::rowid_to_column()
+            # dat_filtered$data$observations <- dat_filtered$data$observations |> 
+              # tibble::rowid_to_column()
+            rownames(dat_filtered$data$observations) <- 1:nrow(dat_filtered$data$observations)
           }
           "# Filter ---"
           # Filter obs_col
@@ -301,50 +298,8 @@ selectServer <- function(id,
         
         dffil <- dat_filtered()$data$observations
         
-        kept <- dfplot$rowid %in% dffil$rowid
+        kept <- dfplot$rowid %in% rownames(dffil)
         dfplot$kept <- kept
-        
-        # # Filter species that are selected
-        # if (!is.null(obs_col())) {
-        #   # Get all selected values
-        #   all_filter <- species_df()[input$spp_select, ]
-        #   
-        #   # Get species values
-        #   spp_filter <- all_filter[all_filter[[obs_col()]] == "animal", ]
-        #   spp_filter <- spp_filter[[spp_col()]]
-        #   
-        #   # Get obs type values
-        #   obs_filter <- all_filter[all_filter[[obs_col()]] != "animal", ]
-        #   obs_filter <- obs_filter[[obs_col()]]
-        # } else {
-        #   # Obs filter is NULL
-        #   obs_filter <- NULL
-        #   # spp filter is all species
-        #   spp_filter <- species_df()[input$spp_select, ]
-        # }
-        # 
-        # if(!is.null(obs_col())) { # If some species in the list are in obs_col
-        #   # Take obs_col into account
-        #   dfplot <- dfplot |> 
-        #     mutate(kept = ifelse(.data[[obs_col()]] %in% obs_filter | .data[[spp_col()]] %in% spp_filter,
-        #                          TRUE, FALSE))
-        # } else {
-        #   dfplot <- dfplot |> 
-        #     mutate(kept = ifelse(.data[[spp_col()]] %in% spp_filter,
-        #                          TRUE, FALSE))
-        # }
-        # 
-        # # Filter date range
-        # dfplot <- dfplot |>
-        #   mutate(kept = ifelse(dplyr::between(.data[[col_filter_range()]], 
-        #                                       input$daterange_select[1],
-        #                                       input$daterange_select[2]),
-        #                        TRUE, FALSE))
-        # 
-        # # Filter cameras
-        # dfplot <- dfplot |>
-        #   mutate(kept = ifelse(.data[[cam_col_rec()]] %in% input$cam_select,
-        #                        TRUE, FALSE))
         
         cols <- c("black", "grey")
         names(cols) <- c("TRUE", "FALSE")
@@ -363,20 +318,20 @@ selectServer <- function(id,
                                                       tz = "UTC"), 
                               linetype = "dashed")
         
-        ggiraph::girafe(ggobj = gg, 
-                        width_svg = width,
-                        height_svg = height)
+        gi <- ggiraph::girafe(ggobj = gg, 
+                              width_svg = width,
+                              height_svg = height)
         
-        # gi <- ggiraph::girafe_options(gi,
-        #                               opts_zoom(min = 0.5, max = 10),
-        #                               opts_hover_inv(css = "opacity:0.3"),
-        #                               opts_selection_inv(css = "opacity:0.3"),
-        #                               opts_selection(type = "single"),
-        #                               opts_hover(css = ""))
+        gi <- ggiraph::girafe_options(gi,
+                                      opts_zoom(min = 0.5, max = 10),
+                                      opts_hover_inv(css = "opacity:0.3"),
+                                      opts_selection_inv(css = "opacity:0.3"),
+                                      opts_selection(type = "none"),
+                                      opts_hover(css = ""))
       })
       
       # Return values -----------------------------------------------------------
-      return(list(camtrap_data = dat_filtered))
+      return(list(camtrap_data = reactive(dat_filtered())))
     }
   )
 }
