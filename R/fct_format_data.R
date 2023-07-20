@@ -275,6 +275,8 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #' @param cam_col_cameras Name of the column with cameras names in 
 #' cameras (needed only of `only_shared_cameras` is `TRUE`).
 #' If `NULL` will be assumed to be the same as `cam_col_records`. 
+#' @param add_rowid Should row IDs be added to the observations df?
+#' If yes, row names in the form of "ID_xx" are added to the the dataframe.
 #' 
 #' @return An object of the same type as the original input,
 #' but where `dat$data$deployments` and `dat$data$observations` have been
@@ -317,7 +319,8 @@ clean_data <- function(dat,
                        only_shared_cameras = FALSE,
                        cam_col_records,
                        cam_col_cameras = NULL,
-                       split = FALSE) {
+                       split = FALSE,
+                       add_rowid = FALSE) {
   
   # Prepare cameras ---
   cameras_colnames <- as.list(names(cam_type))
@@ -355,6 +358,15 @@ clean_data <- function(dat,
     
     res$data$observations <- bothcam$records
     res$data$deployments <- bothcam$cameras
+  }
+  
+  if (add_rowid) {
+    # res$data$observations <- res$data$observations |> 
+    #   tibble::rowid_to_column() 
+    nrow <- nrow(res$data$observations)
+    res$data$observations <- as.data.frame(res$data$observations)
+    rownames(res$data$observations) <- paste("ID", 1:nrow,
+                                             sep = "_")
   }
   
   return(res)
