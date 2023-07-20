@@ -271,29 +271,36 @@ summarize_cameras <- function(df, cam_col,
 
 # Species -----------------------------------------------------------------
 
-#' Get unique species from a dataframe
+#' Get species from a dataframe
 #'
+#' This function aims at giving the vector of species names 
+#' corresponding to the observations from a dataframe.
+#' It is primarily intended for dataframes where observations have a 
+#' type, and some non-animal species are written as `NA` but a more 
+#' general type is provided (as with the camtrapDP standard).
+#' 
 #' @param df The dataframe
 #' @param spp_col name of the species column from the dataframe
 #' @param obs_col name of the observation type column from the dataframe
 #' @param animal_code value of `obs_col` coding for animal observations.
-#' @param return_df renturn a dataframe? If `TRUE`, will return a dataframe 
+#' @param return_df return a dataframe? If `TRUE`, will return a dataframe 
 #' (see below); else will return a character vector of species names.
 #'
-#' @return If `return_df` is `TRUE`, returns a dataframe containing 
-#' unique species and their characteristics. Else, returns only the character
-#' vector containing to the column `spp_col` of this dataframe.
-#' + a column named like `spp_col` containing unique species names.
-#' + if `obs_col` is not `NULL`: a column named like `obs_col` containing corresponding
-#' observation type.
-#' The rownames of this table are of the form ID_number and are a unique ID for
-#' the species.
+#' @return 
+#' species names in the same order as `df`. 
+#' If `obs_col` is provided,  `NA` values in `spp_col` are 
+#' replaced with the corresponding value in `obs_col` 
+#' (if `obs_col` is not `animal_code`). 
+#' If `return_df` is `TRUE`, returns a dataframe containing 
+#' species and observation type in the same order as `df`.
+#' This dataframe has the following columns (type character):
+#' + a column named like `spp_col` containing species names
+#' (where `NA` values in `spp_col` are replaced as described above).
+#' + a column named like `obs_col` containing unique corresponding
+#' observations types (if `obs_col` is provided).
+#' Else, returns only the character vector containing the values of 
+#' `spp_col`.
 #' 
-#' @details
-#' When `obs_col` is provided, the values of the `spp_col` column that are 
-#' `NA` when `obs_col` corresponds to a non-animal species (which is the 
-#' case in the `camtrapDP` standard) are replaced with the value from 
-#' `obs_col`.
 #' 
 #' @export
 #'
@@ -302,46 +309,142 @@ summarize_cameras <- function(df, cam_col,
 #'                              "cameratrapper", "tourist"),
 #'                  type = c("animal", "animal", "animal", "fire", "blank", 
 #'                           "human", "human"))
-#' get_species(df, spp_col = "species", obs_col = "type")
-get_species <- function(df,
-                        spp_col, obs_col = NULL,
-                        animal_code = "animal",
-                        return_df = TRUE) {
+#' # Use the type column
+#' get_all_species(df, spp_col = "species", obs_col = "type")
+#' # Use the type column but return a vector
+#' get_all_species(df, spp_col = "species", return_df = FALSE)
+#' 
+#' # Don't use the type column
+#' get_all_species(df, spp_col = "species")
+get_all_species <- function(df,
+                            spp_col, obs_col = NULL,
+                            animal_code = "animal",
+                            return_df = ifelse(is.null(obs_col), FALSE, TRUE)) {
+  
+  # Convert factor to character
+  df[[spp_col]] <- as.character(df[[spp_col]])
   
   if (!is.null(obs_col)) {
-    # Get (unique) species ---
-    spp_df <- df[c(obs_col, spp_col)] |>
-      distinct(.keep_all = TRUE)
+    df[[obs_col]] <- as.character(df[[obs_col]])
+  }
+  
+  if (!is.null(obs_col)) {
+    # Get columns
+    spp_df <- df[, c(spp_col, obs_col)]
     
     # Replace values with not animal ---
     is_non_animal <- spp_df[[obs_col]] != animal_code # Get non-animals
     is_non_animal[is.na(is_non_animal)] <- TRUE # Consider NAs as non-animals
     spp_df[[spp_col]][is_non_animal & is.na(spp_df[[spp_col]])] <- spp_df[[obs_col]][is_non_animal & is.na(spp_df[[spp_col]])]
+  } else {
+    # Df with a unique column
+    spp_df <- data.frame(col = df[[spp_col]])
+    colnames(spp_df) <- spp_col
+  }
+  
+  if (!return_df) { # Return only spp_col column
+    res <- spp_df[[spp_col]]
+  } else {
+    res <- spp_df
+  }
+  
+  return(res)
+}
+
+#' Get unique species from a dataframe
+#'
+#' This function aims at giving the unique species names 
+#' corresponding from a dataframe.
+#' It is primarily intended for dataframes where observations have a 
+#' type, and some non-animal species are written as `NA` but a more 
+#' general type is provided (as with the camtrapDP standard).
+#' 
+#' @param df The dataframe
+#' @param spp_col name of the species column from the dataframe
+#' @param obs_col name of the observation type column from the dataframe
+#' @param animal_code value of `obs_col` coding for animal observations.
+#' @param return_df return a dataframe? If `TRUE`, will return a dataframe 
+#' (see below); else will return a character vector of unique 
+#' species names.
+#' @param reorder Reorder the results? This will arrange values by 
+#' alphabetical order. If `obs_col` is provided, non-animal species will
+#' be arranged last.
+#'
+#' @return 
+#' unique species names. 
+#' If `obs_col` is provided,  `NA` values in `spp_col` are 
+#' replaced with the corresponding value in `obs_col` 
+#' (if `obs_col` is not `animal_code`). 
+#' If `return_df` is `TRUE`, returns a dataframe containing 
+#' unique species and observation type.
+#' This dataframe has the following columns (type character):
+#' + a column named like `spp_col` containing species names
+#' (where `NA` values in `spp_col` are replaced as described above).
+#' + a column named like `obs_col` containing unique corresponding
+#' observations types (if `obs_col` is provided).
+#' + the columns of the dataframe are named as ID_xx where xx are numbers.
+#' Else, returns only the unique values of 
+#' `spp_col`.
+#' 
+#' @export
+#'
+#' @examples
+#' df <- data.frame(species = c("rabbit", "cat", "cat", NA, NA, 
+#'                              "cameratrapper", "tourist"),
+#'                  type = c("animal", "animal", "animal", "fire", "blank", 
+#'                           "human", "human"))
+#' # Use the type column
+#' get_unique_species(df, spp_col = "species", obs_col = "type",
+#'                    reorder = TRUE)
+#' # Use the type column but return a vector
+#' get_unique_species(df, spp_col = "species", return_df = FALSE,
+#'                    reorder = TRUE)
+#' 
+#' # Don't use the type column
+#' get_unique_species(df, spp_col = "species",
+#'                    reorder = TRUE)
+get_unique_species <- function(df,
+                        spp_col, obs_col = NULL,
+                        animal_code = "animal",
+                        return_df = ifelse(is.null(obs_col), FALSE, TRUE),
+                        reorder = FALSE) {
+  
+  # Get a dataframe of non-unique species names
+  spp_df_all <- get_all_species(df = df,
+                                spp_col = spp_col, 
+                                obs_col = obs_col,
+                                animal_code = animal_code,
+                                return_df = TRUE)
+  
+  if (!is.null(obs_col)) {
+    # Get (unique) species ---
+    spp_df <- spp_df_all |>
+      distinct(.keep_all = TRUE)
     
     # Arrange with non-animal last ---
-    # Get factor levels
-    levels <- sort(unique(spp_df[[obs_col]], na.last = TRUE), na.last = TRUE)
-    levels <- c(animal_code, levels[levels != animal_code])
-    
-    spp_df[[obs_col]] <- factor(spp_df[[obs_col]], 
-                                levels = levels)
-    spp_df <- spp_df |> dplyr::arrange(.data[[obs_col]],
-                                       .data[[spp_col]])
-    # Convert back to character
-    spp_df[[obs_col]] <- as.character(spp_df[[obs_col]])
-    
-    # Reorder columns
-    spp_df <- spp_df[, c(spp_col, obs_col)]
-  } else {
-    spp_df <- df[spp_col] |>
+    if (reorder) {
+      # Get factor levels
+      levels <- sort(unique(spp_df[[obs_col]], na.last = TRUE), na.last = TRUE)
+      levels <- c(animal_code, levels[levels != animal_code])
+      
+      spp_df[[obs_col]] <- factor(spp_df[[obs_col]], 
+                                  levels = levels)
+      spp_df <- spp_df |> dplyr::arrange(.data[[obs_col]],
+                                         .data[[spp_col]])
+      # Convert back to character
+      spp_df[[obs_col]] <- as.character(spp_df[[obs_col]])
+    }
+  } else { # obs_col not provided
+    spp_df <- spp_df_all[spp_col] |>
       distinct(.keep_all = TRUE)
-    spp_df <- spp_df |> dplyr::arrange(.data[[spp_col]])
+    if (reorder) {
+      spp_df <- spp_df |> dplyr::arrange(.data[[spp_col]])
+    }
   }
   
   if (return_df) {
     # Add ID
-    res <- as.data.frame(spp_df)
-
+    res <- as.data.frame(spp_df) # Convert tibble to df
     rownames(res) <- paste("ID", 1:nrow(res), sep = "_")
   } else {
     res <- spp_df[[spp_col]]
@@ -502,6 +605,122 @@ summarize_species <- function(df,
   
   return(res)
   
+}
+
+
+# Filter data -------------------------------------------------------------
+
+#' Filter camera trap data
+#' 
+#' Allows to filter camera trap data observations and
+#' cameras metadata based on species, cameras and dates.
+#'
+#' @param dat The data to filter It can be either a list with one component `$data`
+#' or a `datapackage` object (inheriting list). Either way, the data 
+#' are in the `$data` slot with two components: 
+#' + `$deployments` (cameras table)
+#' + `$observations` (records table)
+#' @param spp_filter Species to filter from the data
+#' @param spp_col Name of the species column
+#' @param obs_filter Observation types to filter from the data
+#' @param obs_col Name of the observation column
+#' @param cam_filter Cameras to filter from the data
+#' @param cam_col_rec Name of the cameras column in records table (`dat$data$observations`).
+#' @param cam_col_cam Name of the cameras column in cameras table (`dat$data$deployments`).
+#' Defaults to the same value as `cam_col_rec`.
+#' @param daterange Date range to filter on for the data. Can be either a Date
+#' or a POSIX.
+#' @param time_col Name of the time column (must contain dates or POSIX)
+#' @param cameras_as_factor Transform cameras as factors?
+#' 
+#' @details
+#' For the `spp_filter` and `cam_filter` values: 
+#' + If `NULL`, data are not filtered on that condition 
+#' (also the case for `daterange`). 
+#' + If character(0), all values will be filtered out.
+#' 
+#' @return The filtered data. Species and dates remove data only in `dat$data$observations`,
+#' but cameras also remove cameras from `dat$data$deployments`.
+#' 
+#' @export
+#'
+#' @examples
+#' data("recordTableSample", package = "camtrapR")
+#' recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal)
+#' data("camtraps", package = "camtrapR")
+#' dat <- list(data = list(observations = recordTableSample,
+#'                         deployments = camtraps))
+#' # Filter out data for species PBE and VTA, camera Station A and keep
+#' # only data from 2009-05-01 to 2009-05-15.
+#' filter_data(dat, 
+#'             spp_col = "Species", 
+#'             spp_filter = c("PBE", "VTA"),
+#'             cam_col_rec = "Station", 
+#'             cam_filter = "StationA",
+#'             daterange = as.Date(c("2009-05-01", "2009-05-15")),
+#'             time_col = "DateTimeOriginal")
+filter_data <- function(dat,
+                        spp_filter = NULL,
+                        spp_col = NULL,
+                        obs_filter = NULL,
+                        obs_col = NULL,
+                        cam_filter = NULL,
+                        cam_col_rec = NULL,
+                        cam_col_cam = cam_col_rec,
+                        daterange = NULL,
+                        time_col = NULL,
+                        cameras_as_factor = FALSE
+                        ) {
+  
+  res <- dat
+  
+  # Filter species  ---
+  if (!is.null(spp_filter)) {
+    # User wants to filter out species
+    res$data$observations <- res$data$observations |>
+      dplyr::filter(!(.data[[spp_col]] %in% spp_filter))
+  }
+  
+  # Filter observations ---
+  if (!is.null(obs_filter)) {
+    # User wants to filter out observations
+    res$data$observations <- res$data$observations |>
+      dplyr::filter(!(.data[[obs_col]] %in% obs_filter))
+  } 
+  
+  
+  # Filter cameras ---
+  if (!is.null(cam_filter)) {
+    res$data$observations <- res$data$observations |>
+      dplyr::filter(!(.data[[cam_col_rec]] %in% cam_filter))
+    res$data$deployments <- res$data$deployments |>
+      dplyr::filter(!(.data[[cam_col_cam]] %in% cam_filter))
+  }
+  
+  
+  # Filter daterange ---
+  if (!is.null(daterange)) {
+    daterange_filter <- as.POSIXct(daterange)
+    res$data$observations <- res$data$observations |>
+      dplyr::filter(dplyr::between(.data[[time_col]], 
+                                   daterange_filter[1],
+                                   daterange_filter[2])
+      )
+  }
+  
+  # Cameras to factor ---
+  if (cameras_as_factor) {
+    cameras_list <- get_cameras(res$data$observations[[cam_col_rec]],
+                                res$data$deployments[[cam_col_cam]])
+    
+    res$data$observations[[cam_col_rec]] <- factor(res$data$observations[[cam_col_rec]],
+                                                   levels = cameras_list)
+    res$data$deployments[[cam_col_cam]] <- factor(res$data$deployments[[cam_col_cam]],
+                                                  levels = cameras_list)
+  }
+  
+  
+  return(res)
 }
 
 

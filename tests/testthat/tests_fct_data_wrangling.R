@@ -322,21 +322,63 @@ test_that("Summarize cameras (dfcam with no setup or retrieval)", {
   expect_equal(res, expected)
 })
 
-
 # Summarize species -------------------------------------------------------
-test_that("Get species", {
+
+test_that("Get all species", {
+  # Initialize data
   df <- data.frame(species = c("rabbit", "cat", "cat", NA, NA, "cameratrapper", "tourist"),
                    type = c("animal", "animal", "animal", "fire", "blank", "human", "human"))
   
-  # No observation type
-  res <- get_species(df, spp_col = "species")
+  # With obs_type
+  res <- get_all_species(df, spp_col = "species", obs_col = "type")
+  expected <- df
+  expected$species[expected$type == "fire"] <- "fire"
+  expected$species[expected$type == "blank"] <- "blank"
+  expect_equal(res, expected)
+  
+  # With obs_type but return vector
+  res <- get_all_species(df, spp_col = "species", obs_col = "type",
+                         return_df = FALSE)
+  expect_equal(res, expected$species)
+  
+  # Without obs_type
+  res <- get_all_species(df, spp_col = "species")
+  expect_equal(res, df$species)
+  
+  # Without obs_type but return df
+  res <- get_all_species(df, spp_col = "species",
+                         return_df = TRUE)
+  expect_equal(res, df |> select(species))
+})
+
+test_that("Get unique species", {
+  
+  # Initialize data
+  df <- data.frame(species = c("rabbit", "cat", "cat", NA, NA, "cameratrapper", "tourist"),
+                   type = c("animal", "animal", "animal", "fire", "blank", "human", "human"))
+  
+  # No observation type and don't reorder
+  res <- get_unique_species(df, spp_col = "species")
+  expected <- unique(df$species)
+  expect_equal(res, expected)
+  
+  # No observation type, reorder and return character df
+  res <- get_unique_species(df, spp_col = "species", 
+                            reorder = TRUE,
+                            return_df = TRUE)
   expected <- data.frame(species = c("cameratrapper", "cat", "rabbit", "tourist", NA))
   rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
   expect_equal(res, expected)
   
-  # Observation type
-  res <- get_species(df, 
-                     spp_col = "species", obs_col = "type")
+  # No observation type and reorder
+  res <- get_unique_species(df, spp_col = "species", reorder = TRUE)
+  expected_char <- expected$species
+  expect_equal(res, expected_char)
+  
+  # With observation type
+  res <- get_unique_species(df, 
+                            spp_col = "species", obs_col = "type",
+                            reorder = TRUE)
   expected <- data.frame(species = c("cat", "rabbit",
                                      "blank", "fire", "cameratrapper", "tourist"),
                          type = c("animal", "animal",
@@ -344,49 +386,55 @@ test_that("Get species", {
   rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
   expect_equal(res, expected)
   
-  # NA in obstype
-  df <- data.frame(species = c("cat", "human", NA, NA),
-                   type = c("animal", "human", "blank", NA))
-  res <- get_species(df, 
-                     spp_col = "species", obs_col = "type")
-  expected <- data.frame(species = c("cat", "blank", "human", NA),
-                         type = c("animal", "blank", "human", NA))
-  rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
-  expect_equal(res, expected)
-})
-
-test_that("Get species (return vector)", {
-  df <- data.frame(species = c("rabbit", "cat", "cat", NA, NA, "cameratrapper", "tourist"),
-                   type = c("animal", "animal", "animal", "fire", "blank", "human", "human"))
+  # With observation type and return character
+  res <- get_unique_species(df, 
+                            spp_col = "species", obs_col = "type",
+                            return_df = FALSE,
+                            reorder = TRUE)
+  expected_char <- expected$species
+  expect_equal(res, expected_char)
   
-  # No observation type
-  res <- get_species(df, spp_col = "species", return_df = FALSE)
-  expected <- c("cameratrapper", "cat", "rabbit", "tourist", NA)
+  # Factor (and return df)
+  df_fac <- df
+  df_fac$species <- factor(df_fac$species)
+  df_fac$type <- factor(df_fac$type)
+  res <- get_unique_species(df_fac, 
+                            spp_col = "species", obs_col = "type",
+                            reorder = TRUE)
+  expect_equal(class(df_fac$species), "factor")
+  expect_equal(class(df_fac$type), "factor")
   expect_equal(res, expected)
   
-  # Observation type
-  res <- get_species(df, 
-                     spp_col = "species", obs_col = "type",
-                     return_df = FALSE)
+  # Factor (and return vector)
+  res <- get_unique_species(df_fac, 
+                            spp_col = "species", obs_col = "type", 
+                            return_df = FALSE,
+                            reorder = TRUE)
+  expect_equal(class(df_fac$species), "factor")
+  expect_equal(class(df_fac$type), "factor")
   expected <- c("cat", "rabbit", "blank", "fire", "cameratrapper", "tourist")
   expect_equal(res, expected)
   
   # NA in obstype
   df <- data.frame(species = c("cat", "human", NA, NA),
                    type = c("animal", "human", "blank", NA))
-  res <- get_species(df, 
-                     spp_col = "species", obs_col = "type",
-                     return_df = FALSE)
-  expected <- c("cat", "blank", "human", NA)
+  res <- get_unique_species(df, 
+                            spp_col = "species", obs_col = "type",
+                            reorder = TRUE)
+  expected <- data.frame(species = c("cat", "blank", "human", NA),
+                         type = c("animal", "blank", "human", NA))
+  rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
   expect_equal(res, expected)
+  
 })
 
 test_that("Get species (obstype but no other than animal)", {
   df <- data.frame(species = c("rabbit", "cat", "cat", "cow"),
                    type = rep("animal", 4))
-  res <- get_species(df, 
-                     spp_col = "species", obs_col = "type")
-  res
+  res <- get_unique_species(df, 
+                     spp_col = "species", obs_col = "type",
+                     reorder = TRUE)
+  
   expected <- data.frame(species = c("cat", "cow", "rabbit"),
                          type = rep("animal", 3))
   rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
@@ -531,6 +579,111 @@ test_that("Reorder named values", {
   res <- reorder_named_values(val, coord_cam, keep_all_names = FALSE)
   expect_equal(res, 
                c(c = 1, d = 2, e = 3))
+})
+
+
+# Filter data -------------------------------------------------------------
+test_that("Filter data", {
+  df <- recordTableSample
+  df$DateTimeOriginal <- as.POSIXct(df$DateTimeOriginal)
+  
+  dfcam <- camtraps
+  dfcam$Setup_date <- as.Date(dfcam$Setup_date,
+                              format = "%d/%m/%Y")
+  dfcam$Retrieval_date <- as.Date(dfcam$Setup_date,
+                                  format = "%d/%m/%Y")
+  
+  dat <- list(data = list(observations = df,
+                          deployments = dfcam))
+  
+  # All NULL (no filter)
+  res <- filter_data(dat)
+  expect_equal(dat, res)
+  
+  # Filter out all species
+  spp_filter <- unique(dat$data$observations$Species)
+  res <- filter_data(dat, spp_col = "Species", 
+                     spp_filter = spp_filter)
+  expect_equal(nrow(res$data$observations), 0)
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
+  # Filter out all cameras
+  cam_filter <- unique(dat$data$observations$Station)
+  res <- filter_data(dat, 
+                     cam_col_rec = "Station", 
+                     cam_filter = cam_filter)
+  expect_equal(nrow(res$data$observations), 0)
+  expect_equal(nrow(res$data$deployments), 0)
+  
+  # Filter out all dates
+  maxdate <- max(dat$data$observations$DateTimeOriginal)
+  daterange <- as.Date(c(maxdate + 1, maxdate + 10))
+  res <- filter_data(dat, 
+                     time_col = "DateTimeOriginal", 
+                     daterange = daterange)
+  expect_equal(nrow(res$data$observations), 0)
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
+  # Filter species
+  res <- filter_data(dat, 
+                     spp_col = "Species", 
+                     spp_filter = "PBE")
+  no_PBE <- unique(dat$data$observations$Species[dat$data$observations$Species != "PBE"])
+  expect_equal(unique(res$data$observations$Species), no_PBE)
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
+  # Filter observations
+  dat_type <- dat
+  dat_type$data$observations$type <- c(rep("category1", nrow(dat$data$observations) - 7),
+                                       rep("category2", 7))
+  res <- filter_data(dat_type, 
+                     obs_col = "type", 
+                     obs_filter =  "category2")
+  expect_equal(unique(res$data$observations$type), "category1")
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
+  # Filter observations and species
+  res <- filter_data(dat_type, 
+                     obs_col = "type", 
+                     obs_filter =  "category2",
+                     spp_col = "Species", 
+                     spp_filter = "PBE")
+  expect_equal(unique(res$data$observations$type), "category1")
+  expect_equal(unique(res$data$observations$Species), no_PBE)
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
+  # Filter cameras
+  camfilter <- c("StationA", "StationB")
+  res <- filter_data(dat, 
+                     cam_col_rec = "Station", 
+                     cam_filter = camfilter)
+  cams <- unique(dat$data$observations$Station[!dat$data$observations$Station %in% camfilter])
+  expect_equal(unique(res$data$observations$Station), cams)
+  expect_equal(res$data$deployments$Station, cams)
+  
+  # Filter dates
+  daterange_orig <- range(dat$data$observations$DateTimeOriginal)
+  daterange <- c(daterange_orig[1] + lubridate::days(30), daterange_orig[2])
+  
+  res <- filter_data(dat, 
+                     time_col = "DateTimeOriginal", 
+                     daterange = daterange)
+  resrange <- range(res$data$observations$DateTimeOriginal)
+  expect_true(resrange[1] >= daterange[1])
+  expect_equal(resrange[2], daterange[2])
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
+  # Filter dates (with dates objects)
+  daterange <- as.Date(c(daterange_orig[1] + lubridate::days(30), daterange_orig[2] + lubridate::days(1)))
+  
+  res <- filter_data(dat, 
+                     time_col = "DateTimeOriginal", 
+                     daterange = daterange)
+  resrange <- range(res$data$observations$DateTimeOriginal)
+  expect_true(resrange[1] >= daterange[1])
+  expect_equal(resrange[2], daterange_orig[2])
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
 })
 
 # Diversity ---------------------------------------------------------------

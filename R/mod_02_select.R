@@ -28,8 +28,7 @@ selectUI <- function(id) {
              class = "nomarginleft",
              select_values(prefix = NS(id, "daterange"),
                            item = "pictures",
-                           manual_widget = uiOutput(NS(id, "daterange"))),
-             textOutput(NS(id, "daterange_text"))
+                           manual_widget = uiOutput(NS(id, "daterange")))
       ),
       column(width = 6,
              class = "nomarginright",
@@ -63,7 +62,7 @@ selectServer <- function(id,
 
       # Test reactive input -----------------------------------------------------
       
-      stopifnot(is.reactive(camtrap_data))
+      # stopifnot(is.reactive(camtrap_data))
       stopifnot(is.reactive(mapping_records))
       stopifnot(is.reactive(mapping_cameras))
       
@@ -121,8 +120,10 @@ selectServer <- function(id,
       # Get species and cameras -------------------------------------------------
       
       species_df <- reactive({
-        camtrapviz::get_species(camtrap_data()$data$observations,
-                                spp_col =  spp_col(), obs_col = obs_col())
+        get_unique_species(camtrap_data()$data$observations,
+                           spp_col =  spp_col(), obs_col = obs_col(),
+                           reorder = TRUE,
+                           return_df = TRUE)
       })
       
       cameras <- reactive({
@@ -150,11 +151,6 @@ selectServer <- function(id,
         
       output$cameras_list <- renderText({
         paste("Selected cameras:", paste(input$cam_select, collapse = ", "))
-      })
-      
-      output$daterange_text <- renderText({
-        paste("Daterange:", paste(input$daterange_select[1],
-                                  input$daterange_select[2], sep = " -- "))
       })
       
       # Update selectInput ------------------------------------------------------
@@ -197,8 +193,10 @@ selectServer <- function(id,
         has_type <- !is.null(obs_col())
         
         if (has_type) {
-          # Get all selected values
-          all_filter <- species_df()[input$spp_select, ]
+          # # Get all selected values
+          # all_filter <- species_df()[input$spp_select, ]
+          # Get species/observations to filter out
+          all_filter <- species_df()[!rownames(species_df()) %in% input$spp_select, ]
           
           # Get species values
           spp_filter <- all_filter[all_filter[[obs_col()]] == "animal", ]
@@ -214,76 +212,38 @@ selectServer <- function(id,
           spp_filter <- species_df()[input$spp_select, ]
         }
         
-        # Get rows corresponding to selected cam_col
-        cam_filter <- input$cam_select
+        # # Get rows corresponding to selected cam_col
+        # cam_filter <- input$cam_select
+        # Get cameras to filter out
+        cam_filter <- cameras()[!cameras() %in% input$cam_select]
         
         metaExpr({
-          # Define has_type variable
-          has_type <- ..(has_type)
-          
           "# Get filters ---"
+          # For lisibility, we transform character(0) to NULL
           spp_filter <- ..(spp_filter)
           cam_filter <- ..(cam_filter)
           obs_filter <- ..(obs_filter)
           
-          "# Initialize result ---"
-          dat_filtered <- ..(camtrap_data())
-          # Add rowid for plot (to know which rows have been discarded)
-          if (!tibble::has_rownames(camtrap_data()$data$observations)) {
-            # dat_filtered$data$observations <- dat_filtered$data$observations |> 
-              # tibble::rowid_to_column()
-            rownames(dat_filtered$data$observations) <- 1:nrow(dat_filtered$data$observations)
-          }
           "# Filter ---"
           # Filter obs_col
           # Check has type and length != 0, 
           # in case there were only animals selected
-          "# Filter species"
-          if (has_type) {
-            dat_filtered$data$observations <- dat_filtered$data$observations |>
-              dplyr::filter(.data[[..(obs_col())]] %in% obs_filter | .data[[..(spp_col())]] %in% spp_filter)
-          } else {
-            # Filter spp_col
-            dat_filtered$data$observations <- dat_filtered$data$observations |>
-              dplyr::filter(.data[[..(spp_col())]] %in% spp_filter)
-          }
+          filter_data(..(camtrap_data()), 
+                      spp_col = ..(spp_col()),
+                      spp_filter = spp_filter,
+                      obs_col = ..(mapping_records()$obs_col),
+                      obs_filter = obs_filter,
+                      cam_col_rec = ..(cam_col_rec()),
+                      cam_col_cam = ..(cam_col_cam()),
+                      cam_filter = cam_filter,
+                      daterange = as.Date(..(as.character(input$daterange_select))),
+                      time_col = ..(col_filter_range()),
+                      cameras_as_factor = TRUE)
           
-          "# Filter cameras"
-          dat_filtered$data$observations <- dat_filtered$data$observations |>
-            dplyr::filter(.data[[..(cam_col_rec())]] %in% cam_filter)
-          dat_filtered$data$deployments <- dat_filtered$data$deployments |>
-            dplyr::filter(.data[[..(cam_col_cam())]] %in% cam_filter)
-          
-          "# Filter daterange"
-          daterange_filter <- as.Date(..(as.character(input$daterange_select)))
-          dat_filtered$data$observations <- dat_filtered$data$observations |>
-            dplyr::filter(dplyr::between(.data[[..(col_filter_range())]], 
-                                         daterange_filter[1],
-                                         daterange_filter[2])
-                          )
-          "# Cameras to factor ---"
-          cameras_list <- get_cameras(dat_filtered$data$observations[[..(cam_col_rec())]],
-                                      dat_filtered$data$deployments[[..(cam_col_cam())]])
-          
-          dat_filtered$data$observations[[..(cam_col_rec())]] <- factor(dat_filtered$data$observations[[..(cam_col_rec())]],
-                                                                        levels = cameras_list)
-          dat_filtered$data$deployments[[..(cam_col_cam())]] <- factor(dat_filtered$data$deployments[[..(cam_col_cam())]],
-                                                                       levels = cameras_list)
-          
-          dat_filtered
         }, bindToReturn = TRUE, localize = FALSE)
         
       }, varname = "dat_filtered")
       
-      # Print code --------------------------------------------------------------
-      
-      observeEvent(input$code_filter, {
-        code <- expandChain(dat_filtered())
-        displayCodeModal(code,
-                         title = "Data filtering code")
-      })
-      
-
       # Plot preview ------------------------------------------------------------
       output$plot_preview <- renderGirafe({
         # Get plot width and height
@@ -293,23 +253,30 @@ selectServer <- function(id,
         width <- hw$width
         
         # Initialize plot data
-        dfplot <- camtrap_data()$data$observations |> 
-          tibble::rowid_to_column()
+        dfplot <- camtrap_data()$data$observations
         
         dffil <- dat_filtered()$data$observations
         
-        kept <- dfplot$rowid %in% rownames(dffil)
+        kept <- rownames(dfplot) %in% rownames(dffil)
         dfplot$kept <- kept
+        
+        # Add species column 
+        dfplot <- dfplot |> 
+          mutate(spp_col = get_all_species(dfplot,
+                                           spp_col = spp_col(),
+                                           obs_col =  mapping_records()$obs_col,
+                                           return_df = FALSE))
         
         cols <- c("black", "grey")
         names(cols) <- c("TRUE", "FALSE")
-      
+        
         gg <- plot_points(dfplot,
                           camera_col = cam_col_rec(),
                           points_col = "kept",
                           timestamp_col = mapping_records()$timestamp_col,
                           time_col = mapping_records()$time_col,
                           date_col = mapping_records()$date_col, 
+                          tooltip_info = "spp_col",
                           date_limits = as.POSIXct(default_daterange(),
                                                    tz = "UTC"), 
                           cols = cols,
@@ -330,8 +297,16 @@ selectServer <- function(id,
                                       opts_hover(css = ""))
       })
       
+      # Print code --------------------------------------------------------------
+      
+      observeEvent(input$code_filter, {
+        code <- expandChain(dat_filtered())
+        displayCodeModal(code,
+                         title = "Data filtering code")
+      })
+      
       # Return values -----------------------------------------------------------
-      return(list(camtrap_data = reactive(dat_filtered())))
+      return(list(camtrap_data = dat_filtered))
     }
   )
 }
