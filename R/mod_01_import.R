@@ -925,7 +925,8 @@ importServer <- function(id) {
                    rec_type = castval_rec,
                    split = ..(split),
                    cam_col_cameras = cam_col,
-                   cam_col_records = rec_col)
+                   cam_col_records = rec_col,
+                   add_rowid = TRUE)
       }, bindToReturn = TRUE)
       
     }, varname = "dat")
@@ -1015,7 +1016,7 @@ importServer <- function(id) {
 
 # Return values -----------------------------------------------------------
     return(
-      list(camtrap_data = reactive(dat()),
+      list(camtrap_data = dat,
            mapping_records = reactive(mapping_records()),
            mapping_cameras = reactive(mapping_cameras()$mapping),
            crs = reactive(crs())

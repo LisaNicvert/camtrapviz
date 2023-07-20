@@ -83,6 +83,8 @@ get_named_list <- function(df, col, widget_values) {
 #' @param cameras_path A valid file path for cameras (defaults to `NULL`).
 #' @param NA_strings Vector of characters that should be considered `NA`
 #' after import
+#' @param add_rowid Should row IDs be added to the observations df?
+#' If yes, row names in the form of "ID_xx" are added to the the dataframe.
 #'
 #' @return A list with one component or a `datapackage` object.
 #' + if `records_path` is a json file, returns a `datapackage` object
@@ -111,7 +113,8 @@ read_data <- function(records_path,
                       sep_records, 
                       cameras_path = NULL,
                       sep_cameras = NULL,
-                      NA_strings = c("NA", "")) {
+                      NA_strings = c("NA", ""),
+                      add_rowid = FALSE) {
   
   # Get file extension
   ext <- tools::file_ext(records_path)
@@ -138,5 +141,15 @@ read_data <- function(records_path,
     validate(need(ext == "csv" || ext == "json", 
                   "Please upload a csv file or a json datapackage"))
   }
+  
+  if (add_rowid) {
+    # res$data$observations <- res$data$observations |> 
+    #   tibble::rowid_to_column() 
+    nrow <- nrow(res$data$observations)
+    res$data$observations <- as.data.frame(res$data$observations)
+    rownames(res$data$observations) <- paste("ID", 1:nrow,
+                                             sep = "_")
+  }
+  
   return(res)
 }
