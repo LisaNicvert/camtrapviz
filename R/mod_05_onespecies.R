@@ -51,7 +51,7 @@ onespeciesServer <- function(id,
   moduleServer(id, function(input, output, session) {
     
     # Test reactive input -----------------------------------------------------
-    stopifnot(is.reactive(camtrap_data))
+    # stopifnot(is.reactive(camtrap_data))
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     stopifnot(is.reactive(crs))
@@ -90,7 +90,7 @@ onespeciesServer <- function(id,
       validate(need(nrow(camtrap_data()$data$observations) != 0, 
                     "Cannot analyze an empty table: plese check data filtering"))
       
-      camtrapviz::get_species(camtrap_data()$data$observations,
+      camtrapviz::get_unique_species(camtrap_data()$data$observations,
                               spp_col = spp_col(), obs_col = obs_col())
     })
     
