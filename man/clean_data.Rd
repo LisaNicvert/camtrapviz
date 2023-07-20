@@ -11,7 +11,8 @@ clean_data(
   only_shared_cameras = FALSE,
   cam_col_records,
   cam_col_cameras = NULL,
-  split = FALSE
+  split = FALSE,
+  add_rowid = FALSE
 )
 }
 \arguments{
@@ -49,6 +50,9 @@ If \code{NULL} will be assumed to be the same as \code{cam_col_records}.}
 
 \item{split}{Logical; should the camera data be extracted from the
 records table by splitting the data?}
+
+\item{add_rowid}{Should row IDs be added to the observations df?
+If yes, row names in the form of "ID_xx" are added to the the dataframe.}
 }
 \value{
 An object of the same type as the original input,

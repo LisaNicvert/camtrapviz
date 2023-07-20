@@ -28,6 +28,7 @@ plot_points(
   col_rect = "black",
   height_rect = 0.8,
   fill_rect = NA,
+  tooltip_info = points_col,
   xlab = "Date",
   ylab = "Camera",
   cols = "black"
@@ -103,6 +104,11 @@ th the space between the y-axis ticks entirely filled.}
 
 \item{fill_rect}{fill color of the rectangle plotted for the sampling period
 (when \code{caminfo} is given)}
+
+\item{tooltip_info}{Name of the column to display in the tooltip
+when hovering points (if interactive is \code{TRUE}).
+The data of this column will be displayed additionally to the
+of the point datetime. If \code{NULL}, only the datetime will be displayed.}
 
 \item{xlab}{Label for the x-axis}
 

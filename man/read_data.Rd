@@ -9,7 +9,8 @@ read_data(
   sep_records,
   cameras_path = NULL,
   sep_cameras = NULL,
-  NA_strings = c("NA", "")
+  NA_strings = c("NA", ""),
+  add_rowid = FALSE
 )
 }
 \arguments{
@@ -23,6 +24,9 @@ read_data(
 
 \item{NA_strings}{Vector of characters that should be considered \code{NA}
 after import}
+
+\item{add_rowid}{Should row IDs be added to the observations df?
+If yes, row names in the form of "ID_xx" are added to the the dataframe.}
 }
 \value{
 A list with one component or a \code{datapackage} object.
