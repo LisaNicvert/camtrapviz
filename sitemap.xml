@@ -10,6 +10,9 @@
     <loc>https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html</loc>
   </url>
   <url>
+    <loc>https://lisanicvert.github.io/camtrapviz/articles/filter-data.html</loc>
+  </url>
+  <url>
     <loc>https://lisanicvert.github.io/camtrapviz/articles/index.html</loc>
   </url>
   <url>
@@ -40,7 +43,13 @@
     <loc>https://lisanicvert.github.io/camtrapviz/reference/filter_cameras_in_both_tables.html</loc>
   </url>
   <url>
+    <loc>https://lisanicvert.github.io/camtrapviz/reference/filter_data.html</loc>
+  </url>
+  <url>
     <loc>https://lisanicvert.github.io/camtrapviz/reference/fit_vonMises.html</loc>
+  </url>
+  <url>
+    <loc>https://lisanicvert.github.io/camtrapviz/reference/get_all_species.html</loc>
   </url>
   <url>
     <loc>https://lisanicvert.github.io/camtrapviz/reference/get_cameras.html</loc>
@@ -58,7 +67,7 @@
     <loc>https://lisanicvert.github.io/camtrapviz/reference/get_nspecies.html</loc>
   </url>
   <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/get_species.html</loc>
+    <loc>https://lisanicvert.github.io/camtrapviz/reference/get_unique_species.html</loc>
   </url>
   <url>
     <loc>https://lisanicvert.github.io/camtrapviz/reference/index.html</loc>

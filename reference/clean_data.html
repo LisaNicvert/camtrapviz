@@ -39,6 +39,7 @@ cameras present in both records and cameras tables
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/read-and-clean-data.html">Read and clean data</a>
+    <a class="dropdown-item" href="../articles/filter-data.html">Filter data</a>
     <a class="dropdown-item" href="../articles/summarize.html">Summarize data</a>
     <a class="dropdown-item" href="../articles/plots.html">Plots</a>
     <a class="dropdown-item" href="../articles/activity-patterns.html">Activity patterns</a>
@@ -76,7 +77,8 @@ cameras present in both records and cameras tables</p></li>
 <span>  only_shared_cameras <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">cam_col_records</span>,</span>
 <span>  cam_col_cameras <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  split <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  split <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  add_rowid <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -127,6 +129,11 @@ If <code>NULL</code> will be assumed to be the same as <code>cam_col_records</co
 <dt>split</dt>
 <dd><p>Logical; should the camera data be extracted from the
 records table by splitting the data?</p></dd>
+
+
+<dt>add_rowid</dt>
+<dd><p>Should row IDs be added to the observations df?
+If yes, row names in the form of "ID_xx" are added to the the dataframe.</p></dd>
 
 </dl></div>
     <div class="section level2">
