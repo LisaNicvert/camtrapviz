@@ -14,7 +14,9 @@ reference:
   - get_cameras
   - get_cameras_not_in
   - get_nspecies
-  - get_species
+  - get_all_species
+  - get_unique_species
+  - filter_data
   - starts_with("summarize")
 - title: "Analyze data"
   contents:
@@ -34,6 +36,7 @@ articles:
   navbar: ~
   contents: 
   - read-and-clean-data
+  - filter-data
   - summarize
   - plots
   - activity-patterns

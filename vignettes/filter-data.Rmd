@@ -1,0 +1,149 @@
+---
+title: "Filter data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Filter data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message=FALSE, results='hide'}
+library(camtrapviz)
+library(ggiraph)
+```
+
+This vignette demonstrates how to filter camera trap data based on 4 criteria:
+
+-   cameras
+-   species
+-   observation type
+-   date
+
+## Import data
+
+```{r}
+data(mica, package = "camtraptor")
+```
+
+Here is the initial data:
+
+```{r}
+p <- plot_points(mica$data$observations,
+                 camera_col = "deploymentID",
+                 timestamp_col = "timestamp",
+                 tooltip_info = "vernacularNames.en",
+                 interactive = TRUE)
+girafe(ggobj = p)
+```
+
+## Filter cameras
+
+We can filter out one camera:
+
+```{r}
+# Original cameras in observations and deployments
+unique(mica$data$observations$deploymentID)
+unique(mica$data$deployments$deploymentID)
+```
+
+```{r}
+cam_filter <- filter_data(mica, 
+                          cam_col_rec = "deploymentID", 
+                          cam_filter = "29b7d356-4bb4-4ec4-b792-2af5cc32efa8")
+
+# The camera was filtered out
+unique(cam_filter$data$observations$deploymentID)
+unique(cam_filter$data$deployments$deploymentID)
+```
+
+```{r}
+plot_points(cam_filter$data$observations,
+            camera_col = "deploymentID",
+            timestamp_col = "timestamp")
+```
+
+We can also filter out multiple cameras (and it is the same for species and observation type).
+
+```{r}
+cam_filter <- filter_data(mica, 
+                          cam_col_rec = "deploymentID", 
+                          cam_filter = c("29b7d356-4bb4-4ec4-b792-2af5cc32efa8", "577b543a-2cf1-4b23-b6d2-cda7e2eac372"))
+
+# The cameras were filtered out
+unique(cam_filter$data$observations$deploymentID)
+unique(cam_filter$data$deployments$deploymentID)
+```
+
+## Filter species
+
+We can filter out by species:
+
+```{r}
+# Initial species list
+unique(mica$data$observations$vernacularNames.en)
+
+spp_filter <- filter_data(mica, 
+                          spp_col = "vernacularNames.en", 
+                          spp_filter = "great herons")
+# great herons were removed
+unique(spp_filter$data$observations$vernacularNames.en) 
+```
+
+```{r}
+plot_points(spp_filter$data$observations,
+            camera_col = "deploymentID",
+            timestamp_col = "timestamp")
+```
+
+## Filter observation type
+
+We can filter out by observation type. For instance, if we want to keep only animals (and not unidentifiable, humans...):
+
+```{r}
+# Initial values of observation types
+obstype <- mica$data$observations$observationType
+unique(obstype)
+```
+
+
+```{r}
+# Define the types we want to remove
+obs_out <- unique(obstype[obstype != "animal"])
+obs_out
+
+obs_filter <- filter_data(mica, 
+                          obs_col = "observationType", 
+                          obs_filter = obs_out)
+
+# In the end, only animal is kept
+unique(obs_filter$data$observations$observationType)
+```
+
+## Filter dates
+
+It is also possible to specify date bounds to the data:
+
+```{r}
+# Original date range
+range(mica$data$observations$timestamp)
+
+date_filter <- filter_data(mica, 
+                          time_col = "timestamp", 
+                          daterange = as.Date(c("2020-01-01", "2021-04-18")))
+
+# The new range is restricted
+range(date_filter$data$observations$timestamp)
+```
+
+```{r}
+plot_points(date_filter$data$observations,
+            camera_col = "deploymentID",
+            timestamp_col = "timestamp")
+```
