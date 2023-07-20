@@ -70,14 +70,16 @@ test_that("Plot points (different parameter combinations)", {
                    points_col = "Species")
   expect_equal(as_label(p$mapping[[3]]), "Species")
   
-  # Interactive graph ---
+  # Interactive graph with no color or tooltip ---
   p <- plot_points(df,
                    camera_col = "Station",
                    timestamp_col = "DateTimeOriginal",
                    interactive = TRUE)
   expect_true("GeomInteractivePoint" %in% class(p$layers[[1]]$geom))
+  expect_equal(as_label(p$layers[[1]]$mapping$tooltip),
+               "DateTimeOriginal") # Tooltip
   
-  # Interactive graph with colours and tooltip ---
+  # Interactive graph with colors and tooltip (default) ---
   p <- plot_points(df,
                    camera_col = "Station",
                    timestamp_col = "DateTimeOriginal",
@@ -85,18 +87,32 @@ test_that("Plot points (different parameter combinations)", {
                    interactive = TRUE)
   expect_true("GeomInteractivePoint" %in% class(p$layers[[1]]$geom)) # Interactive
   expect_equal(as_label(p$mapping[[3]]), "Species") # Color
-  expect_equal(as_label(p$layers[[1]]$mapping[[1]]),
+  expect_equal(as_label(p$layers[[1]]$mapping$tooltip),
                "paste(.data[[\"Species\"]], .data[[\"DateTimeOriginal\"]], sep = \": \")") # Tooltip
-
-  # Interactive graph with no color and tooltip ---
+  
+  # Interactive graph with colors and (non-default) tooltip ---
   p <- plot_points(df,
                    camera_col = "Station",
                    timestamp_col = "DateTimeOriginal",
+                   points_col = "Species", 
+                   tooltip_info = "Directory",
+                   interactive = TRUE)
+  expect_true("GeomInteractivePoint" %in% class(p$layers[[1]]$geom)) # Interactive
+  expect_equal(as_label(p$mapping[[3]]), "Species") # Color
+  expect_equal(as_label(p$layers[[1]]$mapping$tooltip),
+               "paste(.data[[\"Directory\"]], .data[[\"DateTimeOriginal\"]], sep = \": \")") # Tooltip
+  
+
+  # Interactive graph with no color but custom tooltip ---
+  p <- plot_points(df,
+                   camera_col = "Station",
+                   timestamp_col = "DateTimeOriginal",
+                   tooltip_info = "Species", 
                    interactive = TRUE)
   expect_true("GeomInteractivePoint" %in% class(p$layers[[1]]$geom)) # Interactive
   expect_equal(length(p$mapping), 2) # No color
-  expect_equal(as_label(p$layers[[1]]$mapping[[1]]),
-               "DateTimeOriginal") # Tooltip without species
+  expect_equal(as_label(p$layers[[1]]$mapping$tooltip),
+               "paste(.data[[\"Species\"]], .data[[\"DateTimeOriginal\"]], sep = \": \")") # Tooltip
 
 })
 
@@ -105,35 +121,51 @@ test_that("Plot points (colors)", {
   df$DateTimeOriginal <- as.POSIXct(df$DateTimeOriginal)
   
   # Unique color ---
-  plot_points(df,
-              camera_col = "Station",
-              timestamp_col = "DateTimeOriginal",
-              cols = "deeppink")
+  (p <- plot_points(df,
+                    camera_col = "Station",
+                    timestamp_col = "DateTimeOriginal",
+                    cols = "deeppink"))
+  gb <- layer_data(p)
+  expect_equal(unique(gb$colour), "deeppink")
   
   # Species colors ---
-  plot_points(df,
-              camera_col = "Station",
-              timestamp_col = "DateTimeOriginal",
-              points_col = "Species")
+  (p <- plot_points(df,
+                    camera_col = "Station",
+                    timestamp_col = "DateTimeOriginal",
+                    points_col = "Species"))
+  gb <- layer_data(p)
+  expect_equal(unique(gb$colour), 
+               c("#7570B3", "#66A61E", "#D95F02", "#1B9E77", "#E7298A"))
   
   # Custom species colors ---
   spp <- unique(df$Species)
   pal <- RColorBrewer::brewer.pal(length(spp), "Set2")
-  plot_points(df,
+  (p <- plot_points(df,
               camera_col = "Station",
               timestamp_col = "DateTimeOriginal",
               points_col = "Species",
-              cols = pal)
-  
+              cols = pal))
+  gb <- layer_data(p)
+  expect_true(all(unique(gb$colour) %in% pal))
+
   # Named species colors ---
-  shuf <- sample(1:length(pal), size = length(pal), replace = FALSE)
+  # Shuffle colours
+  shuf <- sample(1:length(pal), 
+                 size = length(pal), replace = FALSE)
   pal2 <- pal[shuf]
-  names(pal2) <- spp[shuf]
-  plot_points(df,
-              camera_col = "Station",
-              timestamp_col = "DateTimeOriginal",
-              points_col = "Species",
-              cols = pal2)
+  names(pal2) <- spp[shuf] # Add colour names
+  (p <- plot_points(df,
+                    camera_col = "Station",
+                    timestamp_col = "DateTimeOriginal",
+                    points_col = "Species",
+                    cols = pal2))
+  gb <- layer_data(p)
+  # Get datetime of one observation of EGY
+  dttime <- df$DateTimeOriginal[df$Species == "EGY"][1]
+  # Get colour of this observation
+  coltest <- gb$colour[gb$x == as.numeric(dttime)]
+  expect_equal(coltest, 
+               unname(pal2["EGY"]))
 })
 
 test_that("Plot points with rectangles", {
@@ -148,28 +180,32 @@ test_that("Plot points with rectangles", {
                                     format = "%d/%m/%Y")
   
   # Normal case ---
-  plot_points(df,
-              camera_col = "Station",
-              timestamp_col = "DateTimeOriginal",
-              caminfo = caminfo,
-              caminfo_setup = "Setup_date",
-              caminfo_retrieval = "Retrieval_date")
+  (p <- plot_points(df,
+                    camera_col = "Station",
+                    timestamp_col = "DateTimeOriginal",
+                    caminfo = caminfo,
+                    caminfo_setup = "Setup_date",
+                    caminfo_retrieval = "Retrieval_date"))
+  gb <- layer_data(p)
+  # Check it is the good layer
+  expect_true(all(c("xmin", "xmax", "ymin", "ymax") %in% colnames(gb)))
+  expect_equal(nrow(gb), 3) # 3 rectangles
+  
   
   # Cameras as factors ---
   df_fac <- df |> 
     mutate(Station = factor(Station))
   
-  ggplot(df, aes(x = DateTimeOriginal, y = Station,
-                 col = NULL)) + 
-    geom_point()
-  
-  plot_points(df_fac,
-              camera_col = "Station",
-              timestamp_col = "DateTimeOriginal",
-              points_col = "Species",
-              caminfo = caminfo,
-              caminfo_setup = "Setup_date",
-              caminfo_retrieval = "Retrieval_date")
+  (p <- plot_points(df_fac,
+                    camera_col = "Station",
+                    timestamp_col = "DateTimeOriginal",
+                    points_col = "Species",
+                    caminfo = caminfo,
+                    caminfo_setup = "Setup_date",
+                    caminfo_retrieval = "Retrieval_date"))
+  # Check it is the good layer
+  expect_true(all(c("xmin", "xmax", "ymin", "ymax") %in% colnames(gb)))
+  expect_equal(nrow(gb), 3) # 3 rectangles
   
   # Some more sampling ---
   row <- caminfo[1,]
@@ -184,6 +220,18 @@ test_that("Plot points with rectangles", {
                              caminfo = caminfo_plus,
                              caminfo_setup = "Setup_date",
                              caminfo_retrieval = "Retrieval_date"))
+  suppressWarnings(
+    (p <- plot_points(df,
+                      camera_col = "Station",
+                      timestamp_col = "DateTimeOriginal",
+                      points_col = "Species",
+                      caminfo = caminfo_plus,
+                      caminfo_setup = "Setup_date",
+                      caminfo_retrieval = "Retrieval_date"))
+  )
+  # Check it is the good layer
+  expect_true(all(c("xmin", "xmax", "ymin", "ymax") %in% colnames(gb)))
+  expect_equal(nrow(gb), 3) # 3 rectangles
   
   # Some more cameras ---
   # Factor
@@ -198,6 +246,23 @@ test_that("Plot points with rectangles", {
                              caminfo = caminfo,
                              caminfo_setup = "Setup_date",
                              caminfo_retrieval = "Retrieval_date"))
+  
+  suppressWarnings(
+    (p <- plot_points(df_fac,
+                      camera_col = "Station",
+                      timestamp_col = "DateTimeOriginal",
+                      points_col = "Species",
+                      caminfo = caminfo,
+                      caminfo_setup = "Setup_date",
+                      caminfo_retrieval = "Retrieval_date"))
+  )
+  # Check it is the good layer
+  expect_true(all(c("xmin", "xmax", "ymin", "ymax") %in% colnames(gb)))
+  expect_equal(nrow(gb), 3) # 3 rectangles
+  # Check camera level was added
+  br <- as.character(ggplot2::layer_scales(p)$y$get_breaks())
+  expect_equal(levels(df_fac$Station), br)
+  
   # Data points ---
   camdup <- df |> 
     filter(Station == "StationA") |> 
@@ -210,6 +275,23 @@ test_that("Plot points with rectangles", {
                              caminfo = caminfo,
                              caminfo_setup = "Setup_date",
                              caminfo_retrieval = "Retrieval_date"))
+  
+  suppressWarnings(
+    (p <- plot_points(df_plus,
+                      camera_col = "Station",
+                      timestamp_col = "DateTimeOriginal",
+                      points_col = "Species",
+                      caminfo = caminfo,
+                      caminfo_setup = "Setup_date",
+                      caminfo_retrieval = "Retrieval_date"))
+  )
+  # Check it is the good layer
+  expect_true(all(c("xmin", "xmax", "ymin", "ymax") %in% colnames(gb)))
+  expect_equal(nrow(gb), 3) # 3 rectangles
+  # Check camera level was added
+  br <- as.character(ggplot2::layer_scales(p)$y$get_breaks())
+  expect_equal(levels(df_fac$Station), br)
+  
   })
 
 test_that("Plot species bars", {

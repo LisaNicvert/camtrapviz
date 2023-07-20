@@ -71,6 +71,10 @@
 #' argument.
 #' @param timezone Timezone code. For the possible values, refer to the
 #' `timezone` argument of `ggplot2::scale_y_datetime`.
+#' @param tooltip_info Name of the column to display in the tooltip
+#' when hovering points (if interactive is `TRUE`).
+#' The data of this column will be displayed additionally to the 
+#' of the point datetime. If `NULL`, only the datetime will be displayed.
 #'
 #' @details If `date_col` and `time_col` are provided along with
 #' `timestamp_col`, they will be ignored.
@@ -123,6 +127,7 @@ plot_points <- function(df,
                         col_rect = "black",
                         height_rect = 0.8,
                         fill_rect = NA,
+                        tooltip_info = points_col,
                         xlab = "Date",
                         ylab = "Camera",
                         cols = "black") {
@@ -281,17 +286,32 @@ plot_points <- function(df,
   
   if (interactive) {
     gg <- gg +
-      {if (!is.null(points_col)) geom_point_interactive(aes(tooltip = paste(.data[[points_col]], 
-                                                                         .data[[timestamp_col]],
-                                                                         sep = ": "),
-                                                         data_id = .data[[camera_col]]),
-                                                     show.legend = FALSE, size = ptsize)} +
-      {if (is.null(points_col)) geom_point_interactive(aes(x = .data[[timestamp_col]], 
-                                                        y = .data[[camera_col]],
-                                                        tooltip = .data[[timestamp_col]],
-                                                        data_id = .data[[camera_col]]),
-                                                    show.legend = FALSE, size = ptsize,
-                                                    col = cols)}
+      {if (!is.null(points_col) & !is.null(tooltip_info)) 
+        geom_point_interactive(aes(tooltip = paste(.data[[tooltip_info]], 
+                                                   .data[[timestamp_col]],
+                                                   sep = ": "),
+                                   data_id = .data[[camera_col]]),
+                               show.legend = FALSE, size = ptsize)} +
+      {if (!is.null(points_col) & is.null(tooltip_info)) 
+        geom_point_interactive(aes(tooltip = .data[[timestamp_col]],
+                                   data_id = .data[[camera_col]]),
+                               show.legend = FALSE, size = ptsize)} +
+      {if (is.null(points_col)  & !is.null(tooltip_info)) 
+        geom_point_interactive(aes(x = .data[[timestamp_col]], 
+                                   y = .data[[camera_col]],
+                                   tooltip = paste(.data[[tooltip_info]], 
+                                                   .data[[timestamp_col]],
+                                                   sep = ": "),
+                                   data_id = .data[[camera_col]]),
+                               show.legend = FALSE, size = ptsize,
+                               col = cols)} +
+      {if (is.null(points_col)  & is.null(tooltip_info)) 
+        geom_point_interactive(aes(x = .data[[timestamp_col]], 
+                                   y = .data[[camera_col]],
+                                   tooltip = .data[[timestamp_col]],
+                                   data_id = .data[[camera_col]]),
+                               show.legend = FALSE, size = ptsize,
+                               col = cols)}
       
   } else {
     gg <- gg +
