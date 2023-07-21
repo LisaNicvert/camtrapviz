@@ -64,14 +64,12 @@
 <div class="page-header"><h1 id="camtrapviz">camtrapviz<a class="anchor" aria-label="anchor" href="#camtrapviz"></a>
 </h1></div>
 <p><em>This package is currently under development</em></p>
-<p><code>camtrapviz</code> is a R and Shiny package designed to make it easier to visualize and summarize camera trap data for which species have already been identified. The package website can be found at: <a href="https://lisanicvert.github.io/camtrapviz/" class="uri">https://lisanicvert.github.io/camtrapviz/</a>.</p>
+<p><code>camtrapviz</code> is a R and Shiny package designed to make it easier to visualize and summarize camera trap data. it is intended for data where species have already been tagged and compiled in tables. The package website can be found at: <a href="https://lisanicvert.github.io/camtrapviz/" class="uri">https://lisanicvert.github.io/camtrapviz/</a>.</p>
 <p>For the moment, this package allows to:</p>
 <ul>
-<li>read camera trap data from one or two CSV file(s) or the JSON metadata of a <a href="https://tdwg.github.io/camtrap-dp/" class="external-link">camtrapDP data package</a>
-</li>
-<li>format data for the analysis</li>
-<li>summarize cameras and species observation data</li>
+<li>read and format camera trap data</li>
 <li>plot data</li>
+<li>summarize and analyze data</li>
 </ul>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -84,35 +82,58 @@
 <div class="section level2">
 <h2 id="shiny-interface">Shiny interface<a class="anchor" aria-label="anchor" href="#shiny-interface"></a>
 </h2>
-<p>A Shiny interface allows to analyze camera trap data interactively. To run the app, use:</p>
+<p>A Shiny interface run from your computer allows to analyze camera trap data interactively. To run the app, use:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/run_camtrapviz.html">run_camtrapviz</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Two example datasets are provided, and you can also choose data to analyze from your computer.</p>
+<p>Two example datasets from the <a href="https://jniedballa.github.io/camtrapR/" class="external-link"><code>camtrapR</code></a> and <a href="https://inbo.github.io/camtraptor/index.html" class="external-link"><code>camtraptor</code></a> R packages are provided. You can also choose data to analyze from your computer.</p>
 </div>
 <div class="section level2">
-<h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a>
+<h2 id="data-reading-and-formatting">Data reading and formatting<a class="anchor" aria-label="anchor" href="#data-reading-and-formatting"></a>
 </h2>
-<p>The package also implements functions that can be used directly in R. These functions allow to:</p>
+<p>The package implements functions to read and clean data. Below are a few examples:</p>
 <ul>
-<li>Read camera trap data: the function <code>read_data</code> allows to read camera trap data from one or two CSV file(s) or a JSON camtrapDP file.</li>
-<li>Format data: the function <code>clean_data</code> essentially casts column types. If camera metadata and species observations are in the same file, it will also separate it into observations and cameras.</li>
-<li>Summarize data: it is possible to summarize camera metadata with <code>summarize_camera</code> to get sampling start, end and length. Species observations can also be summarized with <code>summarize_species</code>. to get species sightings count, the number and proportions of cameras where a species was captured.</li>
-<li>Fit an activity curve: the functions <code>fit_vonMises</code> and <code>vonMises_density</code> allow to fit and compute the density curve.</li>
-<li>Plot data: several functions allow to visualize data: plot observations with <code>plot_points</code>, plot cameras on an interactive map with <code>plot_map</code> (using <code>leaflet</code>), plot species abundance with <code>plot_species_bars</code>…</li>
+<li>
+<a href="https://lisanicvert.github.io/camtrapviz/reference/read_data.html"><code>read_data</code></a> allows to read camera trap data from one or two CSV file(s) or the JSON metadata of a <a href="https://tdwg.github.io/camtrap-dp/" class="external-link">camtrapDP data package</a>.</li>
+<li>
+<a href="https://lisanicvert.github.io/camtrapviz/reference/filter_data.html"><code>filter_data</code></a> allows to select a subset of camera trap data based on species, cameras and dates.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="dataviz">Dataviz<a class="anchor" aria-label="anchor" href="#dataviz"></a>
+</h2>
+<p>There are several functions to visualize data. Some are illustrated below (using the example dataset frop the <a href="https://jniedballa.github.io/camtrapR/" class="external-link"><code>camtrapR</code></a> package).</p>
+<p>First, you can plot the observations of each camera versus time with the <a href="https://lisanicvert.github.io/camtrapviz/reference/plot_points.html"><code>plot_points</code></a> function:</p>
+<div class="figure">
+<img src="reference/figures/plot_points.png" alt=""><p class="caption">Plot observations</p>
+</div>
+<p>You can also plot the cameras on a map with the <a href="https://lisanicvert.github.io/camtrapviz/reference/plot_map.html"><code>plot_map</code></a> function (interactive leaflet map):</p>
+<div class="figure">
+<img src="reference/figures/map.png" alt=""><p class="caption">Cameras map</p>
+</div>
+<p>It is also possible to plot capture event counts with <a href="https://lisanicvert.github.io/camtrapviz/reference/plot_species_bars.html"><code>plot_species_bars</code></a>:</p>
+<div class="figure">
+<img src="reference/figures/plot_spp_bars.png" alt=""><p class="caption">Capture events counts per species</p>
+</div>
+<p>For more details on plots, see the <a href="https://lisanicvert.github.io/camtrapviz/articles/plots.html">plots vignette</a>.</p>
+</div>
+<div class="section level2">
+<h2 id="data-summary-and-analysis">Data summary and analysis<a class="anchor" aria-label="anchor" href="#data-summary-and-analysis"></a>
+</h2>
+<p>Other functions allow more specific analyses:</p>
+<ul>
+<li>
+<a href="https://lisanicvert.github.io/camtrapviz/reference/summarize_cameras.html"><code>summarize_camera</code></a> allows to get sampling start, end and length.</li>
+<li>
+<a href="https://lisanicvert.github.io/camtrapviz/reference/summarize_species.html"><code>summarize_species</code></a> allows to get species sightings count, the number and proportions of cameras where a species was captured.</li>
+<li>
+<a href="https://lisanicvert.github.io/camtrapviz/reference/get_diversity_table.html"><code>get_diversity_table</code></a> computes various diversity indices from a species occurrence dataframe.</li>
+<li>
+<a href="https://lisanicvert.github.io/camtrapviz/reference/fit_vonMises.html"><code>fit_vonMises</code></a> and <a href="https://lisanicvert.github.io/camtrapviz/reference/vonMises_density.html"><code>vonMises_density</code></a> allow to fit and compute the activity density curve.</li>
 </ul>
 <div class="section level3">
 <h3 id="vignettes">Vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a>
 </h3>
-<p>R vignettes are provided to exemplify a typical workflow of analysis (this is a work in progress).</p>
-<p>The vignette <code>read-and-clean-data</code> explains how to read data from files and how to format data for further analyses.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"read-and-clean-data"</span>, package <span class="op">=</span> <span class="st">"camtrapviz"</span><span class="op">)</span></span></code></pre></div>
-<p>The vignette <code>summarize</code> explains how to summarize camera and species information.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"summarize"</span>, package <span class="op">=</span> <span class="st">"camtrapviz"</span><span class="op">)</span></span></code></pre></div>
-<p>The vignette <code>plots</code> exemplifies different plots.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"plots"</span>, package <span class="op">=</span> <span class="st">"camtrapviz"</span><span class="op">)</span></span></code></pre></div>
+<p>R vignettes are provided to exemplify the packages functionalities (this is a work in progress). Vignettes are available on the <a href="https://lisanicvert.github.io/camtrapviz/">package’s website</a>.</p>
 </div>
 </div>
 </div>
