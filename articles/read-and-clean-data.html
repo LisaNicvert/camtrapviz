@@ -121,6 +121,41 @@ can be used to read and clean different data formats.</p>
 <code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_data.html">read_data</a></span><span class="op">(</span>records_path <span class="op">=</span> <span class="va">recordfile</span>,</span>
 <span>                 cameras_path <span class="op">=</span> <span class="va">camtrapfile</span>,</span>
 <span>                 sep_records <span class="op">=</span> <span class="st">","</span>, sep_cameras <span class="op">=</span> <span class="st">","</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Station Species    DateTimeOriginal       Date     Time delta.time.secs</span></span>
+<span><span class="co">#&gt; 1 StationA     PBE 2009-04-21 00:40:00 2009-04-21 00:40:00               0</span></span>
+<span><span class="co">#&gt; 2 StationA     PBE 2009-04-22 20:19:00 2009-04-22 20:19:00          157140</span></span>
+<span><span class="co">#&gt; 3 StationA     PBE 2009-04-23 00:07:00 2009-04-23 00:07:00           13560</span></span>
+<span><span class="co">#&gt; 4 StationA     PBE 2009-05-07 17:11:00 2009-05-07 17:11:00         1270920</span></span>
+<span><span class="co">#&gt; 5 StationA     VTA 2009-04-10 05:07:00 2009-04-10 05:07:00               0</span></span>
+<span><span class="co">#&gt; 6 StationA     VTA 2009-05-06 19:06:00 2009-05-06 19:06:00         2296740</span></span>
+<span><span class="co">#&gt;   delta.time.mins delta.time.hours delta.time.days</span></span>
+<span><span class="co">#&gt; 1               0              0.0             0.0</span></span>
+<span><span class="co">#&gt; 2            2619             43.6             1.8</span></span>
+<span><span class="co">#&gt; 3             226              3.8             0.2</span></span>
+<span><span class="co">#&gt; 4           21182            353.0            14.7</span></span>
+<span><span class="co">#&gt; 5               0              0.0             0.0</span></span>
+<span><span class="co">#&gt; 6           38279            638.0            26.6</span></span>
+<span><span class="co">#&gt;                                                                                     Directory</span></span>
+<span><span class="co">#&gt; 1 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 2 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 3 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 4 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 5 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
+<span><span class="co">#&gt; 6 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
+<span><span class="co">#&gt;                                FileName</span></span>
+<span><span class="co">#&gt; 1 StationA__2009-04-21__00-40-00(1).JPG</span></span>
+<span><span class="co">#&gt; 2 StationA__2009-04-22__20-19-00(1).JPG</span></span>
+<span><span class="co">#&gt; 3 StationA__2009-04-23__00-07-00(1).JPG</span></span>
+<span><span class="co">#&gt; 4 StationA__2009-05-07__17-11-00(1).JPG</span></span>
+<span><span class="co">#&gt; 5 StationA__2009-04-10__05-07-00(1).JPG</span></span>
+<span><span class="co">#&gt; 6 StationA__2009-05-06__19-06-00(1).JPG</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Station  utm_y  utm_x Setup_date Retrieval_date Problem1_from Problem1_to</span></span>
+<span><span class="co">#&gt; 1 StationA 604000 526000 02/04/2009     14/05/2009          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 2 StationB 606000 523000 03/04/2009     16/05/2009          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 3 StationC 607050 525000 04/04/2009     17/05/2009    12/05/2009  17/05/2009</span></span></code></pre></div>
 <p>The imported file is a list with one component <code>$data</code>
 containing 2 dataframes:</p>
 <ul>
@@ -133,8 +168,9 @@ containing 2 dataframes:</p>
 <div class="section level3">
 <h3 id="clean-data">Clean data<a class="anchor" aria-label="anchor" href="#clean-data"></a>
 </h3>
-<p>This step ensures all columns have the desired type.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<p>This step ensures all columns have the desired type. It will also
+move these columns to the beginnning of the table.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rec_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Station <span class="op">=</span> <span class="st">"as.character"</span>,</span>
 <span>                 Date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as_date"</span>,</span>
 <span>                             format <span class="op">=</span> <span class="st">"%Y-%m-%d"</span><span class="op">)</span>,</span>
@@ -150,6 +186,41 @@ containing 2 dataframes:</p>
 <span><span class="va">dat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat</span>, </span>
 <span>                        rec_type <span class="op">=</span> <span class="va">rec_type</span>,</span>
 <span>                        cam_type <span class="op">=</span> <span class="va">cam_type</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Station       Date     Time    DateTimeOriginal Species delta.time.secs</span></span>
+<span><span class="co">#&gt; 1 StationA 2009-04-21 00:40:00 2009-04-21 00:40:00     PBE               0</span></span>
+<span><span class="co">#&gt; 2 StationA 2009-04-22 20:19:00 2009-04-22 20:19:00     PBE          157140</span></span>
+<span><span class="co">#&gt; 3 StationA 2009-04-23 00:07:00 2009-04-23 00:07:00     PBE           13560</span></span>
+<span><span class="co">#&gt; 4 StationA 2009-05-07 17:11:00 2009-05-07 17:11:00     PBE         1270920</span></span>
+<span><span class="co">#&gt; 5 StationA 2009-04-10 05:07:00 2009-04-10 05:07:00     VTA               0</span></span>
+<span><span class="co">#&gt; 6 StationA 2009-05-06 19:06:00 2009-05-06 19:06:00     VTA         2296740</span></span>
+<span><span class="co">#&gt;   delta.time.mins delta.time.hours delta.time.days</span></span>
+<span><span class="co">#&gt; 1               0              0.0             0.0</span></span>
+<span><span class="co">#&gt; 2            2619             43.6             1.8</span></span>
+<span><span class="co">#&gt; 3             226              3.8             0.2</span></span>
+<span><span class="co">#&gt; 4           21182            353.0            14.7</span></span>
+<span><span class="co">#&gt; 5               0              0.0             0.0</span></span>
+<span><span class="co">#&gt; 6           38279            638.0            26.6</span></span>
+<span><span class="co">#&gt;                                                                                     Directory</span></span>
+<span><span class="co">#&gt; 1 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 2 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 3 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 4 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 5 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
+<span><span class="co">#&gt; 6 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
+<span><span class="co">#&gt;                                FileName</span></span>
+<span><span class="co">#&gt; 1 StationA__2009-04-21__00-40-00(1).JPG</span></span>
+<span><span class="co">#&gt; 2 StationA__2009-04-22__20-19-00(1).JPG</span></span>
+<span><span class="co">#&gt; 3 StationA__2009-04-23__00-07-00(1).JPG</span></span>
+<span><span class="co">#&gt; 4 StationA__2009-05-07__17-11-00(1).JPG</span></span>
+<span><span class="co">#&gt; 5 StationA__2009-04-10__05-07-00(1).JPG</span></span>
+<span><span class="co">#&gt; 6 StationA__2009-05-06__19-06-00(1).JPG</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Station Setup_date Retrieval_date  utm_y  utm_x Problem1_from Problem1_to</span></span>
+<span><span class="co">#&gt; 1 StationA 2009-04-02     2009-05-14 604000 526000          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 2 StationB 2009-04-03     2009-05-16 606000 523000          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 3 StationC 2009-04-04     2009-05-17 607050 525000    12/05/2009  17/05/2009</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -158,9 +229,48 @@ containing 2 dataframes:</p>
 <div class="section level3">
 <h3 id="read-data-1">Read data<a class="anchor" aria-label="anchor" href="#read-data-1"></a>
 </h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_data.html">read_data</a></span><span class="op">(</span>records_path <span class="op">=</span> <span class="va">recordcamfile</span>,</span>
 <span>                 sep_records <span class="op">=</span> <span class="st">","</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Station Species    DateTimeOriginal       Date     Time delta.time.secs</span></span>
+<span><span class="co">#&gt; 1 StationA     PBE 2009-04-21 00:40:00 2009-04-21 00:40:00               0</span></span>
+<span><span class="co">#&gt; 2 StationA     PBE 2009-04-22 20:19:00 2009-04-22 20:19:00          157140</span></span>
+<span><span class="co">#&gt; 3 StationA     PBE 2009-04-23 00:07:00 2009-04-23 00:07:00           13560</span></span>
+<span><span class="co">#&gt; 4 StationA     PBE 2009-05-07 17:11:00 2009-05-07 17:11:00         1270920</span></span>
+<span><span class="co">#&gt; 5 StationA     VTA 2009-04-10 05:07:00 2009-04-10 05:07:00               0</span></span>
+<span><span class="co">#&gt; 6 StationA     VTA 2009-05-06 19:06:00 2009-05-06 19:06:00         2296740</span></span>
+<span><span class="co">#&gt;   delta.time.mins delta.time.hours delta.time.days</span></span>
+<span><span class="co">#&gt; 1               0              0.0             0.0</span></span>
+<span><span class="co">#&gt; 2            2619             43.6             1.8</span></span>
+<span><span class="co">#&gt; 3             226              3.8             0.2</span></span>
+<span><span class="co">#&gt; 4           21182            353.0            14.7</span></span>
+<span><span class="co">#&gt; 5               0              0.0             0.0</span></span>
+<span><span class="co">#&gt; 6           38279            638.0            26.6</span></span>
+<span><span class="co">#&gt;                                                                                     Directory</span></span>
+<span><span class="co">#&gt; 1 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 2 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 3 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 4 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 5 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
+<span><span class="co">#&gt; 6 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
+<span><span class="co">#&gt;                                FileName  utm_y  utm_x Setup_date Retrieval_date</span></span>
+<span><span class="co">#&gt; 1 StationA__2009-04-21__00-40-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
+<span><span class="co">#&gt; 2 StationA__2009-04-22__20-19-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
+<span><span class="co">#&gt; 3 StationA__2009-04-23__00-07-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
+<span><span class="co">#&gt; 4 StationA__2009-05-07__17-11-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
+<span><span class="co">#&gt; 5 StationA__2009-04-10__05-07-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
+<span><span class="co">#&gt; 6 StationA__2009-05-06__19-06-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
+<span><span class="co">#&gt;   Problem1_from Problem1_to</span></span>
+<span><span class="co">#&gt; 1          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 2          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 3          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 4          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 5          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 6          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
+<span><span class="co">#&gt; NULL</span></span></code></pre></div>
 <p>Again the imported file is a list with one component
 <code>$data</code>:</p>
 <ul>
@@ -175,10 +285,10 @@ information</li>
 <div class="section level3">
 <h3 id="clean-data-1">Clean data<a class="anchor" aria-label="anchor" href="#clean-data-1"></a>
 </h3>
-<p>Here this step will spilt the information between cameras and
+<p>Here this step will split the information between cameras and
 records. It will move all columns listed in <code>cam_type</code> in the
 cameras file.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cam_type2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Station <span class="op">=</span> <span class="st">"as.character"</span>,</span>
 <span>                  Setup_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as.Date"</span>,</span>
 <span>                                    format <span class="op">=</span> <span class="st">"%d/%m/%Y"</span><span class="op">)</span>, </span>
@@ -196,6 +306,41 @@ cameras file.</p>
 <span>                        cam_type <span class="op">=</span> <span class="va">cam_type2</span>,</span>
 <span>                        cam_col_records <span class="op">=</span> <span class="st">"Station"</span>,</span>
 <span>                        split <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Station       Date     Time    DateTimeOriginal Species delta.time.secs</span></span>
+<span><span class="co">#&gt; 1 StationA 2009-04-21 00:40:00 2009-04-21 00:40:00     PBE               0</span></span>
+<span><span class="co">#&gt; 2 StationA 2009-04-22 20:19:00 2009-04-22 20:19:00     PBE          157140</span></span>
+<span><span class="co">#&gt; 3 StationA 2009-04-23 00:07:00 2009-04-23 00:07:00     PBE           13560</span></span>
+<span><span class="co">#&gt; 4 StationA 2009-05-07 17:11:00 2009-05-07 17:11:00     PBE         1270920</span></span>
+<span><span class="co">#&gt; 5 StationA 2009-04-10 05:07:00 2009-04-10 05:07:00     VTA               0</span></span>
+<span><span class="co">#&gt; 6 StationA 2009-05-06 19:06:00 2009-05-06 19:06:00     VTA         2296740</span></span>
+<span><span class="co">#&gt;   delta.time.mins delta.time.hours delta.time.days</span></span>
+<span><span class="co">#&gt; 1               0              0.0             0.0</span></span>
+<span><span class="co">#&gt; 2            2619             43.6             1.8</span></span>
+<span><span class="co">#&gt; 3             226              3.8             0.2</span></span>
+<span><span class="co">#&gt; 4           21182            353.0            14.7</span></span>
+<span><span class="co">#&gt; 5               0              0.0             0.0</span></span>
+<span><span class="co">#&gt; 6           38279            638.0            26.6</span></span>
+<span><span class="co">#&gt;                                                                                     Directory</span></span>
+<span><span class="co">#&gt; 1 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 2 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 3 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 4 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
+<span><span class="co">#&gt; 5 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
+<span><span class="co">#&gt; 6 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
+<span><span class="co">#&gt;                                FileName</span></span>
+<span><span class="co">#&gt; 1 StationA__2009-04-21__00-40-00(1).JPG</span></span>
+<span><span class="co">#&gt; 2 StationA__2009-04-22__20-19-00(1).JPG</span></span>
+<span><span class="co">#&gt; 3 StationA__2009-04-23__00-07-00(1).JPG</span></span>
+<span><span class="co">#&gt; 4 StationA__2009-05-07__17-11-00(1).JPG</span></span>
+<span><span class="co">#&gt; 5 StationA__2009-04-10__05-07-00(1).JPG</span></span>
+<span><span class="co">#&gt; 6 StationA__2009-05-06__19-06-00(1).JPG</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Station Setup_date Retrieval_date  utm_y  utm_x Problem1_from Problem1_to</span></span>
+<span><span class="co">#&gt; 1 StationA 2009-04-02     2009-05-14 604000 526000          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 2 StationB 2009-04-03     2009-05-16 606000 523000          &lt;NA&gt;        &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 3 StationC 2009-04-04     2009-05-17 607050 525000    2009-05-12  2009-05-17</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -204,12 +349,104 @@ cameras file.</p>
 <div class="section level3">
 <h3 id="read-data-2">Read data<a class="anchor" aria-label="anchor" href="#read-data-2"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># dat &lt;- read_data(records_path = "https://raw.githubusercontent.com/tdwg/camtrap-dp/1.0-rc.1/example/datapackage.json")</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_data.html">read_data</a></span><span class="op">(</span>records_path <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/tdwg/camtrap-dp/main/example/datapackage.json"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Please make sure you have the right to access data from this Data Package for your intended use.</span></span>
+<span><span class="co">#&gt; Follow applicable norms or requirements to credit the dataset and its authors.</span></span>
+<span><span class="co">#&gt; The dataset uses Camtrap DP version 1.0-rc.1, it has been converted to 0.1.6.</span></span>
+<span><span class="co">#&gt; See https://inbo.github.io/camtraptor/#camtrap-dp for details.</span></span>
+<span><span class="co">#&gt; </span></span></code></pre></div>
+<p>Internally, we use the function <code>read_camtrap_dp</code> from the
+<code>camtraptor</code> package. The imported object is a
+<code>list</code> and the observations and deployments info are in the
+<code>$data</code> slot.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "list"</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 28</span></span></span>
+<span><span class="co">#&gt;   observationID deploymentID sequenceID mediaID timestamp          </span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 705e6036      00a2c20d     4bb69c45   <span style="color: #BB0000;">NA</span>      2020-05-30 <span style="color: #949494;">02:57:37</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 1fcdba64      00a2c20d     f99bfff4   <span style="color: #BB0000;">NA</span>      2020-05-31 <span style="color: #949494;">04:05:10</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 4729dc5c      00a2c20d     45abeadc   <span style="color: #BB0000;">NA</span>      2020-05-31 <span style="color: #949494;">20:06:43</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> a3cf89e5      00a2c20d     ea72c74f   <span style="color: #BB0000;">NA</span>      2020-06-05 <span style="color: #949494;">02:49:20</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 254635b0      00a2c20d     52107a58   <span style="color: #BB0000;">NA</span>      2020-06-06 <span style="color: #949494;">04:11:07</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 22a452e1      00a2c20d     52107a58   <span style="color: #BB0000;">NA</span>      2020-06-06 <span style="color: #949494;">04:11:07</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 23 more variables: observationType &lt;fct&gt;, cameraSetup &lt;fct&gt;, taxonID &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   taxonIDReference &lt;chr&gt;, scientificName &lt;chr&gt;, taxonRank &lt;chr&gt;, count &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   countNew &lt;lgl&gt;, lifeStage &lt;fct&gt;, sex &lt;fct&gt;, behaviour &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   individualID &lt;chr&gt;, speed &lt;dbl&gt;, radius &lt;dbl&gt;, angle &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   classificationMethod &lt;fct&gt;, classifiedBy &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   classificationTimestamp &lt;dttm&gt;, classificationConfidence &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   comments &lt;chr&gt;, `_id` &lt;lgl&gt;, vernacularNames.eng &lt;chr&gt;, …</span></span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 24</span></span></span>
+<span><span class="co">#&gt;   deploymentID locationID locationName  longitude latitude coordinateUncertainty</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 00a2c20d     e254a13c   B_HS_val 2_p…      4.77     51.5                   187</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 29b7d356     2df5259b   B_DL_val 5_b…      5.66     51.2                   187</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 577b543a     ff1535c0   B_DL_val 3_d…      5.66     51.2                   187</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 62c200a9     ce943ced   B_DM_val 4_'…      4.01     50.7                   187</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 18 more variables: start &lt;dttm&gt;, end &lt;dttm&gt;, setupBy &lt;chr&gt;, cameraID &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   cameraModel &lt;chr&gt;, cameraInterval &lt;dbl&gt;, cameraHeight &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   cameraTilt &lt;dbl&gt;, cameraHeading &lt;dbl&gt;, timestampIssues &lt;lgl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   baitUse &lt;fct&gt;, session &lt;chr&gt;, array &lt;lgl&gt;, featureType &lt;fct&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   habitat &lt;chr&gt;, tags &lt;chr&gt;, comments &lt;chr&gt;, `_id` &lt;lgl&gt;</span></span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="clean-data-2">Clean data<a class="anchor" aria-label="anchor" href="#clean-data-2"></a>
 </h3>
+<p>Here, the data follows the camtrapDP standard and does not need
+cleaning. However, for this demonstration we will change the time stamp
+type:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># timestamp was converted to character</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "character"</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rec_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>timestamp <span class="op">=</span> <span class="st">"as.POSIXct"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat</span>, </span>
+<span>                        rec_type <span class="op">=</span> <span class="va">rec_type</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># timestamp is back to POSIX</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "POSIXct" "POSIXt"</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 28</span></span></span>
+<span><span class="co">#&gt;   timestamp           observationID deploymentID sequenceID mediaID</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 2020-05-30 <span style="color: #949494;">02:57:37</span> 705e6036      00a2c20d     4bb69c45   <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 2020-05-31 <span style="color: #949494;">04:05:10</span> 1fcdba64      00a2c20d     f99bfff4   <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 2020-05-31 <span style="color: #949494;">20:06:43</span> 4729dc5c      00a2c20d     45abeadc   <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 2020-06-05 <span style="color: #949494;">02:49:20</span> a3cf89e5      00a2c20d     ea72c74f   <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 2020-06-06 <span style="color: #949494;">04:11:07</span> 254635b0      00a2c20d     52107a58   <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 2020-06-06 <span style="color: #949494;">04:11:07</span> 22a452e1      00a2c20d     52107a58   <span style="color: #BB0000;">NA</span>     </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 23 more variables: observationType &lt;fct&gt;, cameraSetup &lt;fct&gt;, taxonID &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   taxonIDReference &lt;chr&gt;, scientificName &lt;chr&gt;, taxonRank &lt;chr&gt;, count &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   countNew &lt;lgl&gt;, lifeStage &lt;fct&gt;, sex &lt;fct&gt;, behaviour &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   individualID &lt;chr&gt;, speed &lt;dbl&gt;, radius &lt;dbl&gt;, angle &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   classificationMethod &lt;fct&gt;, classifiedBy &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   classificationTimestamp &lt;dttm&gt;, classificationConfidence &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   comments &lt;chr&gt;, `_id` &lt;lgl&gt;, vernacularNames.eng &lt;chr&gt;, …</span></span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 24</span></span></span>
+<span><span class="co">#&gt;   deploymentID locationID locationName  longitude latitude coordinateUncertainty</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 00a2c20d     e254a13c   B_HS_val 2_p…      4.77     51.5                   187</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 29b7d356     2df5259b   B_DL_val 5_b…      5.66     51.2                   187</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 577b543a     ff1535c0   B_DL_val 3_d…      5.66     51.2                   187</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 62c200a9     ce943ced   B_DM_val 4_'…      4.01     50.7                   187</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 18 more variables: start &lt;dttm&gt;, end &lt;dttm&gt;, setupBy &lt;chr&gt;, cameraID &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   cameraModel &lt;chr&gt;, cameraInterval &lt;dbl&gt;, cameraHeight &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   cameraTilt &lt;dbl&gt;, cameraHeading &lt;dbl&gt;, timestampIssues &lt;lgl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   baitUse &lt;fct&gt;, session &lt;chr&gt;, array &lt;lgl&gt;, featureType &lt;fct&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   habitat &lt;chr&gt;, tags &lt;chr&gt;, comments &lt;chr&gt;, `_id` &lt;lgl&gt;</span></span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
