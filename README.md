@@ -2,14 +2,13 @@
 
 *This package is currently under development*
 
-`camtrapviz` is a R and Shiny package designed to make it easier to visualize and summarize camera trap data for which species have already been identified. The package website can be found at: <https://lisanicvert.github.io/camtrapviz/>.
+`camtrapviz` is a R and Shiny package designed to make it easier to visualize and summarize camera trap data. it is intended for data where species have already been tagged and compiled in tables. The package website can be found at: <https://lisanicvert.github.io/camtrapviz/>.
 
 For the moment, this package allows to:
 
--   read camera trap data from one or two CSV file(s) or the JSON metadata of a [camtrapDP data package](https://tdwg.github.io/camtrap-dp/)
--   format data for the analysis
--   summarize cameras and species observation data
+-   read and format camera trap data
 -   plot data
+-   summarize and analyze data
 
 ## Installation
 
@@ -22,42 +21,48 @@ devtools::install_github("https://github.com/LisaNicvert/camtrapviz",
 
 ## Shiny interface
 
-A Shiny interface allows to analyze camera trap data interactively. To run the app, use:
+A Shiny interface run from your computer allows to analyze camera trap data interactively. To run the app, use:
 
 ``` r
 run_camtrapviz()
 ```
 
-Two example datasets are provided, and you can also choose data to analyze from your computer.
+Two example datasets from the [`camtrapR`](https://jniedballa.github.io/camtrapR/) and [`camtraptor`](https://inbo.github.io/camtraptor/index.html) R packages are provided. You can also choose data to analyze from your computer.
 
-## Functions
+## Data reading and formatting
 
-The package also implements functions that can be used directly in R. These functions allow to:
+The package implements functions to read and clean data. Below are a few examples:
 
--   Read camera trap data: the function `read_data` allows to read camera trap data from one or two CSV file(s) or a JSON camtrapDP file.
--   Format data: the function `clean_data` essentially casts column types. If camera metadata and species observations are in the same file, it will also separate it into observations and cameras.
--   Summarize data: it is possible to summarize camera metadata with `summarize_camera` to get sampling start, end and length. Species observations can also be summarized with `summarize_species`. to get species sightings count, the number and proportions of cameras where a species was captured.
--   Fit an activity curve: the functions `fit_vonMises` and `vonMises_density` allow to fit and compute the density curve.
--   Plot data: several functions allow to visualize data: plot observations with `plot_points`, plot cameras on an interactive map with `plot_map` (using `leaflet`), plot species abundance with `plot_species_bars`...
+-   [`read_data`](https://lisanicvert.github.io/camtrapviz/reference/read_data.html) allows to read camera trap data from one or two CSV file(s) or the JSON metadata of a [camtrapDP data package](https://tdwg.github.io/camtrap-dp/).
+-   [`filter_data`](https://lisanicvert.github.io/camtrapviz/reference/filter_data.html) allows to select a subset of camera trap data based on species, cameras and dates.
+
+## Dataviz
+
+There are several functions to visualize data. Some are illustrated below (using the example dataset frop the [`camtrapR`](https://jniedballa.github.io/camtrapR/) package).
+
+First, you can plot the observations of each camera versus time with the [`plot_points`](https://lisanicvert.github.io/camtrapviz/reference/plot_points.html) function:
+
+![Plot observations](man/figures/plot_points.png)
+
+You can also plot the cameras on a map with the [`plot_map`](https://lisanicvert.github.io/camtrapviz/reference/plot_map.html) function (interactive leaflet map):
+
+![Cameras map](man/figures/map.png)
+
+It is also possible to plot capture event counts with [`plot_species_bars`](https://lisanicvert.github.io/camtrapviz/reference/plot_species_bars.html):
+
+![Capture events counts per species](man/figures/plot_spp_bars.png)
+
+For more details on plots, see the [plots vignette](https://lisanicvert.github.io/camtrapviz/articles/plots.html).
+
+## Data summary and analysis
+
+Other functions allow more specific analyses:
+
+-   [`summarize_camera`](https://lisanicvert.github.io/camtrapviz/reference/summarize_cameras.html) allows to get sampling start, end and length.
+-   [`summarize_species`](https://lisanicvert.github.io/camtrapviz/reference/summarize_species.html) allows to get species sightings count, the number and proportions of cameras where a species was captured.
+-   [`get_diversity_table`](https://lisanicvert.github.io/camtrapviz/reference/get_diversity_table.html) computes various diversity indices from a species occurrence dataframe.
+-   [`fit_vonMises`](https://lisanicvert.github.io/camtrapviz/reference/fit_vonMises.html) and [`vonMises_density`](https://lisanicvert.github.io/camtrapviz/reference/vonMises_density.html) allow to fit and compute the activity density curve.
 
 ### Vignettes
 
-R vignettes are provided to exemplify a typical workflow of analysis (this is a work in progress).
-
-The vignette `read-and-clean-data` explains how to read data from files and how to format data for further analyses.
-
-``` r
-vignette("read-and-clean-data", package = "camtrapviz")
-```
-
-The vignette `summarize` explains how to summarize camera and species information.
-
-``` r
-vignette("summarize", package = "camtrapviz")
-```
-
-The vignette `plots` exemplifies different plots.
-
-``` r
-vignette("plots", package = "camtrapviz")
-```
+R vignettes are provided to exemplify the packages functionalities (this is a work in progress). Vignettes are available on the [package's website](https://lisanicvert.github.io/camtrapviz/).

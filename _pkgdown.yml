@@ -8,6 +8,7 @@ reference:
   - cast_columns
   - clean_data
   - filter_cameras_in_both_tables
+  - filter_data
   - remove_rows_with_NA
 - title: "Summarize and explore data"
   contents:
@@ -16,7 +17,6 @@ reference:
   - get_nspecies
   - get_all_species
   - get_unique_species
-  - filter_data
   - starts_with("summarize")
 - title: "Analyze data"
   contents:
