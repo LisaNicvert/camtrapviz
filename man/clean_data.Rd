@@ -6,10 +6,10 @@
 \usage{
 clean_data(
   dat,
-  cam_type,
-  rec_type,
+  cam_type = NULL,
+  rec_type = NULL,
   only_shared_cameras = FALSE,
-  cam_col_records,
+  cam_col_records = NULL,
   cam_col_cameras = NULL,
   split = FALSE,
   add_rowid = FALSE
@@ -26,6 +26,8 @@ are in the \verb{$data} slot with two components:
 
 \item{cam_type}{A named list containing the name of the
 function to cast between types for the cameras table.
+If \code{NULL}, the cameras table will not be modified or its columns
+reordered.
 The list's names are the names of the columns to cast
 in \code{dat$data$deployments}.
 For details on the content of this list, see the documentation of
@@ -33,6 +35,8 @@ the \code{cast_columns} function.}
 
 \item{rec_type}{A named list containing the name of the
 function to cast between types for the records table.
+If \code{NULL}, the records table will not be modified or its columns
+reordered.
 The list's names are the names of the columns to cast
 in \code{dat$data$observations}.
 For details on the content of this list, see the documentation of
@@ -63,8 +67,8 @@ cleaned as described above.
 Cleans data by:
 \itemize{
 \item splitting records data in records and cameras (if needed)
-\item formatting cameras and records tables: casting columns and
-moving the selected columns to the beginning
+\item formatting cameras and records tables: casting specified columns
+and moving them to the beginning
 \item if \code{only_shared_cameras} is \code{TRUE}: selecting the subset of
 cameras present in both records and cameras tables
 }

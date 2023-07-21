@@ -244,8 +244,8 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #'
 #' Cleans data by:
 #' + splitting records data in records and cameras (if needed)
-#' + formatting cameras and records tables: casting columns and
-#' moving the selected columns to the beginning
+#' + formatting cameras and records tables: casting specified columns 
+#' and moving them to the beginning
 #' + if `only_shared_cameras` is `TRUE`: selecting the subset of 
 #' cameras present in both records and cameras tables
 #'  
@@ -256,12 +256,16 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #' + `$observations` (records table)
 #' @param cam_type A named list containing the name of the 
 #' function to cast between types for the cameras table.
+#' If `NULL`, the cameras table will not be modified or its columns 
+#' reordered.
 #' The list's names are the names of the columns to cast 
 #' in `dat$data$deployments`.
 #' For details on the content of this list, see the documentation of 
 #' the `cast_columns` function.
 #' @param rec_type A named list containing the name of the 
 #' function to cast between types for the records table.
+#' If `NULL`, the records table will not be modified or its columns 
+#' reordered.
 #' The list's names are the names of the columns to cast 
 #' in `dat$data$observations`. 
 #' For details on the content of this list, see the documentation of 
@@ -314,25 +318,34 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #'            rec_type = rec_type,
 #'            cam_type = cam_type)
 clean_data <- function(dat, 
-                       cam_type,
-                       rec_type,
+                       cam_type = NULL,
+                       rec_type = NULL,
                        only_shared_cameras = FALSE,
-                       cam_col_records,
+                       cam_col_records = NULL,
                        cam_col_cameras = NULL,
                        split = FALSE,
                        add_rowid = FALSE) {
   
   # Prepare cameras ---
-  cameras_colnames <- as.list(names(cam_type))
-  res <- prepare_cameras(dat, 
-                         cam_columns = cameras_colnames, 
-                         cam_col = cam_col_records,
-                         split = split)
+  if (!is.null(cam_type)) {
+    cameras_colnames <- as.list(names(cam_type))
+    
+    res <- prepare_cameras(dat, 
+                           cam_columns = cameras_colnames, 
+                           cam_col = cam_col_records,
+                           split = split)
+  } else {
+    res <- dat
+  }
+  
   
   # Records ---
   # Cast
-  res$data$observations <- cast_columns(res$data$observations,
-                                        cast_type = rec_type)
+  if (!is.null(rec_type)) {
+    res$data$observations <- cast_columns(res$data$observations,
+                                          cast_type = rec_type)
+  }
+  
   # Reorder
   res$data$observations <- res$data$observations |>
     select(all_of(names(rec_type)),
@@ -340,8 +353,11 @@ clean_data <- function(dat,
   
   # Cameras ---
   # Cast
-  res$data$deployments <- cast_columns(res$data$deployments,
-                                       cast_type = cam_type)
+  if (!is.null(cam_type)) {
+    res$data$deployments <- cast_columns(res$data$deployments,
+                                         cast_type = cam_type)
+  }
+  
   # Reorder
   res$data$deployments <- res$data$deployments |>
     select(all_of(names(cam_type)),
@@ -361,8 +377,6 @@ clean_data <- function(dat,
   }
   
   if (add_rowid) {
-    # res$data$observations <- res$data$observations |> 
-    #   tibble::rowid_to_column() 
     nrow <- nrow(res$data$observations)
     res$data$observations <- as.data.frame(res$data$observations)
     rownames(res$data$observations) <- paste("ID", 1:nrow,

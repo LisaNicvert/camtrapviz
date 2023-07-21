@@ -67,6 +67,11 @@ dat <- read_data(records_path = recordfile,
                  sep_records = ",", sep_cameras = ",")
 ```
 
+```{r}
+head(dat$data$observations)
+head(dat$data$deployments)
+```
+
 The imported file is a list with one component `$data` containing 2 dataframes:
 
 + `$observations` contains the records
@@ -74,7 +79,7 @@ The imported file is a list with one component `$data` containing 2 dataframes:
 
 ### Clean data
 
-This step ensures all columns have the desired type.
+This step ensures all columns have the desired type. It will also move these columns to the beginnning of the table.
 
 ```{r}
 rec_type <- list(Station = "as.character",
@@ -94,6 +99,11 @@ dat_clean <- clean_data(dat,
                         cam_type = cam_type)
 ```
 
+```{r}
+head(dat_clean$data$observations)
+head(dat_clean$data$deployments)
+```
+
 ## Records and cameras in the same csv (1 csv file)
 
 ### Read data
@@ -103,6 +113,11 @@ dat <- read_data(records_path = recordcamfile,
                  sep_records = ",")
 ```
 
+```{r}
+head(dat$data$observations)
+head(dat$data$deployments)
+```
+
 Again the imported file is a list with one component `$data`:
 
 + `$data$observations` contains the cameras and records information
@@ -110,7 +125,7 @@ Again the imported file is a list with one component `$data`:
 
 ### Clean data
 
-Here this step will spilt the information between cameras and records. It will move all columns listed in `cam_type` in the cameras file.
+Here this step will split the information between cameras and records. It will move all columns listed in `cam_type` in the cameras file.
 
 ```{r}
 cam_type2 <- list(Station = "as.character",
@@ -132,12 +147,50 @@ dat_clean <- clean_data(dat,
                         split = TRUE)
 ```
 
+```{r}
+head(dat_clean$data$observations)
+head(dat_clean$data$deployments)
+```
+
 ## CamtrapDP format (json file)
 
 ### Read data
 ```{r}
-# dat <- read_data(records_path = "https://raw.githubusercontent.com/tdwg/camtrap-dp/1.0-rc.1/example/datapackage.json")
+dat <- read_data(records_path = "https://raw.githubusercontent.com/tdwg/camtrap-dp/main/example/datapackage.json")
+```
+
+Internally, we use the function `read_camtrap_dp` from the `camtraptor` package. The imported object is a `list` and the observations and deployments info are in the `$data` slot.
+
+```{r}
+class(dat)
+
+head(dat$data$observations)
+head(dat$data$deployments)
 ```
 
 ### Clean data
 
+Here, the data follows the camtrapDP standard and does not need cleaning. However, for this demonstration we will change the time stamp type:
+
+```{r}
+dat$data$observations$timestamp <- as.character(dat$data$observations$timestamp)
+
+# timestamp was converted to character
+class(dat$data$observations$timestamp)
+```
+
+
+```{r}
+rec_type <- list(timestamp = "as.POSIXct")
+
+dat_clean <- clean_data(dat, 
+                        rec_type = rec_type)
+
+# timestamp is back to POSIX
+class(dat_clean$data$observations$timestamp)
+```
+
+```{r}
+head(dat_clean$data$observations)
+head(dat_clean$data$deployments)
+```
