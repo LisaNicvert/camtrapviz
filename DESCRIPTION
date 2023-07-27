@@ -39,7 +39,8 @@ Imports:
 Suggests: 
     knitr,
     rmarkdown,
-    RColorBrewer
+    RColorBrewer,
+    activity
 VignetteBuilder: knitr
 URL: https://lisanicvert.github.io/camtrapviz/
 Depends: 

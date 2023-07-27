@@ -11,6 +11,9 @@ library(testthat)
 library(ggplot2)
 library(ggiraph)
 
+
+# Plot points -------------------------------------------------------------
+
 test_that("Plot points", {
   
   df <- recordTableSample
@@ -294,6 +297,10 @@ test_that("Plot points with rectangles", {
   
   })
 
+
+
+# Plot bars ---------------------------------------------------------------
+
 test_that("Plot species bars", {
   df <- data.frame(species = c("cat", "cat", "cat", "cow", "rabbit", NA),
                    type = c("animal", "animal", "animal", "animal", "animal", "blank"),
@@ -318,6 +325,10 @@ test_that("Plot species bars", {
   # Test that NA species was replaced with blank
   expect_equal(br, c("blank", "rabbit", "cow", "cat"))
 })
+
+
+
+# Plot map ----------------------------------------------------------------
 
 test_that("Plot map (radii)", {
   # Default radii ---
@@ -425,37 +436,271 @@ test_that("Plot map (labels displayed on map)", {
            display_camnames = TRUE)
 })
 
-test_that("Plot density", {
-  # Prepare test data ---
-  testdat <- kga |> dplyr::select(snapshotName, eventTime) |> 
-    filter(snapshotName == "gemsbok")
-  testdat$hour <- as.numeric(testdat$eventTime)*24
+# Activity plot -----------------------------------------------------------
+
+test_that("Activity plot (histogram) with frequency", {
   
-  # Check with radians ---
-  # Fit model
-  mod <- fit_vonMises(testdat$eventTime, k = 3)
-  # Get density
-  dt <- vonMises_density(mod)
+  # Data ---
+  data(recordTableSample, package = "camtrapR")
   
-  gg <- ggplot(dt) +
-    geom_histogram_interactive(data = testdat, 
-                   aes(x = hour,
-                       y = after_stat(density),
-                       tooltip = paste0("Density: ", round(after_stat(density), 3), "\n",
-                                        "Time: ", after_stat(x)),
-                       data_id = after_stat(x)),
-                   alpha = 0.7,
-                   binwidth = 1) +
-    geom_line(aes(x = x, y = density)) +
-    scale_x_continuous(breaks = seq(0, 24, by = 4)) +
-    ggtitle("Estimated density") +
-    xlab("Time (hours)") +
-    ylab("Density") +
-    theme_linedraw()
+  # Convert hours to times format
+  recordTableSample <- recordTableSample |> 
+    mutate(Time = chron::times(Time))
+  # Convert to radians
+  recordTableSample <- recordTableSample |> 
+    mutate(time_radians = as.numeric(Time)*2*pi,
+           .after = Time)
   
-  gi <- ggiraph::girafe(ggobj = gg)
-  gi <- ggiraph::girafe_options(gi,
-                                opts_hover(css = "fill:orange"))
+  PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
   
-  gi
+  # Clock time ---
+  (p <- plot_activity(true_data = PBE_records, 
+                      times_true = "Time"))
+  
+  expect_equal(p$labels$x, "Time (hours)")
+  expect_equal(p$labels$y, "Count")
+  lab <- as.character(ggplot2::layer_scales(p)$x$get_labels())
+  expect_equal(lab, c("00:00", "04:00", "08:00", 
+                      "12:00", "16:00", "20:00", "24:00"))
+  ld <- layer_data(p)
+  
+  tst_01 <- ld$y[1]
+  true_01 <- PBE_records$Time >= chron::times("00:00:00") & PBE_records$Time <= chron::times("01:00:00")
+  count_01 <- sum(true_01)
+  expect_equal(tst_01, count_01)
+  
+  # Radians ---
+  (p <- plot_activity(true_data = PBE_records, 
+                      times_true = "time_radians",
+                      unit = "radians"))
+  
+  expect_equal(p$labels$x, "Time (radians)")
+  expect_equal(p$labels$y, "Count")
+  lab <- as.character(ggplot2::layer_scales(p)$x$get_labels())
+  expect_equal(lab, c("0", "0.333\U03C0", "0.667\U03C0", 
+                      "\U03C0", "1.333\U03C0", "1.667\U03C0", "2\U03C0"))
+  ld <- layer_data(p)
+  
+  tst_01 <- ld$y[1]
+  true_01 <- PBE_records$Time >= chron::times("00:00:00") & PBE_records$Time <= chron::times("01:00:00")
+  count_01 <- sum(true_01)
+  expect_equal(tst_01, count_01)
+})
+
+
+test_that("Activity plot (histogram) with density", {
+  
+  # Data ---
+  data(recordTableSample, package = "camtrapR")
+  
+  # Convert hours to times format
+  recordTableSample <- recordTableSample |> 
+    mutate(Time = chron::times(Time))
+  # Convert to radians
+  recordTableSample <- recordTableSample |> 
+    mutate(time_radians = as.numeric(Time)*2*pi,
+           .after = Time)
+  
+  PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
+  
+  # Clock time ---
+  (p <- plot_activity(true_data = PBE_records, 
+                      times_true = "Time",
+                      hist_breaks = 2,
+                      freq = FALSE))
+  
+  expect_equal(p$labels$x, "Time (hours)")
+  expect_equal(p$labels$y, "Density")
+  lab <- as.character(ggplot2::layer_scales(p)$x$get_labels())
+  expect_equal(lab, c("00:00", "04:00", "08:00", 
+                      "12:00", "16:00", "20:00", "24:00"))
+  ld <- layer_data(p)
+  
+  hist_02 <- ld$density[1] # Histogram height
+  true_02 <- PBE_records$Time >= chron::times("00:00:00") & PBE_records$Time <= chron::times("02:00:00")
+  prop_02 <- sum(true_02)/length(PBE_records$Time)
+  area_02 <- hist_02*2 # Area = hist height x hist width
+  expect_equal(prop_02, area_02)
+  
+  # Radians ---
+  (p <- plot_activity(true_data = PBE_records, 
+                      times_true = "time_radians",
+                      unit = "radians",
+                      hist_breaks = 2*(2*pi)/24,
+                      freq = FALSE))
+  
+  expect_equal(p$labels$x, "Time (radians)")
+  expect_equal(p$labels$y, "Density")
+  lab <- as.character(ggplot2::layer_scales(p)$x$get_labels())
+  expect_equal(lab, c("0", "0.333\U03C0", "0.667\U03C0", 
+                      "\U03C0", "1.333\U03C0", "1.667\U03C0", "2\U03C0"))
+  ld <- layer_data(p)
+  
+  hist_02 <- ld$density[1] # Histogram height
+  true_02 <- PBE_records$Time >= chron::times("00:00:00") & PBE_records$Time <= chron::times("02:00:00")
+  prop_02 <- (sum(true_02)/length(PBE_records$Time))
+  area_02 <- hist_02*2*(2*pi)/24 # Area = hist height x hist width
+  expect_equal(prop_02, area_02)
+})
+
+
+test_that("AInteractive ativity plot (histogram) with frequency", {
+  
+  # Data ---
+  data(recordTableSample, package = "camtrapR")
+  
+  # Convert hours to times format
+  recordTableSample <- recordTableSample |> 
+    mutate(Time = chron::times(Time))
+  # Convert to radians
+  recordTableSample <- recordTableSample |> 
+    mutate(time_radians = as.numeric(Time)*2*pi,
+           .after = Time)
+  
+  PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
+  
+  # Clock time ---
+  (p <- plot_activity(true_data = PBE_records, 
+                      times_true = "Time",
+                      interactive = TRUE))
+  (g <- girafe(ggobj = p))
+  
+  expect_equal(p$labels$x, "Time (hours)")
+  expect_equal(p$labels$y, "Count")
+  lab <- as.character(ggplot2::layer_scales(p)$x$get_labels())
+  expect_equal(lab, c("00:00", "04:00", "08:00", 
+                      "12:00", "16:00", "20:00", "24:00"))
+  as.character(p$labels$tooltip)
+  
+  ld <- layer_data(p)
+  
+  tst_01 <- ld$y[1]
+  true_01 <- PBE_records$Time >= chron::times("00:00:00") & PBE_records$Time <= chron::times("01:00:00")
+  count_01 <- sum(true_01)
+  expect_equal(tst_01, count_01)
+  # Tooltip check
+  expect_equal(ld$tooltip[1],
+               "Count: 4\nTime: 00:00 — 01:00")
+  
+  # Radians ---
+  (p <- plot_activity(true_data = PBE_records, 
+                      times_true = "time_radians",
+                      unit = "radians",
+                      interactive = TRUE))
+  
+  (g <- girafe(ggobj = p))
+  
+  expect_equal(p$labels$x, "Time (radians)")
+  expect_equal(p$labels$y, "Count")
+  lab <- as.character(ggplot2::layer_scales(p)$x$get_labels())
+  expect_equal(lab, c("0", "0.333\U03C0", "0.667\U03C0", 
+                      "\U03C0", "1.333\U03C0", "1.667\U03C0", "2\U03C0"))
+  ld <- layer_data(p)
+  
+  tst_01 <- ld$y[1]
+  true_01 <- PBE_records$Time >= chron::times("00:00:00") & PBE_records$Time <= chron::times("01:00:00")
+  count_01 <- sum(true_01)
+  expect_equal(tst_01, count_01)
+  # Tooltip check
+  expect_equal(ld$tooltip[1],
+               "Count: 4\nTime: 0 — 0.083\U03C0")
+})
+
+
+test_that("Interactive activity plot (histogram) with density", {
+  
+  # Data ---
+  data(recordTableSample, package = "camtrapR")
+  
+  # Convert hours to times format
+  recordTableSample <- recordTableSample |> 
+    mutate(Time = chron::times(Time))
+  # Convert to radians
+  recordTableSample <- recordTableSample |> 
+    mutate(time_radians = as.numeric(Time)*2*pi,
+           .after = Time)
+  
+  PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
+  
+  # Clock time ---
+  (p <- plot_activity(true_data = PBE_records, 
+                      times_true = "Time",
+                      hist_breaks = 2,
+                      freq = FALSE,
+                      interactive = TRUE))
+  (g <- girafe(ggobj = p))
+  
+  expect_equal(p$labels$x, "Time (hours)")
+  expect_equal(p$labels$y, "Density")
+  lab <- as.character(ggplot2::layer_scales(p)$x$get_labels())
+  expect_equal(lab, c("00:00", "04:00", "08:00", 
+                      "12:00", "16:00", "20:00", "24:00"))
+  ld <- layer_data(p)
+  
+  hist_02 <- ld$density[1] # Histogram height
+  true_02 <- PBE_records$Time >= chron::times("00:00:00") & PBE_records$Time <= chron::times("02:00:00")
+  prop_02 <- sum(true_02)/length(PBE_records$Time)
+  area_02 <- hist_02*2 # Area = hist height x hist width
+  expect_equal(prop_02, area_02)
+  # Tooltip check
+  expect_equal(ld$tooltip[1],
+               "Density: 0.111\nTime: 00:00 — 02:00")
+  
+  # Radians ---
+  (p <- plot_activity(true_data = PBE_records, 
+                      times_true = "time_radians",
+                      unit = "radians",
+                      hist_breaks = 2*(2*pi)/24,
+                      freq = FALSE,
+                      interactive = TRUE))
+  (g <- girafe(ggobj = p))
+  
+  expect_equal(p$labels$x, "Time (radians)")
+  expect_equal(p$labels$y, "Density")
+  lab <- as.character(ggplot2::layer_scales(p)$x$get_labels())
+  expect_equal(lab, c("0", "0.333\U03C0", "0.667\U03C0", 
+                      "\U03C0", "1.333\U03C0", "1.667\U03C0", "2\U03C0"))
+  ld <- layer_data(p)
+  
+  hist_02 <- ld$density[1] # Histogram height
+  true_02 <- PBE_records$Time >= chron::times("00:00:00") & PBE_records$Time <= chron::times("02:00:00")
+  prop_02 <- (sum(true_02)/length(PBE_records$Time))
+  area_02 <- hist_02*2*(2*pi)/24 # Area = hist height x hist width
+  expect_equal(prop_02, area_02)
+  # Tooltip check
+  expect_equal(ld$tooltip[1],
+               "Density: 0.424\nTime: 0 — 0.167\U03C0")
+})
+
+
+# Helper ------------------------------------------------------------------
+
+test_that("Format hour", {
+  h <- format_hour(2)
+  expect_equal(h, "02:00")
+  
+  h <- format_hour(22)
+  expect_equal(h, "22:00")
+})
+
+test_that("Format radian", {
+  r <- format_radian(2*pi)
+  expect_equal(r, "2\U03C0")
+  
+  r <- format_radian(pi)
+  expect_equal(r, "\U03C0")
+  
+  r <- format_radian(0)
+  expect_equal(r, "0")
+  
+  r <- format_radian(pi/2)
+  expect_equal(r, "0.5\U03C0")
+})
+
+test_that("Format hour or radian", {
+  res <- format_num(pi/2, "radians")
+  expect_equal(res, "0.5\U03C0")
+  
+  res <- format_num(12, "clock")
+  expect_equal(res, "12:00")
 })

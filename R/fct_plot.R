@@ -743,3 +743,274 @@ update_map <- function(map_id,
                                                       textOnly = TRUE))
   }
 }
+
+#' Plot activity data
+#'
+#' @param true_data dataframe containing species records
+#' @param times_true Name of the column containing times in `true_data`
+#' @param hist_breaks Breaks for the histogram (in hours or radians
+#' depending on the value of `unit`).
+#' @param x_breaks Breaks for the x-axis ticks (in hours or radians
+#' depending on the value of `unit`).
+#' @param unit Unit for the plot (radians or clock). Will change the 
+#' density on the y scale and the labels and limits of the x-axis.
+#' @param xlab Label for the x-axis
+#' @param ylab Label for the y-axis
+#' @param freq Display count data (`TRUE`) or density (`FALSE`) ?
+#' @param fitted_data Dataframe of fitted distribution
+#' @param times_fit Name of the column containing times in `fitted_data`.
+#' This column must contain numeric values in radians and will be
+#' converted if unit is `hours`.
+#' @param y_fit  Name of the column containing density in `fitted_data`.
+#' This column must contain numeric values corresponding to the
+#' radians density and will be converted if unit is `hours`.
+#' @param plot_hist Plot the histogram of counts?
+#' @param plot_density Plot the activity curve?
+#' @param interactive Make the plot interactive?
+#' @param n Count for the observed data. It is required only when
+#' you wish to plot the predicted species "density count" 
+#' (so `plot_density` is `TRUE` and `freq` is `FALSE`).
+#'
+#' @return A ggplot representing a histogram of observed activity times
+#' from `true_data`.
+#' 
+#' @details
+#' If the column `times_true` if of type `times`, automatic conversion to 
+#' clock times or radians will be performed. Else, the script trusts
+#' the user for the provided unit.
+#' + If plotting a histogram: when `freq` is `TRUE`, the height of
+#' the bars in each category represents the count that falls in this category.
+#' When `freq` is `FALSE`, the area of the bar in each category represents
+#' the proportion of the data that falls in this category.
+#' + If plotting a curve: when `freq` is `TRUE`: the area under the curve 
+#' is equal to `n` when converting the x-scale to hours, even if the x axis
+#' is in radians. So the height of the curve does not change between hours and radians. 
+#' When `freq` is `FALSE`, the area under the curve is one and depends on the x unit
+#' (so the height of the curve changes between hours and radians). This is to match the
+#' original code of `plot.actmod`.
+#' 
+#' @export
+#'
+#' @examples
+#' library(activity)
+#' library(chron)
+#' data(recordTableSample, package = "camtrapR")
+#' # Convert hours to times format
+#' recordTableSample$Time <- chron::times(recordTableSample$Time)
+#' # Select the desired species
+#' PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
+#' 
+#' # Plot only data
+#' plot_activity(true_data = PBE_records,
+#'               times_true = "Time",
+#'               unit = "clock")
+#' 
+#' # Plot only data (density)
+#' plot_activity(true_data = PBE_records,
+#'               times_true = "Time",
+#'               unit = "clock",
+#'               freq = FALSE)
+#' 
+#' # Fit model
+#' # Convert hours to times format
+#' PBE_records$time_radians <- as.numeric(PBE_records$Time)*2*pi
+#' vm <- activity::fitact(PBE_records$time_radians)
+#' pdf_vm <- as.data.frame(vm@pdf)
+#' 
+#' # Plot data and fitted model in radians
+#' plot_activity(fitted_data = pdf_vm,
+#'               times_fit = "x",
+#'               y_fit = "y",
+#'               unit = "radians",
+#'               freq = FALSE,
+#'               n = nrow(PBE_records))
+#' 
+#' # Plot data and fitted model in hours
+#' plot_activity(fitted_data = pdf_vm,
+#'               times_fit = "x",
+#'               y_fit = "y",
+#'               unit = "clock",
+#'               freq = FALSE,
+#'               n = nrow(PBE_records))
+plot_activity <- function(true_data = NULL, 
+                          times_true = NULL, 
+                          fitted_data = NULL,
+                          times_fit = NULL,
+                          y_fit = NULL,
+                          n = ifelse(!is.null(true_data), nrow(true_data), NULL),
+                          plot_hist = ifelse(is.null(true_data), FALSE, TRUE),
+                          plot_density = ifelse(is.null(fitted_data), FALSE, TRUE),
+                          hist_breaks = ifelse(unit == "clock", 1, (2*pi)/24),
+                          x_breaks = ifelse(unit == "clock", 4, ((2*pi)/24)*4),
+                          unit = c("clock", "radians"),
+                          xlab = ifelse(unit == "clock", "Time (hours)", "Time (radians)"),
+                          ylab = ifelse(freq, "Count", "Density"),
+                          freq = TRUE,
+                          interactive = FALSE) {
+  
+  # Check unit
+  unit <- match.arg(unit)
+  
+  if (unit == "clock") {
+      xmax <- 24
+      x_breaks <- seq(0, xmax, by = x_breaks)
+      labs <- format_hour(x_breaks)
+  } else if (unit == "radians") {
+    xmax <- 2*pi
+    x_breaks <- seq(0, xmax, by = x_breaks)
+    labs <- format_radian(x_breaks)
+  }
+  
+  if (plot_hist) {
+    # Check objects ---
+    if (is.null(true_data)) {
+      stop("Need true_data to plot histogram")
+    }
+    if (is.null(times_true)) {
+      stop("Need a time column times_true to plot histogram")
+    }
+    
+    # Prepare data (convert times if needed) ---
+    data_plot <- true_data
+    
+    if ("times" %in% class(true_data[[times_true]])) {
+      # Transform to numeric
+      data_plot[[times_true]] <- as.numeric(data_plot[[times_true]])
+      
+      # Convert depending on unit
+      if (unit == "clock") {
+        data_plot[[times_true]] <- data_plot[[times_true]]*24
+      } else if (unit == "radians") {
+        data_plot[[times_true]] <- data_plot[[times_true]]*2*pi
+      }
+    }
+    
+    # Plot ---
+    if (interactive) {
+      gg <- ggplot(data_plot) +
+        {if (freq) ggiraph::geom_histogram_interactive(aes(x = .data[[times_true]],
+                                                           tooltip = paste0("Count: ", after_stat(count), "\n",
+                                                                            "Time: ", format_num(after_stat(x) - hist_breaks/2, unit), 
+                                                                            " — ", format_num(after_stat(x) + hist_breaks/2, unit))),
+                                                       breaks = seq(0, xmax, by = hist_breaks))} +
+        {if (!freq) ggiraph::geom_histogram_interactive(aes(x = .data[[times_true]],
+                                                            y = after_stat(density),
+                                                            tooltip = paste0("Density: ", round(after_stat(density), 3), "\n",
+                                                                             "Time: ", format_num(after_stat(x) - hist_breaks/2, unit), 
+                                                                             " — ",  format_num(after_stat(x) + hist_breaks/2, unit))),
+                                                        breaks = seq(0, xmax, by = hist_breaks))}
+    } else {
+      gg <- ggplot(data_plot) +
+        {if (freq) ggplot2::geom_histogram(aes(x = .data[[times_true]]),
+                                           breaks = seq(0, xmax, by = hist_breaks))} +
+        {if (!freq) ggplot2::geom_histogram(aes(x = .data[[times_true]],
+                                                y = after_stat(density)),
+                                            breaks = seq(0, xmax, by = hist_breaks))}
+    }
+  }
+  
+  if (plot_density) {
+    # Check objects ---
+    if (is.null(fitted_data)) {
+      stop("Need fitted_data to plot density curve")
+    }
+    if (is.null(times_fit)) {
+      stop("Need a time column times_fit to plot density curve")
+    }
+    if (is.null(y_fit)) {
+      stop("Need a density column y to plot density curve")
+    }
+    
+    # Convert units (if needed) ---
+    fdata_plot <- fitted_data
+    if (unit == "clock") {
+      fdata_plot[[times_fit]] <- fdata_plot[[times_fit]]*24/(2*pi) # convert times on the hour scale
+      fdata_plot[[y_fit]] <- fdata_plot[[y_fit]]*(2*pi)/24 # convert density in density per hour
+      # for the density to scale to one when x is in hours we need to convert divide by the scaling factor
+    }
+    
+    if (freq) { # Plot counts
+      if (unit == "clock") {
+        fdata_plot[[y_fit]] <- fdata_plot[[y_fit]]*n
+      } else if (unit == "radians") {
+        fdata_plot[[y_fit]] <- fdata_plot[[y_fit]]*((2*pi)/24)*n # Convert to
+        # hours as in the original plot.actmod
+        # This means that the area under the curves integrates to n when the scale is
+        # in hours, so the frequency density is similar to the hour frequency density
+      }
+    }
+    
+    # Create ggplot (optional step) ---
+    if (!plot_hist) { # gg object has not been created yet
+      gg <- ggplot(data = fdata_plot)
+    }
+    
+    gg <- gg +
+      geom_line(data = fdata_plot,
+                aes(x = .data[[times_fit]], 
+                    y = .data[[y_fit]]))
+    
+  }
+  
+  gg <- gg +
+    scale_x_continuous(breaks = x_breaks,
+                       limits = c(0, xmax),
+                       labels = labs) +
+    xlab(xlab) +
+    ylab(ylab) +
+    theme_linedraw()
+  gg
+  
+}
+
+
+# Helpers -----------------------------------------------------------------
+
+#' Format hour
+#' 
+#' Formats numeric to be printed as an hour
+#' 
+#' @param num Numeric vector
+#'
+#' @return Formatted numeric as (0)x:00
+#' @noRd
+format_hour <- function(num) {
+  hour <- sprintf(num, fmt = "%02d")
+  hour <- paste(hour, "00", sep = ":")
+  return(hour)
+}
+
+#' Format radian
+#' 
+#' Formats numeric to be printed as an hour
+#' 
+#' @param num Numeric vector
+#'
+#' @return Formatted numeric as x pi
+#' @noRd
+format_radian <- function(num) {
+  rad <- round(num/pi, 3)
+  rad <- paste0(rad, "\u03C0")
+  # Replace 0 pi and 1 pi
+  rad[rad == "0\u03C0"] <- "0"
+  rad[rad == "1\u03C0"] <- "\u03C0"
+  return(rad)
+}
+
+#' Format numeric to hour or radian
+#'
+#' @param num Numeric
+#' @param type Format to radian or hour?
+#'
+#' @return The formatted numeric
+#' @noRd
+format_num <- function(num, type = c("clock", "radians")) {
+  
+  type <- match.arg(type)
+  
+  if(type == "clock") {
+    format_hour(num)
+  } else if (type == "radians") {
+    format_radian(num)
+  }
+}

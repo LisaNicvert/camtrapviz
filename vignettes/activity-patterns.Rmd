@@ -18,7 +18,12 @@ This vignette demonstrates how to infer and plot species activity patterns.
 
 ```{r setup}
 library(camtrapviz)
+
+library(dplyr)
 library(ggplot2)
+library(activity)
+library(ggiraph)
+# library(hms)
 ```
 
 ## Import and prepare data
@@ -26,73 +31,204 @@ library(ggplot2)
 ```{r}
 data(recordTableSample, package = "camtrapR")
 
-# recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal)
-# recordTableSample$Date <- as.Date(recordTableSample$Date)
+# Convert hours to times format
+recordTableSample <- recordTableSample |> 
+  mutate(Time = chron::times(Time))
 
+# Convert dates to POSIX
+recordTableSample <- recordTableSample |> 
+  mutate(DateTimeOriginal = as.POSIXct(DateTimeOriginal,
+                                       tz = "Asia/Kuching"))
 ```
+
+We also need the coordinates if we want to use solar time (not run here):
+
+```{r}
+# data(camtraps, package = "camtrapR")
+# 
+# camtraps_sf <- sf::st_as_sf(camtraps,
+#                             coords = c("utm_x", "utm_y"),
+#                             crs = 32650)
+# # Reproject in WGS84 (a.k.a. EPSG:4326)
+# camtraps_sf <- sf::st_transform(camtraps_sf, 4326)
+# 
+# # Get coordinates of centroid
+# sf::st_combine(camtraps_sf) |>
+#   sf::st_centroid() |> 
+#   sf::st_coordinates(camtraps_sf)
+# #             X        Y
+# # [1,] 117.2227 5.479598
+```
+
+Then, we need to convert time to radians and possibly solar time too (i.e. a time in radians where times are transformed relative to the sunrise and sunset times).
+
+```{r}
+# Convert times to radians
+recordTableSample <- recordTableSample |> 
+  mutate(time_radians = as.numeric(Time)*2*pi,
+         .after = Time)
+
+# tzone <- attr(recordTableSample$DateTimeOriginal, "tzone")
+solartime_rec <- solartime(recordTableSample$DateTimeOriginal,
+                           lon = 117.2227, # mean longitude
+                           lat = 5.479598, # mean latitude
+                           tz = 8)
+
+recordTableSample <- recordTableSample |> 
+  mutate(time_solar = solartime_rec$solar, 
+         .after = Time)
+```
+
+For this example, we will use the species PBE from the example dataset.
+
+```{r}
+# Select the desired species
+PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
+```
+
+## Plot histogram of observed data
+
+First, let's plot the observed data. 
+
+By default `freq` is `TRUE` and the histogram bar height represents the observed number of individuals in this category.
+
+```{r}
+plot_activity(true_data = PBE_records,
+              times_true = "Time",
+              unit = "clock")
+```
+
+Using `interactive = TRUE`, the graph can also be made interactive with `ggiraph`.
+
+```{r}
+p <- plot_activity(true_data = PBE_records,
+                   times_true = "Time",
+                   unit = "clock",
+                   interactive = TRUE)
+girafe(ggobj = p)
+```
+
+It is also possible to plot the density by setting `freq` to `FALSE`. In that case, the bar area represents the frequency of individuals in the category. Hence, the total area under the histogram is 1.
+
+```{r}
+p <- plot_activity(true_data = PBE_records,
+                   times_true = "Time",
+                   unit = "clock",
+                   freq = FALSE,
+                   interactive = TRUE)
+girafe(ggobj = p)
+```
+
+The scale can also be set to radians.
+
+```{r}
+p <- plot_activity(true_data = PBE_records,
+                   times_true = "Time",
+                   unit = "radians",
+                   freq = FALSE,
+                   interactive = TRUE)
+girafe(ggobj = p)
+```
+
 
 ## Infer activity patterns
 
-First, we infer the species `PBE` circadian activity pattern with a mixture of von Mises distributions using the function `fit_vonMises`.
+We fit a density function using the `activity` package. For that, we use the function `fitact` that adjusts a density curve using von Mises functions as kernel. 
+
+This function takes as input at least a vector of times (in radians):
+
 ```{r}
-# Convert hours to times format
-recordTableSample$Time <- chron::times(recordTableSample$Time)
-
-# Select the desired species
-PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
-
-# Fit distribution
-vm1 <- fit_vonMises(PBE_records$Time, k = 1)
+vm <- activity::fitact(PBE_records$time_radians)
 ```
 
-Then, we can examine the model:
-```{r}
-class(vm1)
+This object is of class `actmod` and contains slots:
 
-vm1
-```
++ `@data` (original data)
++ `@wt`, `@bw` and `@adj` (slots related to the model parameters)
++ `@pdf` which is the probability density function for $x$ in $[0; 2\pi]$
++ `@act` which is the proportion of time spent active (between 0 and 1)
 
-We can also compute the density from the models parameters using `vonMises_density`.
 ```{r}
-d_vm1 <- vonMises_density(vm1)
-```
-
-By default, the density will be computed from 0 to $2\pi$ with a step of 0.01 but this can be changed with the `x` argument.
-```{r}
-d_vm1 <- vonMises_density(vm1,
-                          x = circular::circular(seq(0, 2 * pi, by = 0.001), units = "radians"))
-```
-
-Then we can plot the inferred model.
-```{r}
-ggplot(d_vm1) +
-        geom_line(aes(x = x, y = density)) +
-        scale_x_continuous(breaks = seq(0, 24, by = 4)) +
-        xlab("Time (hours)") +
-        ylab("Density") +
-        theme_linedraw()
+class(vm)
+getClass("actmod")
 ```
 
 
+## Plot density curve
+
+To plot the density curve, we need to extract the data frame corresponding to the probability density function from the `actmod` object.
+
 ```{r}
-tm <- 2*pi*as.numeric(PBE_records$Time)
-mod1 <- fitact(tm)
-plot(mod1)
+pdf_vm <- as.data.frame(vm@pdf)
+```
+
+```{r}
+plot_activity(fitted_data = pdf_vm,
+              times_fit = "x",
+              y_fit = "y",
+              unit = "radians",
+              freq = FALSE)
+```
+
+Plotting the predicted counts is also possible. In that case, the integral under the curve **scaled to hours** (even if the scale is in radians) represents the number of observations.
+
+```{r}
+plot_activity(fitted_data = pdf_vm,
+              times_fit = "x",
+              y_fit = "y",
+              unit = "radians",
+              freq = TRUE,
+              n = nrow(PBE_records))
+```
+
+It is also possible to plot the scale in hours:
+
+```{r}
+plot_activity(fitted_data = pdf_vm,
+              times_fit = "x",
+              y_fit = "y",
+              unit = "clock",
+              freq = TRUE,
+              n = nrow(PBE_records))
 ```
 
 
-It is also possible to plot the binned data:
+## Plot density curve and histogram
+
+It is also possible to plot the data and the density, combining various parameters illustrated before (radians or hours, frequency or count...) Below is an example:
+
 ```{r}
-ggplot(d_vm1) +
-        geom_histogram(data = PBE_records, 
-                       aes(x = as.numeric(Time)*24,
-                           y = after_stat(density)),
-                       binwidth = 1,
-                       alpha = 0.7) +
-        geom_line(aes(x = x, y = density)) +
-        # scale_x_time(breaks = seq(0, 24, by = 4)) +
-        xlab("Time (hours)") +
-        ylab("Density") +
-        theme_linedraw()
+p <- plot_activity(fitted_data = pdf_vm,
+                   times_fit = "x",
+                   y_fit = "y",
+                   true_data = PBE_records,
+                   times_true = "Time",
+                   unit = "clock",
+                   freq = TRUE,
+                   interactive = TRUE)
+girafe(ggobj = p)
 ```
 
+## Infer activity patterns with sun times
+
+We can also use the sun-adjusted times to infer the activity times:
+
+```{r}
+vm_sun <- activity::fitact(PBE_records$time_solar)
+```
+
+```{r}
+pdf_vm_sum <- as.data.frame(vm_sun@pdf)
+```
+
+```{r}
+p <- plot_activity(fitted_data = pdf_vm_sum,
+                   times_fit = "x",
+                   y_fit = "y",
+                   true_data = PBE_records,
+                   times_true = "Time",
+                   unit = "clock",
+                   freq = TRUE,
+                   interactive = TRUE)
+girafe(ggobj = p)
+```
