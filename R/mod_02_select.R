@@ -85,26 +85,28 @@ selectServer <- function(id,
         unname(mapping_records()$cam_col)
       })
       
-
-      # Create daterange widget -------------------------------------------------
-      
       col_filter_range <- reactive({
         # Get the column to use to filter the range on
         # if date_col is in records we'll use this
         # Else we'll use timestamp
         if (!is.null(mapping_records()$date_col)) {
-          return(mapping_records()$date_col)
+          unname(mapping_records()$date_col)
         } else {
-          return(mapping_records()$timestamp_col)
+          unname(mapping_records()$timestamp_col)
         }
       })
       
+
+      # Create daterange widget -------------------------------------------------
+      
       default_daterange <- reactive({
         # Define default range from records
-        range <- range(camtrap_data()$data$observations[[col_filter_range()]])
+        data_dates <- camtrap_data()$data$observations[[col_filter_range()]]
+        range <- range(data_dates)
         range <- as.Date(range)
         range <- c(range[1], range[2] + 1) # Add one day to last picture
-        range
+        
+        return(range)
       })
       
       output$daterange <- renderUI({
@@ -193,8 +195,6 @@ selectServer <- function(id,
         has_type <- !is.null(obs_col())
         
         if (has_type) {
-          # # Get all selected values
-          # all_filter <- species_df()[input$spp_select, ]
           # Get species/observations to filter out
           all_filter <- species_df()[!rownames(species_df()) %in% input$spp_select, ]
           
@@ -208,8 +208,8 @@ selectServer <- function(id,
         } else {
           # Obs filter is NULL
           obs_filter <- NULL
-          # spp filter is all species
-          spp_filter <- species_df()[input$spp_select, ]
+          # Get species to filter out
+          spp_filter <- species_df()[!rownames(species_df()) %in% input$spp_select, ]
         }
         
         # # Get rows corresponding to selected cam_col
@@ -217,12 +217,19 @@ selectServer <- function(id,
         # Get cameras to filter out
         cam_filter <- cameras()[!cameras() %in% input$cam_select]
         
+        # Get data range
+        if (is.null(input$daterange_select)) {
+          daterange <- default_daterange()
+        } else {
+          daterange <- input$daterange_select
+        }
+      
         metaExpr({
           "# Get filters ---"
-          # For lisibility, we transform character(0) to NULL
           spp_filter <- ..(spp_filter)
           cam_filter <- ..(cam_filter)
           obs_filter <- ..(obs_filter)
+          date_filter <- as.Date(..(as.character(daterange)))
           
           "# Filter ---"
           # Filter obs_col
@@ -236,7 +243,7 @@ selectServer <- function(id,
                       cam_col_rec = ..(cam_col_rec()),
                       cam_col_cam = ..(cam_col_cam()),
                       cam_filter = cam_filter,
-                      daterange = as.Date(..(as.character(input$daterange_select))),
+                      daterange = date_filter,
                       time_col = ..(col_filter_range()),
                       cameras_as_factor = TRUE)
           
@@ -246,6 +253,7 @@ selectServer <- function(id,
       
       # Plot preview ------------------------------------------------------------
       output$plot_preview <- renderGirafe({
+        
         # Get plot width and height
         hw <- get_hw(length(cameras()), 
                      default_daterange())
@@ -277,6 +285,7 @@ selectServer <- function(id,
                           time_col = mapping_records()$time_col,
                           date_col = mapping_records()$date_col, 
                           tooltip_info = "spp_col",
+                          date_format = "%d-%b-%Y",
                           date_limits = as.POSIXct(default_daterange(),
                                                    tz = "UTC"), 
                           cols = cols,
