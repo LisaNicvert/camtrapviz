@@ -248,7 +248,7 @@ different species.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"recordTableSample"</span>, package <span class="op">=</span> <span class="st">"camtrapR"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">recordTableSample</span><span class="op">$</span><span class="va">DateTimeOriginal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.POSIXlt.html" class="external-link">as.POSIXct</a></span><span class="op">(</span><span class="va">recordTableSample</span><span class="op">$</span><span class="va">DateTimeOriginal</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># Without camera samplking information</span></span></span>
+<span class="r-in"><span><span class="co"># Without camera sampling information</span></span></span>
 <span class="r-in"><span><span class="fu">plot_points</span><span class="op">(</span><span class="va">recordTableSample</span>, </span></span>
 <span class="r-in"><span>            camera_col <span class="op">=</span> <span class="st">"Station"</span>, </span></span>
 <span class="r-in"><span>            timestamp_col <span class="op">=</span> <span class="st">"DateTimeOriginal"</span><span class="op">)</span></span></span>
