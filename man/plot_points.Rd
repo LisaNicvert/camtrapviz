@@ -141,7 +141,7 @@ If \code{date_col} and \code{time_col} are provided along with
 \examples{
 data("recordTableSample", package = "camtrapR")
 recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal)
-# Without camera samplking information
+# Without camera sampling information
 plot_points(recordTableSample, 
             camera_col = "Station", 
             timestamp_col = "DateTimeOriginal")
