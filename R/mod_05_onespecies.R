@@ -7,9 +7,7 @@ onespeciesUI <- function(id) {
 # Choose species ----------------------------------------------------------
 
     fluidRow(column(width = 12,
-                    selectInput(NS(id, "species"),
-                                   label = "Choose species",
-                                   choices = NULL)
+                    uiOutput(NS(id, "species_select"))
                     )
              ),
     # Activity plot -----------------------------------------------------------
@@ -93,17 +91,20 @@ onespeciesServer <- function(id,
                     "Cannot analyze an empty table: plese check data filtering"))
       
       camtrapviz::get_unique_species(camtrap_data()$data$observations,
-                              spp_col = spp_col(), obs_col = obs_col())
+                                     spp_col = spp_col(), obs_col = obs_col(),
+                                     return_df = TRUE)
     })
     
-    ## Update selectInput ------------------------------------------------------
+    ## Create selectInput ------------------------------------------------------
     
-    observe({
+    output$species_select <- renderUI({
+      # Create choices df
       choices <- as.list(rownames(species_df()))
       names(choices) <- species_df()[[spp_col()]]
-      updateSelectInput(session = session,
-                        "species",
-                        choices = choices)
+      
+      selectInput(NS(id, "species"),
+                  label = "Choose species",
+                  choices = choices)
     })
 
 
@@ -169,6 +170,10 @@ onespeciesServer <- function(id,
     
     ## Compute density ---------------------------------------------------------
     density <- metaReactive2({
+      
+      validate(need(nrow(filtered_records()) != 0, 
+                    "Waiting for records data..."))
+
       # Get time
       if (!is.null(timestamp_col())) {
         metaExpr({
