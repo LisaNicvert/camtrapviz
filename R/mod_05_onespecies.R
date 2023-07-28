@@ -16,9 +16,11 @@ onespeciesUI <- function(id) {
 
     h3("Activity plot"),
     fluidRow(column(width = 3,
-                    numericInput(NS(id, "k"),
-                                 "Number of mixture components",
-                                 min = 1, max = 5, value = 3)),
+                    numericInput(NS(id, "adj"),
+                                 "Bandwidth adjustment",
+                                 min = 1, max = 100, 
+                                 step = 0.1,
+                                 value = 1)),
              column(width = 9, 
                     outputCodeButton(girafeOutput(NS(id, "density_plot")),
                                      height = "400px")
@@ -172,20 +174,20 @@ onespeciesServer <- function(id,
         metaExpr({
           "# Get von Mises density ---"
           datetime <- ..(filtered_records())[[..(timestamp_col())]]
-          times <- format(datetime, format = "%H:%M:%S")
-          times <- chron::times(times)
-
-          mod <- fit_vonMises(times, k = ..(input$k))
-          vonMises_density(mod, unit = "hour")
+          time <- format(datetime, format = "%H:%M:%S")
+          time <- chron::times(time)
+          
+          time_rad <- as.numeric(time)*2*pi
+          activity::fitact(time_rad, adj = ..(input$adj))
         }, bindToReturn = TRUE)
 
       } else {
         metaExpr({
           "# Get von Mises density ---"
-          times <- ..(filtered_records())[[..(time_col())]]
+          time <- ..(filtered_records())[[..(time_col())]]
 
-          mod <- fit_vonMises(times, k = ..(input$k))
-          vonMises_density(mod, unit = "hour")
+          time_rad <- as.numeric(time)*2*pi
+          activity::fitact(time_rad, adj = ..(input$adj))
         }, bindToReturn = TRUE)
 
       }
@@ -198,33 +200,27 @@ onespeciesServer <- function(id,
       "# Plot density ---"
       dfplot <- ..(filtered_records())
       
+      # Add times column
       if (!is.null(..(timestamp_col()))) {
         datetime <- dfplot[[..(timestamp_col())]]
-        times <- format(datetime, format = "%H:%M:%S")
-        times <- chron::times(times)
+        time <- format(datetime, format = "%H:%M:%S")
+        time <- chron::times(time)
+        dfplot$time <- time
+        time_col <- "time"
       } else {
-        times <- dfplot[[..(time_col())]]
+        time_col <- ..(time_col())
       }
       
-      # Select only species and time for dfplot
-      dfplot <- dfplot |> 
-        dplyr::select(.data[[..(spp_col())]]) |> 
-        dplyr::mutate(time = as.numeric(times)*24)
+      pdf_df <- as.data.frame(..(density())@pdf)
       
-      gg <- ggplot(..(density())) +
-        geom_histogram_interactive(data = dfplot, 
-                       aes(x = time,
-                           y = after_stat(density),
-                           tooltip = paste0("Density: ", round(after_stat(density), 3), "\n",
-                                            "Time: ", after_stat(x)),
-                           data_id = after_stat(x)),
-                       binwidth = 1,
-                       alpha = 0.7) +
-        geom_line(aes(x = x, y = density)) +
-        scale_x_continuous(breaks = seq(0, 24, by = 4)) +
-        xlab("Time (hours)") +
-        ylab("Density") +
-        theme_linedraw()
+      gg <- plot_activity(fitted_data = pdf_df,
+                          times_fit = "x",
+                          y_fit = "y",
+                          true_data = dfplot,
+                          times_true = time_col,
+                          unit = "clock",
+                          freq = TRUE,
+                          interactive = TRUE)
       
       gi <- ggiraph::girafe(ggobj = gg)
       gi <- ggiraph::girafe_options(gi,
