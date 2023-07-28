@@ -88,7 +88,7 @@
 #' @examples
 #' data("recordTableSample", package = "camtrapR")
 #' recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal)
-#' # Without camera samplking information
+#' # Without camera sampling information
 #' plot_points(recordTableSample, 
 #'             camera_col = "Station", 
 #'             timestamp_col = "DateTimeOriginal")
@@ -889,15 +889,17 @@ plot_activity <- function(true_data = NULL,
     if (interactive) {
       gg <- ggplot(data_plot) +
         {if (freq) ggiraph::geom_histogram_interactive(aes(x = .data[[times_true]],
+                                                           data_id = after_stat(x),
                                                            tooltip = paste0("Count: ", after_stat(count), "\n",
                                                                             "Time: ", format_num(after_stat(x) - hist_breaks/2, unit), 
-                                                                            " — ", format_num(after_stat(x) + hist_breaks/2, unit))),
+                                                                            " \u2014 ", format_num(after_stat(x) + hist_breaks/2, unit))),
                                                        breaks = seq(0, xmax, by = hist_breaks))} +
         {if (!freq) ggiraph::geom_histogram_interactive(aes(x = .data[[times_true]],
                                                             y = after_stat(density),
+                                                            data_id = after_stat(x),
                                                             tooltip = paste0("Density: ", round(after_stat(density), 3), "\n",
                                                                              "Time: ", format_num(after_stat(x) - hist_breaks/2, unit), 
-                                                                             " — ",  format_num(after_stat(x) + hist_breaks/2, unit))),
+                                                                             " \u2014 ",  format_num(after_stat(x) + hist_breaks/2, unit))),
                                                         breaks = seq(0, xmax, by = hist_breaks))}
     } else {
       gg <- ggplot(data_plot) +

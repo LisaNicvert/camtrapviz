@@ -224,7 +224,8 @@ onespeciesServer <- function(id,
       
       gi <- ggiraph::girafe(ggobj = gg)
       gi <- ggiraph::girafe_options(gi,
-                                    opts_hover(css = "fill:orange"))
+                                    opts_hover(css = "fill:orange"),
+                                    opts_hover_inv(css = "opacity:0.3"))
       gi
     })
     
