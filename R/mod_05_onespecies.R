@@ -27,10 +27,21 @@ onespeciesUI <- function(id) {
 
 # Map ---------------------------------------------------------------------
              h3("Presence map"),
+             checkboxInput(NS(id, "lonlat"),
+                           "Lonlat provided?", 
+                           value = TRUE),
              fluidRow(
                column(width = 12,
-                      outputCodeButton(leafletOutput(NS(id, "plot_abundance")),
-                                       height = "500px")
+                      conditionalPanel("input.lonlat", 
+                                       ns = NS(id),
+                                       outputCodeButton(leafletOutput(NS(id, "plot_abundance_map")),
+                                                        height = "500px")
+                      ),
+                      conditionalPanel("!input.lonlat", 
+                                       ns = NS(id),
+                                       outputCodeButton(girafeOutput(NS(id, "plot_abundance")),
+                                                        height = "500px")
+                      )
                )
              )
 
@@ -240,19 +251,23 @@ onespeciesServer <- function(id,
     })
     
 
-    # Abundance map ----------------------------------------------------------- 
+    # Abundance plot ----------------------------------------------------------- 
     
-    output$plot_abundance <- metaRender(renderLeaflet, {
-      "# Plot map ---"
-      
-      "# Get species abundance"
-      abundance_df <- get_diversity_table(..(filtered_records()),
-                                          cam_col = ..(cam_col_rec()),
-                                          spp_col = ..(spp_col()),
-                                          count_col = ..(mapping_cameras()$count_col), 
-                                          keep_all_levels = TRUE)
-      abundance <- abundance_df$count
-      names(abundance) <- abundance_df[[..(cam_col_rec())]]
+    abundance_df <- metaReactive({
+      "# Get species abundance ---"
+      get_diversity_table(..(filtered_records()),
+                          cam_col = ..(cam_col_rec()),
+                          spp_col = ..(spp_col()),
+                          count_col = ..(mapping_cameras()$count_col), 
+                          keep_all_levels = TRUE)
+    }, bindToReturn = TRUE, varname = "abundance_df")
+    
+    ## Abundance map ----------------------------------------------------------- 
+    
+    output$plot_abundance_map <- metaRender(renderLeaflet, {
+      "# Plot abundance map ---"
+      abundance <- ..(abundance_df())$count
+      names(abundance) <- ..(abundance_df())[[..(cam_col_rec())]]
       
       "# Set hovering labels (replace NA with 'No data')"
       labels <- ifelse(is.na(abundance), 
@@ -267,6 +282,37 @@ onespeciesServer <- function(id,
                color = "black",
                label = labels,
                rescale = TRUE)
+    })
+    
+
+    # Abundance barplot -------------------------------------------------------
+
+    output$plot_abundance <- metaRender(renderGirafe, {
+      "# Plot abundance ---"
+      "# Replace NA with zero (cameras with no data) to discard warning"
+      abundance_df_plot <- ..(abundance_df())
+      abundance_df_plot[is.na(abundance_df_plot)] <- 0
+      
+      gg <- plot_diversity(abundance_df_plot, 
+                           div_col = "count", 
+                           cam_col = ..(cam_col_rec()),
+                           interactive = TRUE) +
+        ylab("Count") +
+        xlab("Cameras")
+      
+      "# ggiraph plot (interactive)"
+      gi <- ggiraph::girafe(ggobj = gg,
+                            width_svg = 8,
+                            height_svg = nrow(..(abundance_df())))
+      gi <- ggiraph::girafe_options(gi,
+                                    opts_zoom(min = 0.5, max = 10),
+                                    opts_selection(type = "none"))
+      gi
+    })
+    
+    observeEvent(input$plot_abundance_map_output_code, {
+      code <- expandChain(output$plot_abundance_map())
+      displayCodeModal(code)
     })
     
     observeEvent(input$plot_abundance_output_code, {
@@ -285,7 +331,7 @@ onespeciesServer <- function(id,
 
     return(list(filtered_records = filtered_records_table,
                 density_plot = output$density_plot,
-                abundance_map = output$plot_abundance))
+                abundance_map = output$plot_abundance_map))
       
     
   })

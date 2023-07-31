@@ -673,6 +673,45 @@ test_that("Interactive activity plot (histogram) with density", {
 })
 
 
+# Diversity plot ----------------------------------------------------------
+
+test_that("Diversity plot", {
+  # Create synthetic data ---
+  df <- data.frame("cam" = c("C1", "C2", "C4", "C3"),
+                   "divindex" = c(1, 4, 2, 22))
+  
+  # Plot (not interactive) ---
+  (p <- plot_diversity(df, 
+                       div_col = "divindex", 
+                       cam_col = "cam"))
+  
+  ld <- layer_data(p)
+  expect_equal(ld$y, df$divindex)
+  
+  br <- as.character(ggplot2::layer_scales(p)$x$get_breaks())
+  expect_equal(br, sort(df$cam, decreasing = FALSE))
+  
+  # Plot (interactve) ---
+  p <- plot_diversity(df, 
+                      div_col = "divindex", 
+                      cam_col = "cam",
+                      interactive = TRUE)
+  (gi <- girafe(ggobj = p))
+  
+  ld <- layer_data(p)
+  expect_equal(ld$y, df$divindex)
+  
+  br <- as.character(ggplot2::layer_scales(p)$x$get_breaks())
+  expect_equal(br, sort(df$cam, decreasing = FALSE))
+  
+  # Check tooltip and data id
+  expect_equal(ld$tooltip[1],
+               1)
+  expect_equal(ld$data_id,
+               df$cam)
+})
+
+
 # Helper ------------------------------------------------------------------
 
 test_that("Format hour", {

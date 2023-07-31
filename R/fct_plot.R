@@ -965,6 +965,50 @@ plot_activity <- function(true_data = NULL,
   
 }
 
+#' Plot species diversity at cameras
+#'
+#' @param df The dataframe with diversity indices per camera
+#' @param div_col Name of the column containing the diversity index to plot
+#' @param cam_col Name of the column containing the cameras names
+#' @param interactive Make the plot interactive?
+#'
+#' @return A ggplot object representing diversity indices
+#' as bars (in x) following the different cameras (in y).
+#' 
+#' @export
+#'
+#' @examples
+#' # Create synthetic data ---
+#' df <- data.frame("camera" = c("C1", "C2", "C4", "C3"),
+#'                  "count" = c(1, 4, 2, 22))
+#' 
+#' plot_diversity(df, 
+#'                div_col = "count", 
+#'                cam_col = "camera"))
+plot_diversity <- function(df, 
+                           div_col, 
+                           cam_col,
+                           interactive = FALSE) {
+  
+  gg <- ggplot(df)
+  
+  if (interactive) {
+    gg <- gg +
+      ggiraph::geom_col_interactive(aes(x = .data[[cam_col]], 
+                                        y = .data[[div_col]],
+                                        tooltip = .data[[div_col]],
+                                        data_id = .data[[cam_col]]))
+  } else {
+    gg <- gg + 
+      geom_col(aes(x = .data[[cam_col]], y = .data[[div_col]]))
+  }
+    
+  gg <- gg +  
+    coord_flip() +
+    theme_linedraw()
+  
+}
+
 
 # Helpers -----------------------------------------------------------------
 

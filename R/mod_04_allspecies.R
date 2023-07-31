@@ -27,17 +27,26 @@ allspeciesUI <- function(id) {
 # Diversity map -----------------------------------------------------------
 
     h3("Diversity map"),
+    checkboxInput(NS(id, "lonlat"),
+                  "Lonlat provided?", 
+                  value = TRUE),
     fluidRow(
       column(width = 4,
              selectInput(NS(id, "divtype"), 
                          label = "Diversity index",
-                         choices = c("Number of species (richness)" = "richness",
-                                     "Shannon diversity" = "shannon",
-                                     "Simpson diversity" = "simpson"))
+                         choices = NULL)
       ),
       column(width = 8,
-             outputCodeButton(leafletOutput(NS(id, "plot_diversity"),
-                                            height = "400px"))
+             conditionalPanel("input.lonlat", 
+                              ns = NS(id),
+                              outputCodeButton(leafletOutput(NS(id, "plot_diversity_map"),
+                                                             height = "400px"))
+                              ),
+             conditionalPanel("!input.lonlat", 
+                              ns = NS(id),
+                              outputCodeButton(girafeOutput(NS(id, "plot_diversity"),
+                                                            height = "400px"))
+             )
       )
     )
   )
@@ -95,6 +104,16 @@ allspeciesServer <- function(id,
     outputOptions(output, 'count_col', 
                   suspendWhenHidden = FALSE)
 
+
+# Diversity index list ----------------------------------------------------
+  diversity_list <- c("Number of species (richness)" = "richness",
+                      "Shannon diversity" = "shannon",
+                      "Simpson diversity" = "simpson")
+  
+  updateSelectInput(session = session,
+                    "divtype",
+                    choices = diversity_list)
+  
 # Compute diversity indices -----------------------------------------------
   diversity_df <- metaReactive({
     "# Summarize species and cameras ---"
@@ -158,9 +177,13 @@ allspeciesServer <- function(id,
     
   })
   
-# Plot map ----------------------------------------------------------------
+
+# Plot diversity ----------------------------------------------------------
+
+
+## Plot diversity map ------------------------------------------------------
     
-    output$plot_diversity <- metaRender(renderLeaflet, {
+    output$plot_diversity_map <- metaRender(renderLeaflet, {
       "# Plot map ---"
       
       "# Choose selected index for plot"
@@ -171,6 +194,9 @@ allspeciesServer <- function(id,
       labels <- ifelse(is.na(index), 
                        "No data", index)
       
+      if (input$lonlat) {
+        
+      }
       plot_map(..(camtrap_data())$data$deployments, 
                lat_col = ..(unname(mapping_cameras()$lat_col)),
                lon_col = ..(unname(mapping_cameras()$lon_col)),
@@ -181,6 +207,33 @@ allspeciesServer <- function(id,
                label = labels,
                rescale = TRUE)
     })
+  
+
+## Plot diversity barplot ------------------------------------------------------
+  
+  
+  output$plot_diversity <- metaRender(renderGirafe, {
+    "# Plot diversity ---"
+    "# Replace NA with zero (cameras with no data) to discard warning"
+    diversity_df_plot <- ..(diversity_df())
+    diversity_df_plot[is.na(diversity_df_plot)] <- 0
+    
+    gg <- plot_diversity(diversity_df_plot, 
+                         div_col = ..(input$divtype), 
+                         cam_col = ..(cam_col_rec()),
+                         interactive = TRUE) +
+      ylab(..(names(diversity_list[diversity_list == input$divtype]))) +
+      xlab("Cameras")
+    
+    "# ggiraph plot (interactive)"
+    gi <- ggiraph::girafe(ggobj = gg,
+                          width_svg = 8,
+                          height_svg = nrow(..(diversity_df())))
+    gi <- ggiraph::girafe_options(gi,
+                                  opts_zoom(min = 0.5, max = 10),
+                                  opts_selection(type = "none"))
+    gi
+  })
     
 
 # Plots code --------------------------------------------------------------
@@ -191,7 +244,13 @@ allspeciesServer <- function(id,
       displayCodeModal(code)
     })
   
-    # Map ---
+    # Diversity map ---
+    observeEvent(input$plot_diversity_map_output_code, {
+      code <- expandChain(output$plot_diversity_map())
+      displayCodeModal(code)
+    })
+    
+    # Diversity plot ---
     observeEvent(input$plot_diversity_output_code, {
       code <- expandChain(output$plot_diversity())
       displayCodeModal(code)
@@ -200,7 +259,7 @@ allspeciesServer <- function(id,
 
 # Return values -----------------------------------------------------------
     return(list(diversity_table = diversity_table,
-                diversity_map = output$plot_diversity,
+                diversity_map = output$plot_diversity_map,
                 species_bars = output$plot_species))
     
   })
