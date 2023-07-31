@@ -386,11 +386,12 @@ importServer <- function(id) {
 ## Finalize widget list ----------------------------------------------------
     
     # Update CRS widget value
-    updateSelectizeInput(session = session,
-                         "crs_col",
-                         choices = epsg,
-                         selected = "4326",
-                         server = TRUE)
+    # updateSelectizeInput(session = session,
+    #                      "crs_col",
+    #                      choices = epsg,
+    #                      selected = "4326",
+    #                      server = TRUE)
+    
 
     #  Append radio
     records_widgets_w <- append(records_widgets_w, 
@@ -411,6 +412,12 @@ importServer <- function(id) {
                                                              records_widgets_w[["timestamp_col"]]
     )
     
+    # Add CRS conditional panel
+    # records_widgets_w[["crs_col"]] <- conditionalPanel(condition = paste0("input.lon_col !== '", nullval, "'",
+    #                                                                       "|| input.lat_col !== '", nullval, "'"), 
+    #                                                    ns = NS(id),
+    #                                                    records_widgets_w[["crs_col"]])
+
     # Add cameras conditional panel
     camera_records_widget <- records_widgets_with_crs |> 
       filter(type == "cameras")
@@ -444,13 +451,48 @@ importServer <- function(id) {
     names(cameras_widgets_w) <- cameras_widgets_with_crs$widget
     
     # Update CRS widget value
-    updateSelectizeInput(session = session,
-                         "crs_col_cov", 
-                         choices = epsg,
-                         selected = "4326",
-                         server = TRUE)
+    # updateSelectizeInput(session = session,
+    #                      "crs_col_cov", 
+    #                      choices = epsg,
+    #                      selected = "4326",
+    #                      server = TRUE)
+    
     # Render UI
     output$cameras_col <- renderUI(cameras_widgets_w)
+    
+
+# Update CRS --------------------------------------------------------------
+
+    observe(
+      if (input$input_type == 2) { # We import data
+        
+        if (!input$import_cameras) { # There is no camera file
+          lon_col <- input$lon_col
+          lat_col <- input$lat_col
+          crs_id <- "crs_col"
+        } else { # There is a camera file
+          lon_col <- input$lon_col_cov
+          lat_col <- input$lat_col_cov
+          crs_id <- "crs_col_cov"
+        }
+        
+        if(lon_col == nullval & lat_col == nullval) {
+          updateSelectizeInput(session = session,
+                               crs_id,
+                               choices = NULL,
+                               options = list(placeholder = "No CRS needed"))
+        } else {
+          updateSelectizeInput(session = session,
+                               crs_id,
+                               choices = epsg,
+                               selected = "4326",
+                               server = TRUE)
+        }
+      }
+      
+    ) |> bindEvent(input$lat_col, input$lon_col,
+                   input$lat_col_cov, input$lon_col_cov) 
+    
     
 # Read files --------------------------------------------------------------
 
@@ -833,10 +875,55 @@ importServer <- function(id) {
       return(as.numeric(res))
     })
     
+
+# Update latitude/longitude -----------------------------------------------
+    
+    # Update longitude
+    observe({
+      if (input$input_type == 2) { # Manual file import
+        
+        if (input$import_cameras) { # There is a camera file
+          lat_col <- input$lat_col_cov
+          lon_id <- "lon_col_cov"
+        } else { # No camera file
+          lat_col <- input$lat_col
+          lon_id <- "lon_col"
+        }
+        
+        # Update longitude if latitude is NULL
+        if (lat_col == nullval) {
+          updateSelectInput(session = session,
+                            lon_id, 
+                            selected = nullval)
+        }
+      }
+    }) |> bindEvent(input$lat_col, input$lat_col_cov)
+    
+    # Update latitude
+    observe({
+      if (input$input_type == 2) { # Manual file import
+        
+        if (input$import_cameras) { # There is a camera file
+          lon_col <- input$lon_col_cov
+          lat_id <- "lat_col_cov"
+        } else { # No camera file
+          lon_col <- input$lon_col
+          lat_id <- "lat_col"
+        }
+        
+        # Update latitude if longitude is NULL
+        if (lon_col == nullval) {
+          updateSelectInput(session = session,
+                            lat_id, 
+                            selected = nullval)
+        }
+      }
+    }) |> bindEvent(input$lon_col, input$lon_col_cov)
+    
 # Clean data --------------------------------------------------------------
     
     dat <- metaReactive2({
-      
+
       # Ensure data is available
       req(mapping_records())
       req(mapping_cameras()$mapping)
@@ -848,6 +935,13 @@ importServer <- function(id) {
         validate(need(all(unname(unlist(mapping_cameras()$mapping)) %in% colnames(dat_raw()$data$deployments)),
                       "Wait a minute for the cameras :)"))
       }
+      
+      # Ensure latitude and longitude are both null or both provided
+      lon <- mapping_cameras()$mapping$lon_col
+      lat <- mapping_cameras()$mapping$lat_col
+      validate(need((!is.null(lon) & !is.null(lat)) | (is.null(lon) & is.null(lat)), 
+                    "If one of latitude or longitude is provided, the other must be provided."))
+    
       
       if ( mapping_cameras()$source == "records" ) {
         split <- TRUE

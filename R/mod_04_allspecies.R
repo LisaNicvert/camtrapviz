@@ -24,25 +24,29 @@ allspeciesUI <- function(id) {
              outputCodeButton(girafeOutput(NS(id, "plot_species")))
       )
     ),
-# Diversity map -----------------------------------------------------------
+# Diversity plot -----------------------------------------------------------
 
-    h3("Diversity map"),
-    checkboxInput(NS(id, "lonlat"),
-                  "Lonlat provided?", 
-                  value = TRUE),
+    h3("Diversity"),
     fluidRow(
       column(width = 4,
              selectInput(NS(id, "divtype"), 
                          label = "Diversity index",
-                         choices = NULL)
+                         choices = NULL),
+             conditionalPanel("output.lonlat", 
+                              ns = NS(id),
+                              radioButtons(NS(id, "plot_type"),
+                                           label = "Plot type",
+                                           choices = c("Map" = "map",
+                                                       "Barplot" = "bar"))
+                              )
       ),
       column(width = 8,
-             conditionalPanel("input.lonlat", 
+             conditionalPanel("input.plot_type === 'map' && output.lonlat", 
                               ns = NS(id),
                               outputCodeButton(leafletOutput(NS(id, "plot_diversity_map"),
                                                              height = "400px"))
                               ),
-             conditionalPanel("!input.lonlat", 
+             conditionalPanel("input.plot_type === 'bar' || !output.lonlat", 
                               ns = NS(id),
                               outputCodeButton(girafeOutput(NS(id, "plot_diversity"),
                                                             height = "400px"))
@@ -87,7 +91,15 @@ allspeciesServer <- function(id,
       unname(mapping_records()$cam_col)
     })
     
-
+# Create lonlat reactive --------------------------------------------------
+    output$lonlat <- reactive({
+      # Return TRUE if lon and lat are provided
+      ifelse(!is.null(mapping_cameras()$lat_col) & !is.null(mapping_cameras()$lon_col),
+             TRUE, FALSE)
+    })
+    outputOptions(output, 'lonlat', 
+                  suspendWhenHidden = FALSE)
+    
 # Was count provided? -----------------------------------------------------
     count_col <- reactive({
       unname(mapping_records()$count_col)
@@ -194,9 +206,6 @@ allspeciesServer <- function(id,
       labels <- ifelse(is.na(index), 
                        "No data", index)
       
-      if (input$lonlat) {
-        
-      }
       plot_map(..(camtrap_data())$data$deployments, 
                lat_col = ..(unname(mapping_cameras()$lat_col)),
                lon_col = ..(unname(mapping_cameras()$lon_col)),

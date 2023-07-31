@@ -984,7 +984,7 @@ plot_activity <- function(true_data = NULL,
 #' 
 #' plot_diversity(df, 
 #'                div_col = "count", 
-#'                cam_col = "camera"))
+#'                cam_col = "camera")
 plot_diversity <- function(df, 
                            div_col, 
                            cam_col,

@@ -35,11 +35,7 @@ summaryUI <- function(id) {
 
 # Plots -------------------------------------------------------------------
 
-    # textOutput(NS(id, "sel")),
-    checkboxInput(NS(id, "lonlat"),
-                  "Lonlat provided?", 
-                  value = TRUE),
-    conditionalPanel("input.lonlat", 
+    conditionalPanel("output.lonlat", 
                      ns = NS(id),
                      h3("Map"),
                      outputCodeButton(tagList(
@@ -100,6 +96,17 @@ summaryServer <- function(id,
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     stopifnot(is.reactive(crs))
+    
+
+# Create lonlat reactive --------------------------------------------------
+    output$lonlat <- reactive({
+      # Return TRUE if lon and lat are provided
+      ifelse(!is.null(mapping_cameras()$lat_col) & !is.null(mapping_cameras()$lon_col),
+             TRUE, FALSE)
+    })
+    outputOptions(output, 'lonlat', 
+                  suspendWhenHidden = FALSE)
+
     
 # Create column names reactives -------------------------------------------
     spp_col <- reactive({

@@ -29,5 +29,5 @@ df <- data.frame("camera" = c("C1", "C2", "C4", "C3"),
 
 plot_diversity(df, 
                div_col = "count", 
-               cam_col = "camera"))
+               cam_col = "camera")
 }

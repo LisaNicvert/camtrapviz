@@ -25,19 +25,24 @@ onespeciesUI <- function(id) {
                     )
              ),
 
-# Map ---------------------------------------------------------------------
-             h3("Presence map"),
-             checkboxInput(NS(id, "lonlat"),
-                           "Lonlat provided?", 
-                           value = TRUE),
+# Species count ---------------------------------------------------------------------
+             h3("Species count"),
              fluidRow(
                column(width = 12,
-                      conditionalPanel("input.lonlat", 
+                      conditionalPanel("output.lonlat", 
+                                       ns = NS(id),
+                                       radioButtons(NS(id, "plot_type"),
+                                                    label = "Plot type",
+                                                    choices = c("Map" = "map",
+                                                                "Barplot" = "bar"))
+                      )),
+               column(width = 12,
+                      conditionalPanel("input.plot_type === 'map' && output.lonlat", 
                                        ns = NS(id),
                                        outputCodeButton(leafletOutput(NS(id, "plot_abundance_map")),
                                                         height = "500px")
                       ),
-                      conditionalPanel("!input.lonlat", 
+                      conditionalPanel("input.plot_type === 'bar' || !output.lonlat", 
                                        ns = NS(id),
                                        outputCodeButton(girafeOutput(NS(id, "plot_abundance")),
                                                         height = "500px")
@@ -92,7 +97,15 @@ onespeciesServer <- function(id,
       unname(mapping_records()$timestamp_col)
     })
     
-
+    # Create lonlat reactive --------------------------------------------------
+    output$lonlat <- reactive({
+      # Return TRUE if lon and lat are provided
+      ifelse(!is.null(mapping_cameras()$lat_col) & !is.null(mapping_cameras()$lon_col),
+             TRUE, FALSE)
+    })
+    outputOptions(output, 'lonlat', 
+                  suspendWhenHidden = FALSE)
+    
     # Species selection -------------------------------------------------------
     
     ## Get species df ----------------------------------------------------------
