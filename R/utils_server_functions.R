@@ -229,16 +229,21 @@ print_check_cameras <- function(cameras,
 #'
 #' @return Named list height and width
 #' @noRd
-get_hw <- function(ncam, daterange) {
+get_hw <- function(ncam, daterange = NULL) {
   
   # Define height
   unith <- ncam/4
   height <- max(5, 
                 unith/(1 + exp(-12*unith)))
-  # Define width
-  unitw <- as.numeric(daterange[2] - daterange[1], "days")/60 # One inch per 2 months
-  width <- max(8,
-               unitw/(1 + exp(-24*unitw)))
+  if (!is.null(daterange)) {
+    # Define width
+    unitw <- as.numeric(daterange[2] - daterange[1], "days")/60 # One inch per 2 months
+    width <- max(8,
+                 unitw/(1 + exp(-24*unitw)))
+  } else {
+    width <- 8
+  }
+  
   
   list(height = height,
        width = width)

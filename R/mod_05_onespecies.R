@@ -298,29 +298,36 @@ onespeciesServer <- function(id,
     })
     
 
-    # Abundance barplot -------------------------------------------------------
+    ## Abundance barplot -------------------------------------------------------
 
-    output$plot_abundance <- metaRender(renderGirafe, {
-      "# Plot abundance ---"
-      "# Replace NA with zero (cameras with no data) to discard warning"
-      abundance_df_plot <- ..(abundance_df())
-      abundance_df_plot[is.na(abundance_df_plot)] <- 0
+    output$plot_abundance <- metaRender2(renderGirafe, {
+      hw <- get_hw(nrow(abundance_df()))
+      height <- hw$height
+      width <- hw$width
       
-      gg <- plot_diversity(abundance_df_plot, 
-                           div_col = "count", 
-                           cam_col = ..(cam_col_rec()),
-                           interactive = TRUE) +
-        ylab("Count") +
-        xlab("Cameras")
+      metaExpr({
+        "# Plot abundance ---"
+        "# Replace NA with zero (cameras with no data) to discard warning"
+        abundance_df_plot <- ..(abundance_df())
+        abundance_df_plot[is.na(abundance_df_plot)] <- 0
+        
+        gg <- plot_diversity(abundance_df_plot, 
+                             div_col = "count", 
+                             cam_col = ..(cam_col_rec()),
+                             interactive = TRUE) +
+          ylab("Count") +
+          xlab("Cameras")
+        
+        "# ggiraph plot (interactive)"
+        gi <- ggiraph::girafe(ggobj = gg,
+                              width_svg = ..(width),
+                              height_svg = ..(height))
+        gi <- ggiraph::girafe_options(gi,
+                                      opts_zoom(min = 0.5, max = 10),
+                                      opts_selection(type = "none"))
+        gi
+      })
       
-      "# ggiraph plot (interactive)"
-      gi <- ggiraph::girafe(ggobj = gg,
-                            width_svg = 8,
-                            height_svg = nrow(..(abundance_df())))
-      gi <- ggiraph::girafe_options(gi,
-                                    opts_zoom(min = 0.5, max = 10),
-                                    opts_selection(type = "none"))
-      gi
     })
     
     observeEvent(input$plot_abundance_map_output_code, {

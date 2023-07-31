@@ -49,7 +49,7 @@ allspeciesUI <- function(id) {
              conditionalPanel("input.plot_type === 'bar' || !output.lonlat", 
                               ns = NS(id),
                               outputCodeButton(girafeOutput(NS(id, "plot_diversity"),
-                                                            height = "400px"))
+                                                            height = "500px"))
              )
       )
     )
@@ -221,27 +221,33 @@ allspeciesServer <- function(id,
 ## Plot diversity barplot ------------------------------------------------------
   
   
-  output$plot_diversity <- metaRender(renderGirafe, {
-    "# Plot diversity ---"
-    "# Replace NA with zero (cameras with no data) to discard warning"
-    diversity_df_plot <- ..(diversity_df())
-    diversity_df_plot[is.na(diversity_df_plot)] <- 0
+  output$plot_diversity <- metaRender2(renderGirafe, {
+    hw <- get_hw(nrow(diversity_df()))
+    height <- hw$height
+    width <- hw$width
     
-    gg <- plot_diversity(diversity_df_plot, 
-                         div_col = ..(input$divtype), 
-                         cam_col = ..(cam_col_rec()),
-                         interactive = TRUE) +
-      ylab(..(names(diversity_list[diversity_list == input$divtype]))) +
-      xlab("Cameras")
-    
-    "# ggiraph plot (interactive)"
-    gi <- ggiraph::girafe(ggobj = gg,
-                          width_svg = 8,
-                          height_svg = nrow(..(diversity_df())))
-    gi <- ggiraph::girafe_options(gi,
-                                  opts_zoom(min = 0.5, max = 10),
-                                  opts_selection(type = "none"))
-    gi
+    metaExpr({
+      "# Plot diversity ---"
+      "# Replace NA with zero (cameras with no data) to discard warning"
+      diversity_df_plot <- ..(diversity_df())
+      diversity_df_plot[is.na(diversity_df_plot)] <- 0
+      
+      gg <- plot_diversity(diversity_df_plot, 
+                           div_col = ..(input$divtype), 
+                           cam_col = ..(cam_col_rec()),
+                           interactive = TRUE) +
+        ylab(..(names(diversity_list[diversity_list == input$divtype]))) +
+        xlab("Cameras")
+      
+      "# ggiraph plot (interactive)"
+      gi <- ggiraph::girafe(ggobj = gg,
+                            width_svg = ..(width),
+                            height_svg = ..(height))
+      gi <- ggiraph::girafe_options(gi,
+                                    opts_zoom(min = 0.5, max = 10),
+                                    opts_selection(type = "none"))
+      gi
+    })
   })
     
 
