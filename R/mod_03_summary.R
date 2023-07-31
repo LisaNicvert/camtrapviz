@@ -36,13 +36,19 @@ summaryUI <- function(id) {
 # Plots -------------------------------------------------------------------
 
     # textOutput(NS(id, "sel")),
-    h3("Map"),
-    outputCodeButton(tagList(
-      checkboxInput(NS(id, "display_camnames"), 
-                    label = "Show camera names on map"),
-      leafletOutput(NS(id, "plot_map"),
-                    height = "500px")
-      )),
+    checkboxInput(NS(id, "lonlat"),
+                  "Lonlat provided?", 
+                  value = TRUE),
+    conditionalPanel("input.lonlat", 
+                     ns = NS(id),
+                     h3("Map"),
+                     outputCodeButton(tagList(
+                       checkboxInput(NS(id, "display_camnames"), 
+                                     label = "Show camera names on map"),
+                       leafletOutput(NS(id, "plot_map"),
+                                     height = "500px")
+                     )
+                     )),
     h3("Camera activity"),
     outputCodeButton(tagList(
       checkboxInput(NS(id, "points_boxes"), 
