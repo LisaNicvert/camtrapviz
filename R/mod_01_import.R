@@ -895,7 +895,8 @@ importServer <- function(id) {
     }) |> bindEvent(input$lon_col, input$lon_col_cov)
 
 
-# Timezone handling -------------------------------------------------------
+# Timezone and dates formats handling -------------------------------------------------------
+    
     tz <- reactive({
       if (input$input_type == 1) {
         if (input$example_file == "mica") {
@@ -908,6 +909,32 @@ importServer <- function(id) {
         tz <- input$tz_col
       }
       tz
+    })
+    
+    fmt <- reactive({
+      if (input$input_type == 1) { # Example files (known date format)
+        if (input$example_file == "mica") {
+          # No need to cast mica data which comes in the right format already
+          fmt_date_rec <- NULL
+          fmt_posix <- NULL
+          
+          fmt_date_cam <- NULL
+        } else if (input$example_file == "recordTableSample") {
+          fmt_date_rec <- NULL
+          fmt_posix <- "%Y-%m-%d %T"
+          
+          fmt_date_cam <- "%d/%m/%Y"
+        }
+      } else { # Manual file input
+        fmt_date_rec <- dates_formats
+        fmt_posix <- datetimes_formats
+        
+        fmt_date_cam <- dates_formats
+      }
+      
+      list(date_rec = fmt_date_rec,
+           posix = fmt_posix,
+           date_cam = fmt_date_cam)
     })
     
 # Clean data --------------------------------------------------------------
@@ -961,27 +988,6 @@ importServer <- function(id) {
       castval_cam <- castval_cam[non_null_names] # Reorder values
       names(castval_cam) <- unname(non_null_cam) # Rename with table column names
       
-      # Fine-tune date/time format
-      if (input$input_type == 1) { # Example files (known date format)
-        if (input$example_file == "mica") {
-          # No need to cast mica data which comes in the right format already
-          fmt_date_rec <- NULL
-          fmt_posix <- NULL
-          
-          fmt_date_cam <- NULL
-        } else if (input$example_file == "recordTableSample") {
-          fmt_date_rec <- NULL
-          fmt_posix <- "%Y-%m-%d %T"
-          
-          fmt_date_cam <- "%d/%m/%Y"
-        }
-      } else { # Manual file input
-        fmt_date_rec <- dates_formats
-        fmt_posix <- datetimes_formats
-        
-        fmt_date_cam <- dates_formats
-      }
-      
       # Add options to casting for dates
       dates_cast <- records_widgets |>
         filter(cast == "as.Date")
@@ -996,23 +1002,22 @@ importServer <- function(id) {
       posix_cast <- unname(unlist(mapping_records()[posix_cast]))
       
       # Add a casting type only if relevant
-      if (!all(is.null(fmt_date_rec))) {
+      if (!all(is.null(fmt()$date_rec))) {
         castval_rec <- add_date_options(castval_rec,
-                                        formats = fmt_date_rec,
+                                        formats = fmt()$date_rec,
                                         names_to_add = dates_cast)
       }
-      if (!all(is.null(fmt_posix))) {
+      if (!all(is.null(fmt()$posix))) {
         castval_rec <- add_date_options(castval_rec,
-                                        formats = fmt_posix,
+                                        formats = fmt()$posix,
                                         tz = tz(),
                                         names_to_add = posix_cast)
       }
-      if (!all(is.null(fmt_date_cam))) {
+      if (!all(is.null(fmt()$date_cam))) {
         castval_cam <- add_date_options(castval_cam,
-                                        formats = fmt_date_cam,
+                                        formats = fmt()$date_cam,
                                         names_to_add = dates_cast)
       }
-      
       
       metaExpr({
         # Casting types variables ---
