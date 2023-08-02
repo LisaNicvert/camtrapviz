@@ -102,6 +102,11 @@ selectServer <- function(id,
       default_daterange <- reactive({
         # Define default range from records
         data_dates <- camtrap_data()$data$observations[[col_filter_range()]]
+        
+        # Only execute if type is correct
+        validate(need("Date" %in% class(data_dates) | "POSIXt" %in% class(data_dates),
+                      "A valid date or datetime must be provided."))
+        
         range <- range(data_dates)
         range <- as.Date(range)
         range <- c(range[1], range[2] + 1) # Add one day to last picture
