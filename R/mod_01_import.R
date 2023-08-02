@@ -282,19 +282,28 @@ importServer <- function(id) {
     # Define placeholder for optional columns
     nullval <- "Not present in data"
     
-    # Define dates firmats to use un tryFormats
+    # Define dates formats to use un tryFormats
     dates_formats <- c("%Y-%m-%d",
                        "%Y/%m/%d",
                        "%d-%m-%Y",
                        "%d/%m/%Y",
                        "%m-%d-%Y",
                        "%m/%d/%Y")
+    datetimes_formats <- c("%Y-%m-%d %T",
+                           "%Y/%m/%d %T",
+                           "%Y-%m-%d %H:%M",
+                           "%Y/%m/%d %H:%M",
+                           "%Y-%m-%dT%T",
+                           "%Y/%m/%dT%T",
+                           "%Y-%m-%dT%H:%M",
+                           "%Y/%m/%dT%H:%M")
+    
     
 # Useful variables from widgets df ----------------------------------------
     
     # Save the complete df
-    records_widgets_with_crs <- records_widgets
-    cameras_widgets_with_crs <- cameras_widgets
+    records_widgets_all <- records_widgets
+    cameras_widgets_all <- cameras_widgets
     
     # Get widgets that correspond to columns to choose in the data
     records_widgets <- records_widgets |>
@@ -350,25 +359,11 @@ importServer <- function(id) {
 # Create records widgets ----------------------------------------------------------
 
 ## Create automated records ------------------------------------------------
-    records_widths <- c(12, 12,
-                        6, 6, 
-                        12,
-                        6, 6, 
-                        12,
-                        6, 6, 
-                        12, 12)
-    records_class <- c("nomargin", "nomargin",
-                       "nomarginleft", "nomarginright",
-                       "nomargin",
-                       "nomarginleft", "nomarginright",
-                       "nomargin",
-                       "nomarginleft", "nomarginright",
-                       "nomargin", "nomargin")
-    records_widgets_w <- create_widget_list(records_widgets_with_crs,
-                                            width = records_widths,
-                                            class = records_class,
+    records_widgets_w <- create_widget_list(records_widgets_all,
+                                            width = records_widgets_all$width,
+                                            class = records_widgets_all$class,
                                             selectize = TRUE)
-    names(records_widgets_w) <- records_widgets_with_crs$widget
+    names(records_widgets_w) <- records_widgets_all$widget
     
 ## Create data/datetime radio buttons --------------------------------------
     
@@ -385,12 +380,12 @@ importServer <- function(id) {
     
 ## Finalize widget list ----------------------------------------------------
     
-    # Update CRS widget value
-    # updateSelectizeInput(session = session,
-    #                      "crs_col",
-    #                      choices = epsg,
-    #                      selected = "4326",
-    #                      server = TRUE)
+    # Update timezones widget value
+    updateSelectizeInput(session = session,
+                         "tz_col",
+                         choices = tz_choices,
+                         selected = "Etc/GMT",
+                         server = TRUE)
     
 
     #  Append radio
@@ -411,15 +406,9 @@ importServer <- function(id) {
                                                              ns = NS(id),
                                                              records_widgets_w[["timestamp_col"]]
     )
-    
-    # Add CRS conditional panel
-    # records_widgets_w[["crs_col"]] <- conditionalPanel(condition = paste0("input.lon_col !== '", nullval, "'",
-    #                                                                       "|| input.lat_col !== '", nullval, "'"), 
-    #                                                    ns = NS(id),
-    #                                                    records_widgets_w[["crs_col"]])
 
     # Add cameras conditional panel
-    camera_records_widget <- records_widgets_with_crs |> 
+    camera_records_widget <- records_widgets_all |> 
       filter(type == "cameras")
     camera_records_widget <- camera_records_widget$widget
     
@@ -436,26 +425,11 @@ importServer <- function(id) {
 # Create cameras widgets --------------------------------------------------
     
     # Create widgets
-    cameras_widths <- c(12, 
-                        6, 6,
-                        12,
-                        6, 6)
-    cameras_class <- c("nomargin",
-                       "nomarginleft", "nomarginright",
-                       "nomargin",
-                       "nomarginleft", "nomarginright")
-    cameras_widgets_w <- create_widget_list(cameras_widgets_with_crs,
-                                            width = cameras_widths,
-                                            class = cameras_class,
+    cameras_widgets_w <- create_widget_list(cameras_widgets_all,
+                                            width = cameras_widgets_all$width,
+                                            class = cameras_widgets_all$class,
                                             selectize = TRUE)
-    names(cameras_widgets_w) <- cameras_widgets_with_crs$widget
-    
-    # Update CRS widget value
-    # updateSelectizeInput(session = session,
-    #                      "crs_col_cov", 
-    #                      choices = epsg,
-    #                      selected = "4326",
-    #                      server = TRUE)
+    names(cameras_widgets_w) <- cameras_widgets_all$widget
     
     # Render UI
     output$cameras_col <- renderUI(cameras_widgets_w)
@@ -861,9 +835,9 @@ importServer <- function(id) {
     crs <- reactive({
       if (input$input_type == 1) { # Example file
         if(input$example_file == "mica") {
-          res <- cameras_widgets_with_crs$mica[cameras_widgets_with_crs$widget == "crs_col_cov"]
+          res <- cameras_widgets_all$mica[cameras_widgets_all$widget == "crs_col_cov"]
         } else {
-          res <- cameras_widgets_with_crs$recordTableSample[cameras_widgets_with_crs$widget == "crs_col_cov"]
+          res <- cameras_widgets_all$recordTableSample[cameras_widgets_all$widget == "crs_col_cov"]
         }
       } else if (input$input_type == 2) { # Manual import file
         if (input$import_cameras || records_extension() == "json") { # Import a camera file
@@ -919,6 +893,22 @@ importServer <- function(id) {
         }
       }
     }) |> bindEvent(input$lon_col, input$lon_col_cov)
+
+
+# Timezone handling -------------------------------------------------------
+    tz <- reactive({
+      if (input$input_type == 1) {
+        if (input$example_file == "mica") {
+          tz <- "Etc/GMT"
+        } else if (input$example_file == "recordTableSample") {
+          fmt_date_rec <- NULL
+          tz <- "Etc/GMT-8"
+        }
+      } else {
+        tz <- input$tz_col
+      }
+      tz
+    })
     
 # Clean data --------------------------------------------------------------
     
@@ -971,18 +961,25 @@ importServer <- function(id) {
       castval_cam <- castval_cam[non_null_names] # Reorder values
       names(castval_cam) <- unname(non_null_cam) # Rename with table column names
       
-      # Fine-tune date format
+      # Fine-tune date/time format
       if (input$input_type == 1) { # Example files (known date format)
         if (input$example_file == "mica") {
-          fmt_rec <- NULL
-          fmt_cam <- "%Y-%m-%d"
+          # No need to cast mica data which comes in the right format already
+          fmt_date_rec <- NULL
+          fmt_posix <- NULL
+          
+          fmt_date_cam <- NULL
         } else if (input$example_file == "recordTableSample") {
-          fmt_rec <- NULL
-          fmt_cam <- "%d/%m/%Y"
+          fmt_date_rec <- NULL
+          fmt_posix <- "%Y-%m-%d %T"
+          
+          fmt_date_cam <- "%d/%m/%Y"
         }
       } else { # Manual file input
-        fmt_rec <- dates_formats
-        fmt_cam <- dates_formats
+        fmt_date_rec <- dates_formats
+        fmt_posix <- datetimes_formats
+        
+        fmt_date_cam <- dates_formats
       }
       
       # Add options to casting for dates
@@ -992,18 +989,30 @@ importServer <- function(id) {
       # Get column names
       dates_cast <- c(unname(unlist(mapping_records()[dates_cast])),
                       unname(unlist(mapping_cameras()$mapping[dates_cast]))) 
-
+      # Add options to casting for POSIX
+      posix_cast <- records_widgets |>
+        filter(cast == "as.POSIXct")
+      posix_cast <- posix_cast$widget
+      posix_cast <- unname(unlist(mapping_records()[posix_cast]))
+      
       # Add a casting type only if relevant
-      if (!all(is.null(fmt_rec))) {
-        castval_rec <- add_tryformats(castval_rec,
-                                      formats = fmt_rec,
-                                      names_to_add = dates_cast)
+      if (!all(is.null(fmt_date_rec))) {
+        castval_rec <- add_date_options(castval_rec,
+                                        formats = fmt_date_rec,
+                                        names_to_add = dates_cast)
       }
-      if (!all(is.null(fmt_cam))) {
-        castval_cam <- add_tryformats(castval_cam,
-                                      formats = fmt_cam,
-                                      names_to_add = dates_cast)
+      if (!all(is.null(fmt_posix))) {
+        castval_rec <- add_date_options(castval_rec,
+                                        formats = fmt_posix,
+                                        tz = tz(),
+                                        names_to_add = posix_cast)
       }
+      if (!all(is.null(fmt_date_cam))) {
+        castval_cam <- add_date_options(castval_cam,
+                                        formats = fmt_date_cam,
+                                        names_to_add = dates_cast)
+      }
+      
       
       metaExpr({
         # Casting types variables ---
@@ -1113,7 +1122,8 @@ importServer <- function(id) {
       list(camtrap_data = dat,
            mapping_records = reactive(mapping_records()),
            mapping_cameras = reactive(mapping_cameras()$mapping),
-           crs = reactive(crs())
+           crs = reactive(crs()),
+           tz = reactive(tz())
       )
     )
     

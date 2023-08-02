@@ -76,32 +76,61 @@ cast_columns <- function(df, cast_type) {
   return(res)
 }
 
-#' Add tryFormats
+#' Add date options
 #'
-#' Adds a `tryFormats` element to the specified elements of 
-#' `castlist`.
+#' Adds a `format`, `tryFormats` and/or `tz` 
+#' element to the specified elements of `castlist`.
 #' 
-#' @param castlist A named list of types conversions to perform 
-#' @param formats The formats to add to `tryFormats`
+#' @param castlist A named list of types conversions to perform.
+#' @param formats The formats to add. If it is of length one, then
+#' it is added to the name `format`, else if is added to the name 
+#' `tryFormats`.
 #' @param names_to_add The names of the elements of `castlist` 
-#' for which to add a `tryFormats` element
+#' for which to add the parameters.
 #'
 #' @noRd
 #' @return The original `castlist` where the specified elements
-#' have a new slot `tryFormats` which contains the `formats` vector.
+#' have a new slot `format` or `tryFormats` and/or `tz`.
 #' If the value of `castlist` to modify is `NULL`, will not add 
-#' `tryFormats` slot.
-add_tryformats <- function(castlist,
-                           formats,
-                           names_to_add) {
+#' any options.
+add_date_options <- function(castlist,
+                             formats = NULL,
+                             tz = NULL,
+                             names_to_add) {
   res <- castlist
   for (n in names_to_add) {
-    cast_init <- res[[n]]
-    if (!is.null(cast_init)) {
-      cast_new <- list(cast_init,
-                       tryFormats = formats)
+    res_cast <- res[[n]]
+    if (!is.null(res_cast)) { # modify only if the element of the list is not null
+      if (!is.null(formats)) { # Add formats if not null
+        if ("list" %in% class(res_cast)) { # if the element is a list
+          if (length(formats) == 1) { # Name of the argument is format
+            res_cast <- c(res_cast,
+                          format = formats)
+          } else { # Name of the argument is tryFormats
+            res_cast <- c(res_cast,
+                          tryFormats = formats)
+          }
+        } else {
+          if (length(formats) == 1) { # Name of the argument is format
+            res_cast <- list(res_cast,
+                             format = formats)
+          } else { # Name of the argument is tryFormats
+            res_cast <- list(res_cast,
+                             tryFormats = formats)
+          }
+        }
+      }
+      if (!is.null(tz)) { # Add tz if not null
+        if ("list" %in% class(res_cast)) {
+          res_cast <- c(res_cast,
+                        tz = tz)
+        } else {
+          res_cast <- list(res_cast,
+                           tz = tz)
+        }
+      }
       # Set new value
-      res[[n]] <- cast_new
+      res[[n]] <- res_cast
     }
   }
   return(res)

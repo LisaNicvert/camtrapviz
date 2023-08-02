@@ -32,6 +32,7 @@ records_widgets <- data.frame(
              "date_col",
              "time_col",
              "timestamp_col",
+             "tz_col",
              "lat_col",
              "lon_col",
              "crs_col",
@@ -44,6 +45,7 @@ records_widgets <- data.frame(
             "Date",
             "Time",
             "Timestamp",
+            "Timezone",
             "Latitude/y",
             "Longitude/x",
             "Coordinates format (CRS)",
@@ -56,6 +58,7 @@ records_widgets <- data.frame(
               "Capture events dates",
               "Capture events times",
               "Capture events dates and times",
+              "Timezone of the times in the table",
               "Latitude or measure of the y coordinate if the coordinate reference system does not use latitude.",
               "Longitude or measure of the x coordinate  if the coordinate reference system does not use latitude.",
               "EPSG code for the coordinate reference system. Defaults to EPSG:4326 (WGS 84) which is the conventional CRS for latitude/longitude coordinates.",
@@ -64,6 +67,7 @@ records_widgets <- data.frame(
               "Species count",
               "Type of the capture event (animal, blank, unknown...)"),
   empty_allowed = c(FALSE,
+                    FALSE,
                     FALSE,
                     FALSE,
                     FALSE,
@@ -80,6 +84,7 @@ records_widgets <- data.frame(
            "date_time",
            "date_time",
            "timestamp",
+           "records",
            "cameras",
            "cameras",
            "cameras",
@@ -92,6 +97,7 @@ records_widgets <- data.frame(
             "date", 
             "hour|time(?!stamp)", 
             "timestamp|datetime",
+            NA,
             "lat|((^|[^[:alpha:]]+)y([^[:alpha:]]+|$))",
             "lon|((^|[^[:alpha:]]+)x([^[:alpha:]]+|$))",
             NA,
@@ -104,6 +110,7 @@ records_widgets <- data.frame(
            NA,
            NA,
            "timestamp",
+           "UTC",
            NA,
            NA,
            NA,
@@ -116,6 +123,7 @@ records_widgets <- data.frame(
                         NA,
                         NA,
                         "DateTimeOriginal",
+                        "UTC+8",
                         NA,
                         NA,
                         NA,
@@ -128,6 +136,7 @@ records_widgets <- data.frame(
             "as.Date",
             "times",
             "as.POSIXct",
+            "as.numeric", # timezone?
             "as.numeric",
             "as.numeric",
             "as.character",
@@ -140,13 +149,30 @@ records_widgets <- data.frame(
                  TRUE,
                  TRUE,
                  TRUE,
+                 FALSE,
                  TRUE,
                  TRUE,
                  FALSE,
                  TRUE,
                  TRUE,
                  TRUE,
-                 TRUE)
+                 TRUE),
+  width = c(12, 12,
+            6, 6, 
+            12,
+            12,
+            6, 6, 
+            12,
+            6, 6, 
+            12, 12),
+  class = c("nomargin", "nomargin",
+            "nomarginleft", "nomarginright",
+            "nomargin",
+            "nomargin",
+            "nomarginleft", "nomarginright",
+            "nomargin",
+            "nomarginleft", "nomarginright",
+            "nomargin", "nomargin")
 )
 
 
@@ -180,3 +206,39 @@ cameras_widgets <- cameras_widgets |>
                                     "Setup_date", recordTableSample)) |>
   mutate(recordTableSample = ifelse(widget == "retrieval_col_cov", 
                                     "Retrieval_date", recordTableSample))
+
+
+# Timezones codes ---------------------------------------------------------
+
+# Get system specific timezones
+tz_choices <- as.character(OlsonNames())
+
+# Get Etc/GMT standard (offset from UTC)
+gmt_choices <- grep(pattern = "^Etc/GMT", 
+                    tz_choices, value = TRUE)
+if (!all(is.null(gmt_choices))) { # If Etc/GMT exist on this system
+  # Remove Etc/GMT from choices vector
+  tz_choices <- tz_choices[!grepl(pattern = "^Etc/GMT", tz_choices)]
+  
+  if ("Etc/GMT" %in% gmt_choices) {
+    # Remove +/-0 or 0 which are equivalent to GMT
+    gmt_choices <- gmt_choices[!grepl(pattern = "^Etc/GMT(\\+|-)*0$", 
+                                      gmt_choices)]
+  }
+  
+  # Get numbers
+  gmt_choices <- sort(gmt_choices) # Etc/GMT (zero) should be first
+  num <- regmatches(gmt_choices,
+                    regexpr(pattern = "(\\+|-)\\d+$", gmt_choices))
+  if ("Etc/GMT" %in% gmt_choices) {
+    num <- c("0", num) # Add zero for Etc/GMT
+  }
+  
+  # Reorder
+  if (length(num) == length(gmt_choices)) { # Check that all instances were matched
+    gmt_choices <- gmt_choices[order(as.numeric(num))]
+  }
+  # Else, the not reordered GMT will be placed at the top.
+  
+  tz_choices <- c(gmt_choices, tz_choices)
+}

@@ -35,32 +35,88 @@ test_that("Cast columns", {
   expect_equal(class(dfcast$date), "Date")
 })
 
-test_that("add_tryformats", {
+test_that("add_date_options", {
   # Normal case
   cast <- list(num = "as.character",
                date = "as.Date",
                date2 = "as.Date")
   
   fmt <- c("%Y-%m-%d", "%d-%m-%Y")
-  res <- add_tryformats(cast, 
-                        formats = fmt, 
-                        names_to_add = c("date", "date2"))
+  res <- add_date_options(cast, 
+                          formats = fmt, 
+                          names_to_add = c("date", "date2"))
+  expected <- cast
+  expected$date <- list("as.Date",
+                        tryFormats = fmt)
+  expected$date2 <- list("as.Date",
+                         tryFormats = fmt)
   
-  expect_equal(res$date, list("as.Date",
-                              tryFormats = fmt))
-  expect_equal(res$date2, list("as.Date",
-                               tryFormats = fmt))
+  expect_equal(res, expected)
   
   # NULL
   cast <- list(num = "as.character",
                date = NULL)
   
   fmt <- c("%Y-%m-%d", "%d-%m-%Y")
-  res <- add_tryformats(cast, 
-                        formats = fmt, 
-                        names_to_add = "date")
+  res <- add_date_options(cast, 
+                          formats = fmt, 
+                          names_to_add = "date")
+  expected <- cast
+  expect_equal(res, expected)
   
-  expect_true(is.null(res$date))
+  # Size one case
+  cast <- list(num = "as.character",
+               date = "as.Date",
+               date2 = "as.Date")
+  
+  fmt <- c("%Y-%m-%d")
+  res <- add_date_options(cast, 
+                          formats = fmt, 
+                          names_to_add = c("date", "date2"))
+  
+  expected <- cast
+  expected$date <- list("as.Date",
+                        format = fmt)
+  expected$date2 <- list("as.Date",
+                         format = fmt)
+  
+  expect_equal(res, expected)
+  
+  # With timezone
+  cast <- list(num = "as.character",
+               date = "as.Date",
+               date2 = "as.Date")
+  
+  fmt <- c("%Y-%m-%d", "%d-%m-%Y")
+  tz <- "GMT"
+  res <- add_date_options(cast, 
+                          formats = fmt, 
+                          tz = tz,
+                          names_to_add = c("date", "date2"))
+  expected <- cast
+  expected$date <- list("as.Date",
+                        tryFormats = fmt,
+                        tz = tz)
+  expected$date2 <- list("as.Date",
+                         tryFormats = fmt,
+                         tz = tz)
+  expect_equal(res, expected)
+  
+  # With timezone only
+  cast <- list(num = "as.character",
+               date = "as.Date",
+               date2 = "as.Date")
+  
+  tz <- "GMT"
+  res <- add_date_options(cast, 
+                          tz = tz,
+                          names_to_add = c("date", "date2"))
+  expected <- cast
+  expected$date <- list("as.Date",
+                        tz = tz)
+  expected$date2 <- list("as.Date",
+                         tz = tz)
+  expect_equal(res, expected)
 })
 
 
