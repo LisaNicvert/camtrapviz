@@ -38,7 +38,7 @@ recordTableSample <- recordTableSample |>
 # Convert dates to POSIX
 recordTableSample <- recordTableSample |> 
   mutate(DateTimeOriginal = as.POSIXct(DateTimeOriginal,
-                                       tz = "Asia/Kuching"))
+                                       tz = "Etc/GMT-8"))
 ```
 
 We also need the coordinates if we want to use solar time (not run here):
