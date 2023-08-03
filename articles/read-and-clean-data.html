@@ -169,24 +169,39 @@ containing 2 dataframes:</p>
 <h3 id="clean-data">Clean data<a class="anchor" aria-label="anchor" href="#clean-data"></a>
 </h3>
 <p>This step ensures all columns have the desired type. It will also
-move these columns to the beginnning of the table.</p>
+move these columns to the beginning of the table.</p>
+<p>To cast data to the appropriate type, this function two arguments
+created below: <code>rec_type</code> (for the records table) and
+<code>cam_type</code> (for the cameras table).</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rec_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Station <span class="op">=</span> <span class="st">"as.character"</span>,</span>
 <span>                 Date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as_date"</span>,</span>
 <span>                             format <span class="op">=</span> <span class="st">"%Y-%m-%d"</span><span class="op">)</span>,</span>
 <span>                 Time <span class="op">=</span> <span class="st">"times"</span>,</span>
-<span>                 DateTimeOriginal <span class="op">=</span> <span class="st">"as.POSIXct"</span><span class="op">)</span></span>
+<span>                 DateTimeOriginal <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as.POSIXct"</span>,</span>
+<span>                                         tz <span class="op">=</span> <span class="st">"Etc/GMT-8"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cam_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Station <span class="op">=</span> <span class="st">"as.character"</span>,</span>
 <span>                 Setup_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as.Date"</span>,</span>
 <span>                                   format <span class="op">=</span> <span class="st">"%d/%m/%Y"</span><span class="op">)</span>, </span>
 <span>                 Retrieval_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as.Date"</span>,</span>
-<span>                                       format <span class="op">=</span> <span class="st">"%d/%m/%Y"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">dat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat</span>, </span>
+<span>                                       format <span class="op">=</span> <span class="st">"%d/%m/%Y"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>These lists contain the information about how to convert column
+types.</p>
+<ul>
+<li>Values contain the casting function to apply
+(e.g. <code>as.Date</code> will translate to <code>as.date(x)</code>).
+Values cal also be lists to provide additional arguments: for instance,
+<code>list("as.Date", format = "%d/%m/%Y")</code> will translate to
+<code>as.Date(x,  format = "%d/%m/%Y")</code>.</li>
+<li>the names of the list give the corresponding column of the data that
+should be casted.</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat</span>, </span>
 <span>                        rec_type <span class="op">=</span> <span class="va">rec_type</span>,</span>
 <span>                        cam_type <span class="op">=</span> <span class="va">cam_type</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Station       Date     Time    DateTimeOriginal Species delta.time.secs</span></span>
 <span><span class="co">#&gt; 1 StationA 2009-04-21 00:40:00 2009-04-21 00:40:00     PBE               0</span></span>
@@ -229,10 +244,10 @@ move these columns to the beginnning of the table.</p>
 <div class="section level3">
 <h3 id="read-data-1">Read data<a class="anchor" aria-label="anchor" href="#read-data-1"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_data.html">read_data</a></span><span class="op">(</span>records_path <span class="op">=</span> <span class="va">recordcamfile</span>,</span>
 <span>                 sep_records <span class="op">=</span> <span class="st">","</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Station Species    DateTimeOriginal       Date     Time delta.time.secs</span></span>
 <span><span class="co">#&gt; 1 StationA     PBE 2009-04-21 00:40:00 2009-04-21 00:40:00               0</span></span>
@@ -278,17 +293,17 @@ move these columns to the beginnning of the table.</p>
 <code>$data$observations</code> contains the cameras and records
 information</li>
 <li>
-<code>$data$deployments</code> is <code>NULL</code>
-</li>
+<code>$data$deployments</code> is <code>NULL</code> (because only
+one file was imported)</li>
 </ul>
 </div>
 <div class="section level3">
 <h3 id="clean-data-1">Clean data<a class="anchor" aria-label="anchor" href="#clean-data-1"></a>
 </h3>
-<p>Here this step will split the information between cameras and
-records. It will move all columns listed in <code>cam_type</code> in the
+<p>This step will split the information between cameras and records. To
+do this, it will move all columns listed in <code>cam_type</code> in the
 cameras file.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cam_type2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Station <span class="op">=</span> <span class="st">"as.character"</span>,</span>
 <span>                  Setup_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as.Date"</span>,</span>
 <span>                                    format <span class="op">=</span> <span class="st">"%d/%m/%Y"</span><span class="op">)</span>, </span>
@@ -306,7 +321,7 @@ cameras file.</p>
 <span>                        cam_type <span class="op">=</span> <span class="va">cam_type2</span>,</span>
 <span>                        cam_col_records <span class="op">=</span> <span class="st">"Station"</span>,</span>
 <span>                        split <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Station       Date     Time    DateTimeOriginal Species delta.time.secs</span></span>
 <span><span class="co">#&gt; 1 StationA 2009-04-21 00:40:00 2009-04-21 00:40:00     PBE               0</span></span>
@@ -349,7 +364,9 @@ cameras file.</p>
 <div class="section level3">
 <h3 id="read-data-2">Read data<a class="anchor" aria-label="anchor" href="#read-data-2"></a>
 </h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<p>The <code>read_data</code> function can also read json files
+corresponding to camtrapDP datapackage.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_data.html">read_data</a></span><span class="op">(</span>records_path <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/tdwg/camtrap-dp/main/example/datapackage.json"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Please make sure you have the right to access data from this Data Package for your intended use.</span></span>
 <span><span class="co">#&gt; Follow applicable norms or requirements to credit the dataset and its authors.</span></span>
@@ -357,10 +374,11 @@ cameras file.</p>
 <span><span class="co">#&gt; See https://inbo.github.io/camtraptor/#camtrap-dp for details.</span></span>
 <span><span class="co">#&gt; </span></span></code></pre></div>
 <p>Internally, we use the function <code>read_camtrap_dp</code> from the
-<code>camtraptor</code> package. The imported object is a
-<code>list</code> and the observations and deployments info are in the
-<code>$data</code> slot.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code>camtraptor</code> package (here, it would give the same result to
+use use directly this function).</p>
+<p>The imported object is a <code>list</code> and the observations and
+deployments info are in the <code>$data</code> slot.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "list"</span></span>
 <span></span>
@@ -401,22 +419,26 @@ cameras file.</p>
 <p>Here, the data follows the camtrapDP standard and does not need
 cleaning. However, for this demonstration we will change the time stamp
 type:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># timestamp was converted to character</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "character"</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rec_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>timestamp <span class="op">=</span> <span class="st">"as.POSIXct"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rec_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>timestamp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as.POSIXct"</span>,</span>
+<span>                                  tz <span class="op">=</span> <span class="st">"UTC"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">dat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat</span>, </span>
 <span>                        rec_type <span class="op">=</span> <span class="va">rec_type</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># timestamp is back to POSIX</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "POSIXct" "POSIXt"</span></span></code></pre></div>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; [1] "POSIXct" "POSIXt"</span></span>
+<span><span class="co"># The timezone is the one we specified</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span>, <span class="st">"tzone"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "UTC"</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 28</span></span></span>
 <span><span class="co">#&gt;   timestamp           observationID deploymentID sequenceID mediaID</span></span>

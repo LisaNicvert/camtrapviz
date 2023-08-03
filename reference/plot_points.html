@@ -55,7 +55,8 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_points</span><span class="op">(</span></span>
 <span>  <span class="va">df</span>,</span>
 <span>  <span class="va">camera_col</span>,</span>
-<span>  <span class="va">timestamp_col</span>,</span>
+<span>  timestamp_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tz <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  date_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cameras_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -71,7 +72,6 @@
 <span>  date_breaks <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  date_format <span class="op">=</span> <span class="st">"%b %d"</span>,</span>
 <span>  date_limits <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  timezone <span class="op">=</span> <span class="st">"UTC"</span>,</span>
 <span>  alpha_rect <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  col_rect <span class="op">=</span> <span class="st">"black"</span>,</span>
 <span>  height_rect <span class="op">=</span> <span class="fl">0.8</span>,</span>
@@ -97,6 +97,15 @@
 <dd><p>Name of the timestamp column. If it
 is a datetime, it must be of class POSIXct. It can be <code>NULL</code>
 if <code>date_col</code> and <code>time_col</code> are provided.</p></dd>
+
+
+<dt>tz</dt>
+<dd><p>Timezone code to use for the data. If provided, the
+data will be converted to this timezone. If missing, will search
+a timezone in <code>timestamp_col</code> (if provided), else will default to
+UTC (Etc/GMT for the R code).
+The data timezone (or the default timezone) will also override
+any timezone present in <code>caminfo_setup</code> or <code>caminfo_retrieval</code>.</p></dd>
 
 
 <dt>date_col</dt>
@@ -133,12 +142,16 @@ with the camera ID, the setup and the retrieval date.</p></dd>
 
 <dt>caminfo_setup</dt>
 <dd><p>Name of the setup column in caminfo file. The column
-must be coercible to POSIX (eg a Date).</p></dd>
+must be coercible to POSIX (eg a Date). If it is not a POSIX, it will be
+converted to a POSIX attempting to use the timezone defined in <code>tz</code> (or its
+default). If it is a POSIX, the timezone will be converted to <code>tz</code>.</p></dd>
 
 
 <dt>caminfo_retrieval</dt>
 <dd><p>Name of the retrieval column in caminfo file. The column
-must be coercible to POSIX (eg a Date).</p></dd>
+must be coercible to POSIX (eg a Date). If it is not a POSIX, it will be
+converted to a POSIX attempting to use the timezone defined in <code>tz</code> (or its
+default). If it is a POSIX, the timezone will be converted to <code>tz</code>.</p></dd>
 
 
 <dt>interactive</dt>
@@ -173,11 +186,6 @@ labels.</p></dd>
 <dd><p>Vector of the lower and upper limit of the x-axis  (must be a
 POSIX). The timezone should be the same as the timezone defined in the <code>timezone</code>
 argument.</p></dd>
-
-
-<dt>timezone</dt>
-<dd><p>Timezone code. For the possible values, refer to the
-<code>timezone</code> argument of <code><a href="https://ggplot2.tidyverse.org/reference/scale_date.html" class="external-link">ggplot2::scale_y_datetime</a></code>.</p></dd>
 
 
 <dt>alpha_rect</dt>

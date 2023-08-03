@@ -65,7 +65,10 @@ cameras metadata based on species, cameras and dates.</p>
 <span>  cam_col_rec <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cam_col_cam <span class="op">=</span> <span class="va">cam_col_rec</span>,</span>
 <span>  daterange <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  timestamp_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  date_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tz <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cameras_as_factor <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -73,7 +76,7 @@ cameras metadata based on species, cameras and dates.</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>dat</dt>
-<dd><p>The data to filter It can be either a list with one component <code>$data</code>
+<dd><p>The data to filter. It can be either a list with one component <code>$data</code>
 or a <code>datapackage</code> object (inheriting list). Either way, the data
 are in the <code>$data</code> slot with two components:</p><ul><li><p><code>$deployments</code> (cameras table)</p></li>
 <li><p><code>$observations</code> (records table)</p></li>
@@ -110,12 +113,33 @@ Defaults to the same value as <code>cam_col_rec</code>.</p></dd>
 
 
 <dt>daterange</dt>
-<dd><p>Date range to filter on for the data. Can be either a Date
-or a POSIX.</p></dd>
+<dd><p>Date range to filter on for the data (will filter
+observations' times so that <code>times &gt;= daterange[1]</code> and
+<code>times &lt;= daterange[2]</code>). Can be either a Date or a POSIX.</p></dd>
+
+
+<dt>timestamp_col</dt>
+<dd><p>Name of the datetime column (must be coercible to POSIX).
+It is not needed if <code>date_col</code> and <code>time_col</code> are provided.</p></dd>
 
 
 <dt>time_col</dt>
-<dd><p>Name of the time column (must contain dates or POSIX)</p></dd>
+<dd><p>Name of the time column. It is not needed if <code>timestamp_col</code>
+is provided.</p></dd>
+
+
+<dt>date_col</dt>
+<dd><p>Name of the date column. It is not needed if <code>timestamp_col</code>
+is provided.</p></dd>
+
+
+<dt>tz</dt>
+<dd><p>Timezone for the data bounds. If not provided, will try to
+find the timezone in <code>daterange</code> (if it is a POSIX), then in
+<code>timestamp_col</code> (if provided), and finally if no timezone is
+present it will default to UTC (Etc/GMT).
+For the filtering step, if needed datetimes in <code>timestamp_col</code> can be
+converted to <code>tz</code> but the output data will not be affected.</p></dd>
 
 
 <dt>cameras_as_factor</dt>
@@ -131,10 +155,11 @@ but cameras also remove cameras from <code>dat$data$deployments</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>For the <code>spp_filter</code> and <code>cam_filter</code> values:</p><ul><li><p>If <code>NULL</code>, data are not filtered on that condition
-(also the case for <code>daterange</code>).</p></li>
-<li><p>If character(0), all values will be filtered out.</p></li>
-</ul></div>
+    <p>For the <code>spp_filter</code>, <code>cam_filter</code> and <code>daterange</code> values:
+if they are <code>NULL</code>, data are not filtered on that condition.
+Also note that e.g. if all species are in <code>spp_filter</code>, then
+all species will be filtered out.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -151,29 +176,29 @@ but cameras also remove cameras from <code>dat$data$deployments</code>.</p>
 <span class="r-in"><span>            cam_col_rec <span class="op">=</span> <span class="st">"Station"</span>, </span></span>
 <span class="r-in"><span>            cam_filter <span class="op">=</span> <span class="st">"StationA"</span>,</span></span>
 <span class="r-in"><span>            daterange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2009-05-01"</span>, <span class="st">"2009-05-15"</span><span class="op">)</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>            time_col <span class="op">=</span> <span class="st">"DateTimeOriginal"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>            timestamp_col <span class="op">=</span> <span class="st">"DateTimeOriginal"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $data</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $data$observations</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    Station Species    DateTimeOriginal       Date     Time delta.time.secs</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 StationC     EGY 2009-05-02 03:35:00 2009-05-02 03:35:00          443880</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 StationC     TRA 2009-05-01 20:10:00 2009-05-01 20:10:00          417000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 StationC     TRA 2009-05-02 00:10:00 2009-05-02 00:10:00           14280</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 StationC     TRA 2009-05-12 02:32:00 2009-05-12 02:32:00          872460</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   delta.time.mins delta.time.hours delta.time.days</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1            7398            123.3             5.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2            6950            115.8             4.8</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3             238              4.0             0.2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4           14541            242.3            10.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                     Directory</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationC/EGY</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationC/TRA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationC/TRA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationC/TRA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                FileName</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 StationC__2009-05-02__03-35-00(1).JPG</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 StationC__2009-05-01__20-10-00(1).JPG</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 StationC__2009-05-02__00-10-00(1).JPG</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 StationC__2009-05-12__02-32-00(1).JPG</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     Station Species    DateTimeOriginal       Date     Time delta.time.secs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  StationC     EGY 2009-05-02 03:35:00 2009-05-02 03:35:00          443880</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14 StationC     TRA 2009-05-01 20:10:00 2009-05-01 20:10:00          417000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15 StationC     TRA 2009-05-02 00:10:00 2009-05-02 00:10:00           14280</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16 StationC     TRA 2009-05-12 02:32:00 2009-05-12 02:32:00          872460</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    delta.time.mins delta.time.hours delta.time.days</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8             7398            123.3             5.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14            6950            115.8             4.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15             238              4.0             0.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16           14541            242.3            10.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                      Directory</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationC/EGY</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationC/TRA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationC/TRA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationC/TRA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                 FileName</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  StationC__2009-05-02__03-35-00(1).JPG</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14 StationC__2009-05-01__20-10-00(1).JPG</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15 StationC__2009-05-02__00-10-00(1).JPG</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16 StationC__2009-05-12__02-32-00(1).JPG</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $data$deployments</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    Station  utm_y  utm_x Setup_date Retrieval_date Problem1_from Problem1_to</span>
