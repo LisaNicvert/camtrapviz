@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 ```{r setup, message=FALSE, results='hide'}
 library(camtrapviz)
 library(ggiraph)
+library(dplyr)
 ```
 
 This vignette demonstrates how to filter camera trap data based on 4 criteria:
@@ -135,8 +136,8 @@ It is also possible to specify date bounds to the data:
 range(mica$data$observations$timestamp)
 
 date_filter <- filter_data(mica, 
-                          time_col = "timestamp", 
-                          daterange = as.Date(c("2020-01-01", "2021-04-18")))
+                           timestamp_col = "timestamp", 
+                           daterange = as.Date(c("2020-01-01", "2021-04-18")))
 
 # The new range is restricted
 range(date_filter$data$observations$timestamp)
@@ -147,3 +148,43 @@ plot_points(date_filter$data$observations,
             camera_col = "deploymentID",
             timestamp_col = "timestamp")
 ```
+We can do the same using date and time as columns. Let's create these columns:
+
+```{r}
+mica_date_time <- mica
+
+mica_date_time$data$observations <- mica_date_time$data$observations |> 
+  dplyr::mutate(date = format(timestamp, "%F"),
+                time = format(timestamp, "%T"),
+                .after = "timestamp")
+
+mica_date_time$data$observations |> 
+  dplyr::select(timestamp, date, time) |> 
+  head()
+```
+
+
+```{r}
+date_filter <- filter_data(mica_date_time, 
+                           date_col = "date",
+                           time_col = "time", 
+                           daterange = as.Date(c("2020-01-01", "2021-04-18")))
+
+# The new range is the same as above
+range(date_filter$data$observations$timestamp)
+```
+
+## Combine filters
+
+Finally, it is possible to combine multiple conditions to customize data filtering:
+
+```{r}
+custom <- filter_data(mica,
+                      spp_filter = c("great herons", "grey heron"),
+                      spp_col = "vernacularNames.en",
+                      cam_filter = "29b7d356-4bb4-4ec4-b792-2af5cc32efa8",
+                      cam_col_rec = "deploymentID",
+                      timestamp_col = "timestamp",
+                      daterange = as.Date(c("2020-01-01", "2021-04-18")))
+```
+

@@ -268,3 +268,76 @@ empty_or_null <- function(arg) {
   return(res)
 }
 
+
+# Timezones helpers ------------------------------------------------------------
+
+#' Get best timezone
+#'
+#' @param custom_tz Custom (user provided) timezone
+#' @param data_tz A timezone from the data
+#' @param default_tz Default value
+#'
+#' @return A timezone
+#' @noRd
+get_tz <- function(custom_tz, data_tz, default_tz = "Etc/GMT") {
+  
+  if (empty_or_null(custom_tz)) { # no custom tz
+      # Try to get timezone from data
+      if (empty_or_null(data_tz)) {
+        # If empty, set to default
+        tz <- default_tz
+      } else {
+        # Else, set to tz of the data
+        tz <- data_tz
+      }
+  } else {
+    tz <- custom_tz
+  }
+  
+  return(tz)
+}
+
+#' Add timezone to a vector
+#'
+#' @param vec The vector
+#' @param tz The timezone
+#' @param force_tz In case no timezone present, should one be added
+#' with force_tz?
+#' 
+#' @details
+#' If vec is not a POSIX, will be converted wih given tz.
+#' Else, it depends if vec already has a timezone attribute:
+#' + if yes, vec will be converted to the new timezone
+#' + else, the new timezone will replace the empty timezone 
+#' only if `force_tz` is `TRUE` (else, it will throw an error).
+#' 
+#' @return The vector with a timezone
+#' @noRd
+add_tz <- function(vec, tz, force_tz = FALSE) {
+  
+  # Initialize result
+  res <- vec
+  
+  if (!("POSIXt" %in% class(vec))) {
+    # If vec in not a POSIX, simply coerce to POSIX with a given timezone
+    res <- as.POSIXct(res, tz = tz)
+  } else { # If vec is a POSIX
+    # Get vec tz
+    tzone_vec <- attr(res, "tzone")
+    if (empty_or_null(tzone_vec)) {
+      # Override timezone if empty
+      if (force_tz) {
+        res <- lubridate::force_tz(res, 
+                                   tz)
+      } else {
+        stop("Input POSIX vector has no timezone and it will not be modified unless force_tz is TRUE.")
+      }
+    } else { # If timezone of vec is not empty
+      # Make the conversion
+      if (tzone_vec != tz) { # Convert timezone only if not already the good one
+        attr(res, "tzone") <- tz
+      }
+    }
+  }
+  return(res)
+}

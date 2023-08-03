@@ -188,25 +188,14 @@ plot_points <- function(df,
   }
   
   # Set the timezone ---
-  default_tz <- "Etc/GMT"
-  if (is.null(tz)) { # no custom tz
-    if (!is.null(timestamp_col)) {
-       # Try to get timezone from timestamp_col
-      tz_data <- attr(dfp[[timestamp_col]], "tzone")
-      
-      if (empty_or_null(tz_data)) {
-        # If empty, set to default
-        tz <- default_tz
-      } else {
-        # Else, set to tz of the data
-        tz <- tz_data
-      }
-    } else {
-      # If timestamp_col is NULL, set directly to the 
-      # default value
-      tz <- default_tz
-    }
+  if (!is.null(timestamp_col)) {
+    data_tz <- attr(dfp[[timestamp_col]], "tzone")
+  } else {
+    data_tz <- NULL
   }
+  tz <- get_tz(custom_tz = tz, 
+               data_tz = data_tz, 
+               default_tz = "Etc/GMT")
   
   if (is.null(timestamp_col)) { # no timestamp
     if("timestamp_col" %in% colnames(dfp)) {
@@ -222,21 +211,10 @@ plot_points <- function(df,
     timestamp_col <- "timestamp_col"
     
   } else { # timestamp_col not NULL
-    # Get timezone
-    tz_data <- attr(dfp[[timestamp_col]], "tzone")
-    if (empty_or_null(tz_data)) {
-      # Override timezone if empty
-      dfp[[timestamp_col]] <- force_tz(dfp[[timestamp_col]], 
-                                       tz)
-    } else {
-      # Convert timezone
-      attr(dfp[[timestamp_col]], "tzone") <- tz
-    }
+    dfp[[timestamp_col]] <- add_tz(dfp[[timestamp_col]],
+                                   tz = tz,
+                                   force_tz = TRUE)
   }
-  
-  # set data timezone to custom tz 
-  # (it can have been chosen from data before but not an issue)
-  
   
   if (!is.null(cameras_list)) {
     # Filter data (keep only cameras in cameras_list)
@@ -295,45 +273,12 @@ plot_points <- function(df,
                                             levels = levels)
     
     # Coerce setup and retrieval to POSIX ---
-    if (!("POSIXt" %in% class(caminfo[[caminfo_setup]]))) {
-      # If caminfo_setup in not a POSIX, coerce
-      caminfo[[caminfo_setup]] <- as.POSIXct(caminfo[[caminfo_setup]],
-                                             tz = tz)
-    } else {
-      # If caminfo_setup is a POSIX
-      tzone_setup <- attr(caminfo[[caminfo_setup]], "tzone")
-      if (empty_or_null(tzone_setup)) {
-        # Overrive timezone if empty
-        caminfo[[caminfo_setup]] <- force_tz(caminfo[[caminfo_setup]], 
-                                             tz)
-      } else {
-        # Convert if timezone not empty
-        if (tzone_setup != tz) { # Only if not already good
-          # Convert timezone
-          attr(caminfo[[caminfo_setup]], "tzone") <- tz
-        }
-      }
-    }
-    
-    if (!("POSIXt" %in% class(caminfo[[caminfo_retrieval]]))) {
-      # If caminfo_retrieval is not a POSIX, coerce
-      caminfo[[caminfo_retrieval]] <- as.POSIXct(caminfo[[caminfo_retrieval]],
-                                             tz = tz)
-    } else {
-      # If caminfo_retrieval is a POSIX
-      tzone_retrieval <- attr(caminfo[[caminfo_retrieval]], "tzone")
-      if (empty_or_null(tzone_retrieval)) {
-        # Overrive timezone if empty
-        caminfo[[caminfo_retrieval]] <- force_tz(caminfo[[caminfo_retrieval]], 
-                                             tz)
-      } else {
-        # Convert if timezone not empty
-        if (tzone_retrieval != tz) { # Only if not already good
-          # Convert timezone
-          attr(caminfo[[caminfo_retrieval]], "tzone") <- tz
-        }
-      }
-    }
+    caminfo[[caminfo_setup]] <- add_tz(caminfo[[caminfo_setup]], 
+                                       tz = tz,
+                                       force_tz = TRUE)
+    caminfo[[caminfo_retrieval]] <- add_tz(caminfo[[caminfo_retrieval]], 
+                                           tz = tz,
+                                           force_tz = TRUE)
     
     if (!interactive) {
       gg <- gg +

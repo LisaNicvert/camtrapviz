@@ -86,24 +86,29 @@ selectServer <- function(id,
         unname(mapping_records()$cam_col)
       })
       
-      col_filter_range <- reactive({
-        # Get the column to use to filter the range on
-        # if date_col is in records we'll use this
-        # Else we'll use timestamp
-        if (!is.null(mapping_records()$date_col)) {
-          unname(mapping_records()$date_col)
-        } else {
-          unname(mapping_records()$timestamp_col)
-        }
-      })
+      # col_filter_range <- reactive({
+      #   # Get the column to use to filter the range on
+      #   # if date_col is in records we'll use this
+      #   # Else we'll use timestamp
+      #   if (!is.null(mapping_records()$date_col)) {
+      #     unname(mapping_records()$date_col)
+      #   } else {
+      #     unname(mapping_records()$timestamp_col)
+      #   }
+      # })
       
 
       # Create daterange widget -------------------------------------------------
       
       default_daterange <- reactive({
         # Define default range from records
-        data_dates <- camtrap_data()$data$observations[[col_filter_range()]]
-        
+        if (!is.null(mapping_records()$timestamp_col)) {
+          data_dates <- camtrap_data()$data$observations[[mapping_records()$timestamp_col]]
+          data_dates <- as.Date(data_dates)
+        } else {
+          data_dates <- camtrap_data()$data$observations[[mapping_records()$date_col]]
+        }
+
         # Only execute if type is correct
         validate(need("Date" %in% class(data_dates) | "POSIXt" %in% class(data_dates),
                       "A valid date or datetime must be provided."))
@@ -250,7 +255,9 @@ selectServer <- function(id,
                       cam_col_cam = ..(cam_col_cam()),
                       cam_filter = cam_filter,
                       daterange = date_filter,
-                      time_col = ..(col_filter_range()),
+                      timestamp_col = ..(mapping_records()$timestamp_col),
+                      date_col = ..(mapping_records()$date_col),
+                      time_col = ..(mapping_records()$time_col),
                       cameras_as_factor = TRUE)
           
         }, bindToReturn = TRUE, localize = FALSE)

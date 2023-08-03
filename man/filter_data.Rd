@@ -14,12 +14,15 @@ filter_data(
   cam_col_rec = NULL,
   cam_col_cam = cam_col_rec,
   daterange = NULL,
+  timestamp_col = NULL,
   time_col = NULL,
+  date_col = NULL,
+  tz = NULL,
   cameras_as_factor = FALSE
 )
 }
 \arguments{
-\item{dat}{The data to filter It can be either a list with one component \verb{$data}
+\item{dat}{The data to filter. It can be either a list with one component \verb{$data}
 or a \code{datapackage} object (inheriting list). Either way, the data
 are in the \verb{$data} slot with two components:
 \itemize{
@@ -42,10 +45,25 @@ are in the \verb{$data} slot with two components:
 \item{cam_col_cam}{Name of the cameras column in cameras table (\code{dat$data$deployments}).
 Defaults to the same value as \code{cam_col_rec}.}
 
-\item{daterange}{Date range to filter on for the data. Can be either a Date
-or a POSIX.}
+\item{daterange}{Date range to filter on for the data (will filter
+observations' times so that \code{times >= daterange[1]} and
+\code{times <= daterange[2]}). Can be either a Date or a POSIX.}
 
-\item{time_col}{Name of the time column (must contain dates or POSIX)}
+\item{timestamp_col}{Name of the datetime column (must be coercible to POSIX).
+It is not needed if \code{date_col} and \code{time_col} are provided.}
+
+\item{time_col}{Name of the time column. It is not needed if \code{timestamp_col}
+is provided.}
+
+\item{date_col}{Name of the date column. It is not needed if \code{timestamp_col}
+is provided.}
+
+\item{tz}{Timezone for the data bounds. If not provided, will try to
+find the timezone in \code{daterange} (if it is a POSIX), then in
+\code{timestamp_col} (if provided), and finally if no timezone is
+present it will default to UTC (Etc/GMT).
+For the filtering step, if needed datetimes in \code{timestamp_col} can be
+converted to \code{tz} but the output data will not be affected.}
 
 \item{cameras_as_factor}{Transform cameras as factors?}
 }
@@ -58,12 +76,10 @@ Allows to filter camera trap data observations and
 cameras metadata based on species, cameras and dates.
 }
 \details{
-For the \code{spp_filter} and \code{cam_filter} values:
-\itemize{
-\item If \code{NULL}, data are not filtered on that condition
-(also the case for \code{daterange}).
-\item If character(0), all values will be filtered out.
-}
+For the \code{spp_filter}, \code{cam_filter} and \code{daterange} values:
+if they are \code{NULL}, data are not filtered on that condition.
+Also note that e.g. if all species are in \code{spp_filter}, then
+all species will be filtered out.
 }
 \examples{
 data("recordTableSample", package = "camtrapR")
@@ -79,5 +95,5 @@ filter_data(dat,
             cam_col_rec = "Station", 
             cam_filter = "StationA",
             daterange = as.Date(c("2009-05-01", "2009-05-15")),
-            time_col = "DateTimeOriginal")
+            timestamp_col = "DateTimeOriginal")
 }

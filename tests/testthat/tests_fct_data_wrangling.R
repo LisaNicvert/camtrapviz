@@ -607,6 +607,12 @@ test_that("Filter data", {
   expect_equal(nrow(res$data$observations), 0)
   expect_equal(res$data$deployments, dat$data$deployments)
   
+  # Filter out no species
+  spp_filter <- character(0)
+  res <- filter_data(dat, spp_col = "Species", 
+                     spp_filter = spp_filter)
+  expect_equal(dat, res)
+  
   # Filter out all cameras
   cam_filter <- unique(dat$data$observations$Station)
   res <- filter_data(dat, 
@@ -619,7 +625,7 @@ test_that("Filter data", {
   maxdate <- max(dat$data$observations$DateTimeOriginal)
   daterange <- as.Date(c(maxdate + 1, maxdate + 10))
   res <- filter_data(dat, 
-                     time_col = "DateTimeOriginal", 
+                     timestamp_col = "DateTimeOriginal", 
                      daterange = daterange)
   expect_equal(nrow(res$data$observations), 0)
   expect_equal(res$data$deployments, dat$data$deployments)
@@ -661,27 +667,118 @@ test_that("Filter data", {
   expect_equal(unique(res$data$observations$Station), cams)
   expect_equal(res$data$deployments$Station, cams)
   
-  # Filter dates
-  daterange_orig <- range(dat$data$observations$DateTimeOriginal)
-  daterange <- c(daterange_orig[1] + lubridate::days(30), daterange_orig[2])
+})
+
+test_that("Filter data (dates)", {
+  dat <- list(data = list(observations = records,
+                          deployments = caminfo))
+  
+  # Filter dates with POSIX that have a tz ---
+  daterange_orig <- range(dat$data$observations$timestamp)
+  daterange <- c(daterange_orig[1] + lubridate::hours(26), 
+                 daterange_orig[2])
   
   res <- filter_data(dat, 
-                     time_col = "DateTimeOriginal", 
+                     timestamp_col = "timestamp", 
                      daterange = daterange)
-  resrange <- range(res$data$observations$DateTimeOriginal)
-  expect_true(resrange[1] >= daterange[1])
+  resrange <- range(res$data$observations$timestamp)
+  # There is one obs every hour, so first and last obs should fall
+  # exactly at date ranges
+  expect_equal(resrange[1], daterange[1])
   expect_equal(resrange[2], daterange[2])
   expect_equal(res$data$deployments, dat$data$deployments)
   
-  # Filter dates (with dates objects)
-  daterange <- as.Date(c(daterange_orig[1] + lubridate::days(30), daterange_orig[2] + lubridate::days(1)))
+  # Filter dates with POSIX that have no tz ---
+  daterange <- as.POSIXct(c("2023-01-02 02:00:00", "2023-01-03 00:00:00"))
   
   res <- filter_data(dat, 
-                     time_col = "DateTimeOriginal", 
+                     timestamp_col = "timestamp", 
                      daterange = daterange)
-  resrange <- range(res$data$observations$DateTimeOriginal)
-  expect_true(resrange[1] >= daterange[1])
-  expect_equal(resrange[2], daterange_orig[2])
+  resrange <- range(res$data$observations$timestamp)
+  # There is one obs every hour, so first and last obs should fall
+  # exactly at date ranges
+  # Here we compare only char representations because else there is a tz
+  # mismatch (as tz for daterange is empty)
+  expect_equal(format(resrange[1], "%F %T"),
+               format(daterange[1], "%F %T"))
+  expect_equal(format(resrange[2], "%F %T"),
+               format(daterange[2], "%F %T"))
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
+  # Filter dates with POSIX having a different tz ---
+  daterange <- as.POSIXct(c("2023-01-02 02:00:00", "2023-01-03 00:00:00"),
+                          tz = "Etc/GMT-4")
+  res <- filter_data(dat, 
+                     timestamp_col = "timestamp", 
+                     daterange = daterange)
+  resrange <- range(res$data$observations$timestamp)
+  # convert daterange to data timezone
+  attr(daterange, "tzone") <- "Etc/GMT"
+  # There is one obs every hour, so first and last obs should fall
+  # exactly at date ranges
+  expect_equal(resrange[1], daterange[1])
+  expect_equal(resrange[2], daterange[2])
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
+  # Filter dates (with dates objects) ---
+  daterange <- as.Date(c("2023-01-02", "2023-01-03"))
+  
+  res <- filter_data(dat, 
+                     timestamp_col = "timestamp", 
+                     daterange = daterange)
+  resrange <- range(res$data$observations$timestamp)
+  # Convert to POSIX
+  expect_equal(resrange[1], 
+               as.POSIXct(daterange[1],
+                          tz = "Etc/GMT"))
+  expect_equal(resrange[2], 
+               as.POSIXct(daterange[2],
+                          tz = "Etc/GMT"))
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
+  # Filter dates (with characters) ---
+  daterange <- c("2023-01-02", "2023-01-03")
+  
+  res <- filter_data(dat, 
+                     timestamp_col = "timestamp", 
+                     daterange = daterange)
+  resrange <- range(res$data$observations$timestamp)
+  # Convert to POSIX
+  expect_equal(resrange[1], 
+               as.POSIXct(daterange[1],
+                          tz = "Etc/GMT"))
+  expect_equal(resrange[2], 
+               as.POSIXct(daterange[2],
+                          tz = "Etc/GMT"))
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
+  # Filter dates (with custom timezone different from original one) ---
+  daterange <- as.POSIXct(c("2023-01-02 02:00:00", "2023-01-03 00:00:00"),
+                          tz = "Etc/GMT")
+  custom_tz <- "Etc/GMT+10"
+  res <- filter_data(dat, 
+                     timestamp_col = "timestamp", 
+                     daterange = daterange,
+                     tz = custom_tz)
+  resrange <- range(res$data$observations$timestamp)
+  expect_equal(resrange[1], daterange[1])
+  expect_equal(resrange[2], daterange[2])
+  expect_equal(res$data$deployments, dat$data$deployments)
+  
+  # Filter dates (with custom timezone different from original one and timezoneless POSIX) ---
+  daterange <- as.POSIXct(c("2023-01-02 02:00:00", "2023-01-03 00:00:00"))
+  custom_tz <- "Etc/GMT-10"
+  res <- filter_data(dat, 
+                     timestamp_col = "timestamp", 
+                     daterange = daterange,
+                     tz = custom_tz)
+  resrange <- range(res$data$observations$timestamp)
+  # Add timezone then convert to GMT to check against final data
+  daterange_tz <- force_tz(daterange, custom_tz)
+  attr(daterange_tz, "tzone") <- "Etc/GMT"
+  
+  expect_equal(resrange[1], daterange_tz[1])
+  expect_equal(resrange[2], daterange_tz[2])
   expect_equal(res$data$deployments, dat$data$deployments)
   
 })
@@ -851,26 +948,5 @@ test_that("Fit von Mises", {
   
   # Check
   expect_equal(nrow(dt), length(seq(0, 2*pi, by = 0.01)))
-  
-  # Visual check
-  hist(as.numeric(testdat$eventTime)*2*pi, freq = FALSE,
-       breaks = seq(0, 2*pi, by = pi/8))
-  lines(as.numeric(dt$x), dt$density, type = "l", col = "red")
-  timeRad <- as.numeric(testdat$eventTime)*2*pi
-  library(overlap)
-  densityPlot(timeRad, rug = FALSE, xscale = NA, add = TRUE,
-              lty = 2)
-  
-  # Check with hours ---
-  dt <- vonMises_density(mod)
-  
-  # Visual check
-  hist(as.numeric(testdat$eventTime)*24, freq = FALSE,
-       breaks = seq(0, 24, by = 1.5))
-  lines(as.numeric(dt$x), dt$density, type = "l", col = "red")
-  timeRad <- as.numeric(testdat$eventTime)*2*pi
-  densityPlot(timeRad, rug = FALSE, xscale = 24, add = TRUE,
-              lty = 2)
-  
 })
     

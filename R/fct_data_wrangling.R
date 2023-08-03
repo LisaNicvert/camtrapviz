@@ -615,7 +615,7 @@ summarize_species <- function(df,
 #' Allows to filter camera trap data observations and
 #' cameras metadata based on species, cameras and dates.
 #'
-#' @param dat The data to filter It can be either a list with one component `$data`
+#' @param dat The data to filter. It can be either a list with one component `$data`
 #' or a `datapackage` object (inheriting list). Either way, the data 
 #' are in the `$data` slot with two components: 
 #' + `$deployments` (cameras table)
@@ -628,16 +628,28 @@ summarize_species <- function(df,
 #' @param cam_col_rec Name of the cameras column in records table (`dat$data$observations`).
 #' @param cam_col_cam Name of the cameras column in cameras table (`dat$data$deployments`).
 #' Defaults to the same value as `cam_col_rec`.
-#' @param daterange Date range to filter on for the data. Can be either a Date
-#' or a POSIX.
-#' @param time_col Name of the time column (must contain dates or POSIX)
+#' @param daterange Date range to filter on for the data (will filter 
+#' observations' times so that `times >= daterange[1]` and 
+#' `times <= daterange[2]`). Can be either a Date or a POSIX.
+#' @param timestamp_col Name of the datetime column (must be coercible to POSIX).
+#' It is not needed if `date_col` and `time_col` are provided.
+#' @param date_col Name of the date column. It is not needed if `timestamp_col` 
+#' is provided.
+#' @param time_col Name of the time column. It is not needed if `timestamp_col` 
+#' is provided.
 #' @param cameras_as_factor Transform cameras as factors?
+#' @param tz Timezone for the data bounds. If not provided, will try to 
+#' find the timezone in `daterange` (if it is a POSIX), then in
+#' `timestamp_col` (if provided), and finally if no timezone is 
+#' present it will default to UTC (Etc/GMT).
+#' For the filtering step, if needed datetimes in `timestamp_col` can be 
+#' converted to `tz` but the output data will not be affected.
 #' 
 #' @details
-#' For the `spp_filter` and `cam_filter` values: 
-#' + If `NULL`, data are not filtered on that condition 
-#' (also the case for `daterange`). 
-#' + If character(0), all values will be filtered out.
+#' For the `spp_filter`, `cam_filter` and `daterange` values: 
+#' if they are `NULL`, data are not filtered on that condition.
+#' Also note that e.g. if all species are in `spp_filter`, then
+#' all species will be filtered out.
 #' 
 #' @return The filtered data. Species and dates remove data only in `dat$data$observations`,
 #' but cameras also remove cameras from `dat$data$deployments`.
@@ -658,7 +670,7 @@ summarize_species <- function(df,
 #'             cam_col_rec = "Station", 
 #'             cam_filter = "StationA",
 #'             daterange = as.Date(c("2009-05-01", "2009-05-15")),
-#'             time_col = "DateTimeOriginal")
+#'             timestamp_col = "DateTimeOriginal")
 filter_data <- function(dat,
                         spp_filter = NULL,
                         spp_col = NULL,
@@ -668,9 +680,33 @@ filter_data <- function(dat,
                         cam_col_rec = NULL,
                         cam_col_cam = cam_col_rec,
                         daterange = NULL,
+                        timestamp_col = NULL,
                         time_col = NULL,
+                        date_col = NULL,
+                        tz = NULL,
                         cameras_as_factor = FALSE
                         ) {
+  
+  rec <- dat$data$observations
+  
+  if (!is.null(daterange)) {
+    if (is.null(timestamp_col)) { # no timestamp
+      if (is.null(date_col) | is.null(time_col)) {
+        stop("If timestamp_col is not provided, date_col and time_col must be provided.")
+      }
+      if( !(date_col %in% colnames(rec))) {
+        stop("date_col must be a column of dat$data$observations.")
+      }
+      if( !(time_col %in% colnames(rec))) {
+        stop("time_col must be a column of dat$data$observations.")
+      }
+    } else { # If provided, timestamp must be in df
+      if( !(timestamp_col %in% colnames(rec))) {
+        stop("timestamp_col must be a column of dat$data$observations.")
+      }
+    }
+  }
+  
   
   res <- dat
   
@@ -700,12 +736,42 @@ filter_data <- function(dat,
   
   # Filter daterange ---
   if (!is.null(daterange)) {
-    daterange_filter <- as.POSIXct(daterange)
-    res$data$observations <- res$data$observations |>
-      dplyr::filter(dplyr::between(.data[[time_col]], 
-                                   daterange_filter[1],
-                                   daterange_filter[2])
-      )
+    
+    # Set the timezone ---
+    default_tz <- "Etc/GMT"
+    if (!is.null(timestamp_col)) {
+      data_tz <- attr(res$data$observations[[timestamp_col]], "tzone")
+    } else {
+      data_tz <- NULL
+    }
+    tz <- get_tz(custom_tz = tz, 
+                 data_tz = data_tz, 
+                 default_tz = "Etc/GMT")
+    
+    if (is.null(timestamp_col)) { # no timestamp_col column
+      # Create a composite timestamp with custom timezone
+      timestamp_vec <- paste(as.character(res$data$observations[[date_col]]), 
+                             as.character(res$data$observations[[time_col]]))
+      
+      timestamp_vec <- as.POSIXct(timestamp_vec,
+                                  tz = tz)
+    } else { # timestamp_col not NULL
+      timestamp_vec <- add_tz(res$data$observations[[timestamp_col]],
+                              tz = tz,
+                              force_tz = TRUE)
+    }
+    
+    # Convert daterange to POSIX with appropriate timezone
+    daterange_filter <- add_tz(daterange,
+                               tz = tz,
+                               force_tz = TRUE)
+    
+    # Filter dates
+    sel <- dplyr::between(timestamp_vec, 
+                          daterange_filter[1],
+                          daterange_filter[2])
+    res$data$observations <- res$data$observations[sel, ]
+    
   }
   
   # Cameras to factor ---
@@ -718,7 +784,6 @@ filter_data <- function(dat,
     res$data$deployments[[cam_col_cam]] <- factor(res$data$deployments[[cam_col_cam]],
                                                   levels = cameras_list)
   }
-  
   
   return(res)
 }

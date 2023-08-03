@@ -87,3 +87,86 @@ test_that("empty_or_null", {
   expect_false(empty_or_null("foo"))
   expect_false(empty_or_null(1))
 })
+
+
+# Timezone helpers ------------------------------------------------------------
+
+test_that("Get timezone", {
+  
+  # Default if no other provided
+  expect_equal(get_tz(custom_tz = NULL, data_tz = NULL),
+               "Etc/GMT")
+  expect_equal(get_tz(custom_tz = "", data_tz = NULL),
+               "Etc/GMT")
+  expect_equal(get_tz(custom_tz = NULL, data_tz = ""),
+               "Etc/GMT")
+  # Explicit default
+  expect_equal(get_tz(custom_tz = NULL, data_tz = NULL, default_tz = "Etc/GMT+10"),
+               "Etc/GMT+10")
+  
+  # Custom overrides default
+  expect_equal(get_tz(custom_tz = "Etc/GMT+10", data_tz = NULL),
+               "Etc/GMT+10")
+  # Except if custom is empty
+  expect_equal(get_tz(custom_tz = "", data_tz = NULL),
+               "Etc/GMT")
+  # Custom overrides data
+  expect_equal(get_tz(custom_tz = "Etc/GMT+10", data_tz = "Etc/GMT+12"),
+               "Etc/GMT+10")
+  # Except if custom is empty
+  expect_equal(get_tz(custom_tz = "", data_tz = "Etc/GMT+12"),
+               "Etc/GMT+12")
+  # Data saves the day
+  expect_equal(get_tz(custom_tz = NULL, data_tz = "Etc/GMT+12"),
+               "Etc/GMT+12")
+  # Except if empty
+  expect_equal(get_tz(custom_tz = NULL, data_tz = ""),
+               "Etc/GMT")
+})
+
+test_that("Add timezone", {
+  tz <- "Etc/GMT+10"
+  
+  # Date input
+  dat <- as.Date(c("2023-01-01", "2023-01-02", "2023-12-12"))
+  res <- add_tz(dat, tz = tz)
+  expected <- as.POSIXct(dat, tz = tz)
+  expect_equal(res, expected)
+  
+  # Character input
+  char <- c("2023-01-01", "2023-01-02", "2023-12-12")
+  res <- add_tz(char, tz = tz)
+  expected <- as.POSIXct(char, tz = tz)
+  expect_equal(res, expected)
+  
+  # POSIX input (has a timezone)
+  posix <- as.POSIXct(c("2023-01-01 12:00:00", "2023-01-02 10:00:00", "2023-12-12 03:00:00"),
+                      tz = "Etc/GMT")
+  expect_equal(attr(posix, "tzone"), "Etc/GMT")
+  
+  res <- add_tz(posix, tz = tz)
+  expected <- as.POSIXct(posix, tz = tz)
+  expect_equal(res, expected)
+
+  # POSIX input (has same tz)
+  posix <- as.POSIXct(c("2023-01-01 12:00:00", "2023-01-02 10:00:00", "2023-12-12 03:00:00"),
+                      tz = tz)
+  expect_equal(attr(posix, "tzone"), tz)
+  
+  res <- add_tz(posix, tz = tz)
+  expected <- as.POSIXct(posix, tz = tz)
+  expect_equal(res, expected)
+  
+  # POSIX input (has no tz)
+  posix <- as.POSIXct(c("2023-01-01 12:00:00", "2023-01-02 10:00:00", "2023-12-12 03:00:00"))
+  expect_equal(attr(posix, "tzone"), "")
+  
+  expect_error(add_tz(posix, tz = tz),
+               "Input POSIX vector has no timezone and it will not be modified unless force_tz is TRUE.",
+               fixed = TRUE)
+  
+  # POSIX input (has no tz and force tz is TRUE)
+  res <- add_tz(posix, tz = tz, force_tz = TRUE)
+  expected <- force_tz(posix, tz = tz)
+  expect_equal(res, expected)
+})

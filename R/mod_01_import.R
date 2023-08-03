@@ -440,14 +440,14 @@ importServer <- function(id) {
     observe(
       if (input$input_type == 2) { # We import data
         
-        if (!input$import_cameras) { # There is no camera file
-          lon_col <- input$lon_col
-          lat_col <- input$lat_col
-          crs_id <- "crs_col"
-        } else { # There is a camera file
+        if (input$import_cameras || records_extension() == "json") { # There is no camera file
           lon_col <- input$lon_col_cov
           lat_col <- input$lat_col_cov
           crs_id <- "crs_col_cov"
+        } else { # There is a camera file
+          lon_col <- input$lon_col
+          lat_col <- input$lat_col
+          crs_id <- "crs_col"
         }
         
         if(lon_col == nullval & lat_col == nullval) {
@@ -623,7 +623,7 @@ importServer <- function(id) {
           dplyr::filter(type != "timestamp")
       }
       
-      if (input$import_cameras) { 
+      if (input$import_cameras || records_extension() == "json") { 
         # User wants to import a camera file
         widget_df <- widget_df |> 
           dplyr::filter(type != "cameras")
@@ -856,7 +856,7 @@ importServer <- function(id) {
     observe({
       if (input$input_type == 2) { # Manual file import
         
-        if (input$import_cameras) { # There is a camera file
+        if (input$import_cameras || records_extension() == "json") { # There is a camera file
           lat_col <- input$lat_col_cov
           lon_id <- "lon_col_cov"
         } else { # No camera file
@@ -877,7 +877,7 @@ importServer <- function(id) {
     observe({
       if (input$input_type == 2) { # Manual file import
         
-        if (input$import_cameras) { # There is a camera file
+        if (input$import_cameras || records_extension() == "json") { # There is a camera file
           lon_col <- input$lon_col_cov
           lat_id <- "lat_col_cov"
         } else { # No camera file
