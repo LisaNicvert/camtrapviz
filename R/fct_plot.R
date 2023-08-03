@@ -34,9 +34,13 @@
 #' with the camera ID, the setup and the retrieval date.
 #' @param caminfo_camera_col Name of the camera column in caminfo file.
 #' @param caminfo_setup  Name of the setup column in caminfo file. The column 
-#' must be coercible to POSIX (eg a Date).
+#' must be coercible to POSIX (eg a Date). If it is not a POSIX, it will be 
+#' converted to a POSIX attempting to use the timezone defined in `tz` (or its
+#' default). If it is a POSIX, the timezone will be converted to `tz`.
 #' @param caminfo_retrieval  Name of the retrieval column in caminfo file. The column 
-#' must be coercible to POSIX (eg a Date).
+#' must be coercible to POSIX (eg a Date). If it is not a POSIX, it will be 
+#' converted to a POSIX attempting to use the timezone defined in `tz` (or its
+#' default). If it is a POSIX, the timezone will be converted to `tz`.
 #' @param alpha_rect transparency of the rectangle plotted for the sampling period
 #' (when `caminfo` is given)
 #' @param col_rect stroke color of the rectangle plotted for the sampling period
@@ -69,8 +73,12 @@
 #' @param date_limits Vector of the lower and upper limit of the x-axis  (must be a
 #' POSIX). The timezone should be the same as the timezone defined in the `timezone`
 #' argument.
-#' @param timezone Timezone code. For the possible values, refer to the
-#' `timezone` argument of `ggplot2::scale_y_datetime`.
+#' @param tz Timezone code to use for the data. If provided, the 
+#' data will be converted to this timezone. If missing, will search
+#' a timezone in `timestamp_col` (if provided), else will default to
+#' UTC (Etc/GMT for the R code).
+#' The data timezone (or the default timezone) will also override
+#' any timezone present in `caminfo_setup` or `caminfo_retrieval`.
 #' @param tooltip_info Name of the column to display in the tooltip
 #' when hovering points (if interactive is `TRUE`).
 #' The data of this column will be displayed additionally to the 
@@ -106,7 +114,8 @@
 #'             caminfo_retrieval = "Retrieval_date")
 plot_points <- function(df, 
                         camera_col,
-                        timestamp_col,
+                        timestamp_col = NULL,
+                        tz = NULL,
                         date_col = NULL,
                         time_col = NULL,
                         cameras_list = NULL,
@@ -122,7 +131,6 @@ plot_points <- function(df,
                         date_breaks = NULL,
                         date_format = "%b %d",
                         date_limits = NULL,
-                        timezone = "UTC",
                         alpha_rect = 0.5,
                         col_rect = "black",
                         height_rect = 0.8,
@@ -163,7 +171,7 @@ plot_points <- function(df,
     }
   }
   
-  if (missing(timestamp_col) || is.null(timestamp_col)) { # no timestamp
+  if (is.null(timestamp_col)) { # no timestamp
     if (is.null(date_col) | is.null(time_col)) {
       stop("If timestamp_col is not provided, date_col and time_col must be provided.")
     }
@@ -179,20 +187,56 @@ plot_points <- function(df,
     }
   }
   
+  # Set the timezone ---
+  default_tz <- "Etc/GMT"
+  if (is.null(tz)) { # no custom tz
+    if (!is.null(timestamp_col)) {
+       # Try to get timezone from timestamp_col
+      tz_data <- attr(dfp[[timestamp_col]], "tzone")
+      
+      if (empty_or_null(tz_data)) {
+        # If empty, set to default
+        tz <- default_tz
+      } else {
+        # Else, set to tz of the data
+        tz <- tz_data
+      }
+    } else {
+      # If timestamp_col is NULL, set directly to the 
+      # default value
+      tz <- default_tz
+    }
+  }
   
-  if (missing(timestamp_col) || is.null(timestamp_col)) { # no timestamp
+  if (is.null(timestamp_col)) { # no timestamp
     if("timestamp_col" %in% colnames(dfp)) {
       warning("timestamp_col already exists and this might interfer with plotting")
     }
-    # Create a composite timestamp
+    # Create a composite timestamp with custom tz
     dfp$timestamp_col <- paste(as.character(dfp[[date_col]]), 
                                as.character(dfp[[time_col]]))
     
-    dfp$timestamp_col <- as.POSIXct(dfp$timestamp_col)
-    
+    dfp$timestamp_col <- as.POSIXct(dfp$timestamp_col,
+                                    tz = tz) 
     # Change timestamp_col value
     timestamp_col <- "timestamp_col"
+    
+  } else { # timestamp_col not NULL
+    # Get timezone
+    tz_data <- attr(dfp[[timestamp_col]], "tzone")
+    if (empty_or_null(tz_data)) {
+      # Override timezone if empty
+      dfp[[timestamp_col]] <- force_tz(dfp[[timestamp_col]], 
+                                       tz)
+    } else {
+      # Convert timezone
+      attr(dfp[[timestamp_col]], "tzone") <- tz
+    }
   }
+  
+  # set data timezone to custom tz 
+  # (it can have been chosen from data before but not an issue)
+  
   
   if (!is.null(cameras_list)) {
     # Filter data (keep only cameras in cameras_list)
@@ -246,13 +290,50 @@ plot_points <- function(df,
       warning(paste(abs, collapse = ", "), " is/are present in df but not in caminfo.")
     }
     
-    # Corece to factor
+    # Coerce to factor
     caminfo[[caminfo_camera_col]] <- factor(caminfo[[caminfo_camera_col]],
                                             levels = levels)
     
     # Coerce setup and retrieval to POSIX ---
-    caminfo[[caminfo_setup]] <- as.POSIXct(caminfo[[caminfo_setup]])
-    caminfo[[caminfo_retrieval]] <- as.POSIXct(caminfo[[caminfo_retrieval]])
+    if (!("POSIXt" %in% class(caminfo[[caminfo_setup]]))) {
+      # If caminfo_setup in not a POSIX, coerce
+      caminfo[[caminfo_setup]] <- as.POSIXct(caminfo[[caminfo_setup]],
+                                             tz = tz)
+    } else {
+      # If caminfo_setup is a POSIX
+      tzone_setup <- attr(caminfo[[caminfo_setup]], "tzone")
+      if (empty_or_null(tzone_setup)) {
+        # Overrive timezone if empty
+        caminfo[[caminfo_setup]] <- force_tz(caminfo[[caminfo_setup]], 
+                                             tz)
+      } else {
+        # Convert if timezone not empty
+        if (tzone_setup != tz) { # Only if not already good
+          # Convert timezone
+          attr(caminfo[[caminfo_setup]], "tzone") <- tz
+        }
+      }
+    }
+    
+    if (!("POSIXt" %in% class(caminfo[[caminfo_retrieval]]))) {
+      # If caminfo_retrieval is not a POSIX, coerce
+      caminfo[[caminfo_retrieval]] <- as.POSIXct(caminfo[[caminfo_retrieval]],
+                                             tz = tz)
+    } else {
+      # If caminfo_retrieval is a POSIX
+      tzone_retrieval <- attr(caminfo[[caminfo_retrieval]], "tzone")
+      if (empty_or_null(tzone_retrieval)) {
+        # Overrive timezone if empty
+        caminfo[[caminfo_retrieval]] <- force_tz(caminfo[[caminfo_retrieval]], 
+                                             tz)
+      } else {
+        # Convert if timezone not empty
+        if (tzone_retrieval != tz) { # Only if not already good
+          # Convert timezone
+          attr(caminfo[[caminfo_retrieval]], "tzone") <- tz
+        }
+      }
+    }
     
     if (!interactive) {
       gg <- gg +
@@ -373,16 +454,13 @@ plot_points <- function(df,
                                              date_limits[2],
                                              by = date_breaks),
                                 limits = date_limits,
-                                timezone = timezone,
                                 date_labels = date_format) } +
     { if (!is.null(date_breaks) & is.null(date_limits) ) 
       ggplot2::scale_x_datetime(date_breaks = date_breaks,
                                 limits = date_limits,
-                                timezone = timezone,
                                 date_labels = date_format) } +
     { if (is.null(date_breaks)) 
       ggplot2::scale_x_datetime(limits = date_limits,
-                                timezone = timezone,
                                 date_labels = date_format) } +
     theme(axis.text.x = element_text(angle = text_x_angle, 
                                      hjust = ifelse(text_x_angle %% 180 == 0,

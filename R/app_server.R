@@ -28,7 +28,8 @@ server <- function(input, output, session) {
   select_val <- selectServer("select",
                              camtrap_data = import_val$camtrap_data,
                              mapping_records = import_val$mapping_records,
-                             mapping_cameras = import_val$mapping_cameras)
+                             mapping_cameras = import_val$mapping_cameras,
+                             tz = import_val$tz)
   
 
   # Summary reactives -------------------------------------------------------
@@ -37,7 +38,8 @@ server <- function(input, output, session) {
                                camtrap_data = select_val$camtrap_data,
                                mapping_records = import_val$mapping_records,
                                mapping_cameras = import_val$mapping_cameras,
-                               crs = import_val$crs)
+                               crs = import_val$crs,
+                               tz = import_val$tz)
   
 
   # All species -------------------------------------------------------------

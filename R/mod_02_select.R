@@ -55,7 +55,8 @@ selectUI <- function(id) {
 selectServer <- function(id,
                          camtrap_data, 
                          mapping_records,
-                         mapping_cameras) {
+                         mapping_cameras,
+                         tz) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -65,7 +66,7 @@ selectServer <- function(id,
       # stopifnot(is.reactive(camtrap_data))
       stopifnot(is.reactive(mapping_records))
       stopifnot(is.reactive(mapping_cameras))
-      
+      stopifnot(is.reactive(tz))
 
       # Create column names reactives -------------------------------------------
     
@@ -292,11 +293,12 @@ selectServer <- function(id,
                           tooltip_info = "spp_col",
                           date_format = "%d-%b-%Y",
                           date_limits = as.POSIXct(default_daterange(),
-                                                   tz = "UTC"), 
+                                                   tz = tz()), 
                           cols = cols,
+                          tz = tz(),
                           interactive = TRUE) +
           ggplot2::geom_vline(xintercept = as.POSIXct(input$daterange_select,
-                                                      tz = "UTC"), 
+                                                      tz = tz()), 
                               linetype = "dashed")
         
         gi <- ggiraph::girafe(ggobj = gg, 

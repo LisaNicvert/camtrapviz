@@ -121,7 +121,8 @@ test_that("Plot points (different parameter combinations)", {
 
 test_that("Plot points (colors)", {
   df <- recordTableSample
-  df$DateTimeOriginal <- as.POSIXct(df$DateTimeOriginal)
+  df$DateTimeOriginal <- as.POSIXct(df$DateTimeOriginal,
+                                    tz = "Etc/GMT")
   
   # Unique color ---
   (p <- plot_points(df,
@@ -166,7 +167,7 @@ test_that("Plot points (colors)", {
   # Get datetime of one observation of EGY
   dttime <- df$DateTimeOriginal[df$Species == "EGY"][1]
   # Get colour of this observation
-  coltest <- gb$colour[gb$x == as.numeric(dttime)]
+  coltest <- gb$colour[as.POSIXct(gb$x, tz = "Etc/GMT") == dttime]
   expect_equal(coltest, 
                unname(pal2["EGY"]))
 })
@@ -297,7 +298,144 @@ test_that("Plot points with rectangles", {
   
   })
 
+test_that("Plot points and timezones", {
 
+  # No timezone in data (date + time) ---
+  custom_tz <- "Etc/GMT+12"
+  (p <- plot_points(records,
+                    camera_col = "camera",
+                    date_col = "date",
+                    time_col = "time",
+                    tz = custom_tz))
+  # Check results
+  res <- check_plot_datetimes(p,
+                              true_dates = records$timestamp)
+  expect_equal(res$tz, custom_tz)
+  expect_equal(res$plot_time, res$data_time)
+  
+  # Datetime with timezone (converted) ---
+  custom_tz <- "Etc/GMT+12"
+  (p <- plot_points(records,
+                    camera_col = "camera",
+                    timestamp_col = "timestamp",
+                    tz = custom_tz))
+  # Convert dates to target timezone
+  true_dates <- as.POSIXct(records$timestamp, 
+                           tz = custom_tz)
+  res <- check_plot_datetimes(p,
+                              true_dates = true_dates)
+  expect_equal(res$tz, custom_tz)
+  expect_equal(res$plot_time, res$data_time)
+  
+  # Datetime with no timezone (replaced) ---
+  custom_tz <- "Etc/GMT+12"
+  records_notz <- records |> 
+    mutate(timestamp = format(timestamp, "%F %T")) |> 
+    mutate(timestamp = as.POSIXct(timestamp))
+  expect_equal(attr(records_notz$timestamp, "tz"),
+               "")
+  
+  (p <- plot_points(records_notz,
+                    camera_col = "camera",
+                    timestamp_col = "timestamp",
+                    tz = custom_tz))
+  
+  res <- check_plot_datetimes(p,
+                              true_dates = records$timestamp)
+  expect_equal(res$tz, custom_tz)
+  expect_equal(res$plot_time, res$data_time)
+  
+  # Add caminfo (POSIX with same tz as data) ---
+  data_tz <- attr(records$timestamp, "tzone")
+  (p <- plot_points(records,
+                    camera_col = "camera",
+                    timestamp_col = "timestamp",
+                    caminfo = caminfo,
+                    caminfo_setup = "setup",
+                    caminfo_retrieval = "retrieval"))
+  
+  res <- check_plot_datetimes(p,
+                              true_dates = records$timestamp,
+                              setup = caminfo$setup,
+                              retrieval = caminfo$retrieval)
+  expect_equal(res$tz, data_tz)
+  expect_equal(res$plot_time, res$data_time)
+  expect_equal(res$plot_setup, res$data_setup)
+  expect_equal(res$plot_retrieval, res$data_retrieval)
+  
+  # Add caminfo (dates only) ---
+  caminfo_dates <- caminfo |> 
+    mutate(setup = as.Date(setup),
+           retrieval = as.Date(retrieval))
+  (p <- plot_points(records,
+                    camera_col = "camera",
+                    timestamp_col = "timestamp",
+                    caminfo = caminfo_dates,
+                    caminfo_setup = "setup",
+                    caminfo_retrieval = "retrieval"))
+  res <- check_plot_datetimes(p,
+                              true_dates = records$timestamp,
+                              setup = caminfo_dates$setup,
+                              retrieval = caminfo_dates$retrieval)
+  expect_equal(res$tz, data_tz)
+  expect_equal(res$plot_time, res$data_time)
+  expect_equal(res$plot_setup, res$data_setup)
+  expect_equal(res$plot_retrieval, res$data_retrieval)
+  
+  # Add caminfo with another timezone ---
+  tzo = "Etc/GMT+10"
+  default_tz <- "Etc/GMT"
+  caminfo_othertz <- caminfo |> 
+    mutate(setup = force_tz(setup, tz = tzo),
+           retrieval = force_tz(retrieval, tz = tzo))
+  (p <- plot_points(records,
+                    camera_col = "camera",
+                    timestamp_col = "timestamp",
+                    caminfo = caminfo_othertz,
+                    caminfo_setup = "setup",
+                    caminfo_retrieval = "retrieval"))
+  # Convert setup and retrieval to target timezone
+  true_setup <- caminfo_othertz$setup
+  attr(true_setup, "tzone") <- default_tz
+  true_retrieval <- caminfo_othertz$retrieval
+  attr(true_retrieval, "tzone") <- default_tz
+  
+  res <- check_plot_datetimes(p,
+                              true_dates = records$timestamp,
+                              setup = true_setup,
+                              retrieval = true_retrieval)
+  expect_equal(res$tz, data_tz)
+  expect_equal(res$plot_time, res$data_time)
+  expect_equal(res$plot_setup, res$data_setup)
+  expect_equal(res$plot_retrieval, res$data_retrieval)
+  
+  # Add caminfo (POSIX with same tz) and convert ---
+  custom_tz <- "Etc/GMT+10"
+  (p <- plot_points(records,
+                    camera_col = "camera",
+                    timestamp_col = "timestamp",
+                    caminfo = caminfo,
+                    caminfo_setup = "setup",
+                    caminfo_retrieval = "retrieval",
+                    tz = custom_tz))
+  
+  # Convert dates, setup and retrieval to target timezone
+  true_dates <- records$timestamp
+  attr(true_dates, "tzone") <- custom_tz
+  true_setup <- caminfo$setup
+  attr(true_setup, "tzone") <- custom_tz
+  true_retrieval <- caminfo$retrieval
+  attr(true_retrieval, "tzone") <- custom_tz
+  
+  res <- check_plot_datetimes(p,
+                              true_dates = true_dates,
+                              setup =  true_setup,
+                              retrieval = true_retrieval)
+  expect_equal(res$tz, custom_tz)
+  expect_equal(res$plot_time, res$data_time)
+  expect_equal(res$plot_setup, res$data_setup)
+  expect_equal(res$plot_retrieval, res$data_retrieval)
+})
 
 # Plot bars ---------------------------------------------------------------
 

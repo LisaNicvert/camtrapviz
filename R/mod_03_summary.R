@@ -88,7 +88,8 @@ summaryServer <- function(id,
                           camtrap_data, 
                           mapping_records,
                           mapping_cameras,
-                          crs) {
+                          crs,
+                          tz) {
   moduleServer(id, function(input, output, session) {
     
 # Test reactive input -----------------------------------------------------
@@ -96,7 +97,7 @@ summaryServer <- function(id,
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     stopifnot(is.reactive(crs))
-    
+    stopifnot(is.reactive(tz))
 
 # Create lonlat reactive --------------------------------------------------
     output$lonlat <- reactive({
@@ -336,6 +337,7 @@ summaryServer <- function(id,
                             time_col = ..(unname(mapping_records()$time_col)),
                             date_col = ..(unname(mapping_records()$date_col)),
                             caminfo = ..(cameras_values()),
+                            tz = ..(tz()),
                             interactive = TRUE,
                             cameras_list = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
           
@@ -363,6 +365,7 @@ summaryServer <- function(id,
                             timestamp_col = ..(unname(mapping_records()$timestamp_col)),
                             time_col = ..(unname(mapping_records()$time_col)),
                             date_col = ..(unname(mapping_records()$date_col)),
+                            tz = ..(tz()),
                             interactive = TRUE,
                             cameras_list = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
           

@@ -78,3 +78,12 @@ test_that("Get cameras not in", {
   expect_equal(res$not_in_cameras,  c("b", "c"))
 })
 
+# Check empty or NULL -----------------------------------------------------
+
+test_that("empty_or_null", {
+  
+  expect_true(empty_or_null(""))
+  expect_true(empty_or_null(NULL))
+  expect_false(empty_or_null("foo"))
+  expect_false(empty_or_null(1))
+})

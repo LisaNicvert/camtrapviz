@@ -248,3 +248,23 @@ get_hw <- function(ncam, daterange = NULL) {
   list(height = height,
        width = width)
 }
+
+
+# Check empty or NULL -----------------------------------------------------
+
+#' Check if argument is null or the empty character
+#'
+#' @param arg The argument to test
+#'
+#' @return TRUE or FALSE
+#' @noRd
+empty_or_null <- function(arg) {
+  res <- FALSE
+  if (is.null(arg)) {
+    res <- TRUE
+  } else if (arg == "") {
+    res <- TRUE
+  }
+  return(res)
+}
+

@@ -7,7 +7,8 @@
 plot_points(
   df,
   camera_col,
-  timestamp_col,
+  timestamp_col = NULL,
+  tz = NULL,
   date_col = NULL,
   time_col = NULL,
   cameras_list = NULL,
@@ -23,7 +24,6 @@ plot_points(
   date_breaks = NULL,
   date_format = "\%b \%d",
   date_limits = NULL,
-  timezone = "UTC",
   alpha_rect = 0.5,
   col_rect = "black",
   height_rect = 0.8,
@@ -42,6 +42,13 @@ plot_points(
 \item{timestamp_col}{Name of the timestamp column. If it
 is a datetime, it must be of class POSIXct. It can be \code{NULL}
 if \code{date_col} and \code{time_col} are provided.}
+
+\item{tz}{Timezone code to use for the data. If provided, the
+data will be converted to this timezone. If missing, will search
+a timezone in \code{timestamp_col} (if provided), else will default to
+UTC (Etc/GMT for the R code).
+The data timezone (or the default timezone) will also override
+any timezone present in \code{caminfo_setup} or \code{caminfo_retrieval}.}
 
 \item{date_col}{Name of the date column. It is assumed
 to be of class \code{Date} (else, results are not guaranteed).
@@ -64,10 +71,14 @@ with the camera ID, the setup and the retrieval date.}
 \item{caminfo_camera_col}{Name of the camera column in caminfo file.}
 
 \item{caminfo_setup}{Name of the setup column in caminfo file. The column
-must be coercible to POSIX (eg a Date).}
+must be coercible to POSIX (eg a Date). If it is not a POSIX, it will be
+converted to a POSIX attempting to use the timezone defined in \code{tz} (or its
+default). If it is a POSIX, the timezone will be converted to \code{tz}.}
 
 \item{caminfo_retrieval}{Name of the retrieval column in caminfo file. The column
-must be coercible to POSIX (eg a Date).}
+must be coercible to POSIX (eg a Date). If it is not a POSIX, it will be
+converted to a POSIX attempting to use the timezone defined in \code{tz} (or its
+default). If it is a POSIX, the timezone will be converted to \code{tz}.}
 
 \item{interactive}{Logical; make the plot interactive with \code{ggiraph}?}
 
@@ -88,9 +99,6 @@ labels.}
 \item{date_limits}{Vector of the lower and upper limit of the x-axis  (must be a
 POSIX). The timezone should be the same as the timezone defined in the \code{timezone}
 argument.}
-
-\item{timezone}{Timezone code. For the possible values, refer to the
-\code{timezone} argument of \code{ggplot2::scale_y_datetime}.}
 
 \item{alpha_rect}{transparency of the rectangle plotted for the sampling period
 (when \code{caminfo} is given)}
