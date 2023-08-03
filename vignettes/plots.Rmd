@@ -57,6 +57,7 @@ plot_points(recordTableSample,
             date_col = "Date", 
             time_col = "Time")
 ```
+
 It is also possible to provide a column for points colors:
 
 ```{r}
@@ -184,7 +185,7 @@ plot_species_bars(with_count,
                   spp_col = "Species", count_col = "count")
 ```
 
-Finally, if there is an observation type column, `NA` values in the species column will be replaced with the values in observation type. This is primarily intended for the camtrapDP standard, where non-animal observations have a `NA` in the species column.
+If there is an observation type column, `NA` values in the species column will be replaced with the values in observation type. This is primarily intended for the camtrapDP standard, where non-animal observations have a `NA` in the species column.
 
 Here, we add an observation type column to the data and replace some species with `NA`.
 
@@ -205,6 +206,17 @@ plot_species_bars(with_obstype,
                   obs_col = "type")
 ```
 
+
+Finally, this plot can also be made interactive using `ggiraph`:
+
+```{r}
+p <- plot_species_bars(recordTableSample, 
+                       spp_col = "Species",
+                       interactive = TRUE)
+girafe(ggobj = p)
+```
+
+
 ## Plot activity
 
 It is also possible to explore the activity times of a given species:
@@ -214,8 +226,11 @@ It is also possible to explore the activity times of a given species:
 PBE_records <- recordTableSample |> 
   filter(Species == "PBE")
 
-plot_activity(true_data = PBE_records,
+p <- plot_activity(true_data = PBE_records,
                    times_true = "Time",
-                   unit = "clock")
+                   unit = "clock",
+                   interactive = TRUE)
+girafe(ggobj = p)
 ```
-Another vignette gives a more in-depth overview of this type of plots (see (https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html)[here]).
+
+Another vignette gives a more in-depth overview of this type of plots (see [here](https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html)).
