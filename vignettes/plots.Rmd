@@ -46,18 +46,17 @@ The package provides a function to plot the observations for each camera.
 ```{r}
 plot_points(recordTableSample,
             camera_col = "Station",
-            date_col = "Date", 
-            time_col = "Time")
+            timestamp_col = "DateTimeOriginal")
 ```
 
-If a `timestamp_col` is present, it can also be used.
+`date_col` and `time_col` can also be used instead of `timestamp_col`.
 
 ```{r}
 plot_points(recordTableSample,
             camera_col = "Station",
-            timestamp_col = "DateTimeOriginal")
+            date_col = "Date", 
+            time_col = "Time")
 ```
-
 It is also possible to provide a column for points colors:
 
 ```{r}
@@ -67,7 +66,7 @@ plot_points(recordTableSample,
             timestamp_col = "DateTimeOriginal")
 ```
 
-By providing additional info, it is also possible to vizualise the sampling period on the same graph.
+By providing additional info, it is also possible to visualize the sampling period on the same graph.
 
 ```{r}
 plot_points(recordTableSample, 
@@ -133,6 +132,39 @@ plot_map(camtraps,
          crs = 32650)
 ```
 
+It is also possible to display cameras names:
+```{r}
+plot_map(camtraps, 
+         cam_col = "Station",
+         lat_col = "utm_y", lon_col = "utm_x", 
+         display_camnames = TRUE,
+         crs = 32650)
+```
+
+Additional information can also be displayed using the radius of the camera points. Here, we choose to make circles sizes proportional to the abundance of one species at each camera:
+
+```{r}
+# Get abundance per camera
+PBE_abundance <- recordTableSample |> 
+  filter(Species == "PBE") |> 
+  group_by(Station) |> 
+  summarise(count = n())
+radius <- PBE_abundance$count
+names(radius) <- PBE_abundance$Station
+
+radius
+```
+
+```{r}
+plot_map(camtraps, 
+         cam_col = "Station",
+         lat_col = "utm_y", lon_col = "utm_x", 
+         radius = radius,
+         label = paste("Camera:", names(radius), 
+                       "| abundance:", radius),
+         crs = 32650)
+```
+
 ## Plot species
 
 The package also includes a simple function to plot species counts.
@@ -152,14 +184,38 @@ plot_species_bars(with_count,
                   spp_col = "Species", count_col = "count")
 ```
 
-Finally, if there is an observation type column, `NA` values in the species column will be replaced with the values in observation type.
+Finally, if there is an observation type column, `NA` values in the species column will be replaced with the values in observation type. This is primarily intended for the camtrapDP standard, where non-animal observations have a `NA` in the species column.
+
+Here, we add an observation type column to the data and replace some species with `NA`.
 
 ```{r}
 with_obstype <- recordTableSample |> 
-  mutate(type = "animal")
-with_obstype <- rbind(with_obstype,
-                      c(rep(NA, 11), "human"))
-
-plot_species_bars(with_obstype, 
-                  spp_col = "Species", obs_col = "type")
+  mutate(type = ifelse(Species == "PBE", "blank", "animal"), 
+         .after = Species) |> 
+  mutate(Species = ifelse(Species == "PBE", NA, Species))
+with_obstype |> 
+  select(Station, Species, type) |> 
+  head()
 ```
+
+
+```{r}
+plot_species_bars(with_obstype, 
+                  spp_col = "Species", 
+                  obs_col = "type")
+```
+
+## Plot activity
+
+It is also possible to explore the activity times of a given species:
+
+```{r}
+# Get records corresponding only to PBE
+PBE_records <- recordTableSample |> 
+  filter(Species == "PBE")
+
+plot_activity(true_data = PBE_records,
+                   times_true = "Time",
+                   unit = "clock")
+```
+Another vignette gives a more in-depth overview of this type of plots (see (https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html)[here]).

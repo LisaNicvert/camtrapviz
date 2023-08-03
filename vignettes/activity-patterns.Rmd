@@ -60,7 +60,7 @@ We also need the coordinates if we want to use solar time (not run here):
 # # [1,] 117.2227 5.479598
 ```
 
-Then, we need to convert time to radians and possibly solar time too (i.e. a time in radians where times are transformed relative to the sunrise and sunset times).
+Then, we need to convert time to radians (and possibly solar time too, i.e. a time in radians where times are transformed relative to the sunrise and sunset times).
 
 ```{r}
 # Convert times to radians
@@ -68,7 +68,6 @@ recordTableSample <- recordTableSample |>
   mutate(time_radians = as.numeric(Time)*2*pi,
          .after = Time)
 
-# tzone <- attr(recordTableSample$DateTimeOriginal, "tzone")
 solartime_rec <- solartime(recordTableSample$DateTimeOriginal,
                            lon = 117.2227, # mean longitude
                            lat = 5.479598, # mean latitude

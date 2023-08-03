@@ -79,25 +79,36 @@ The imported file is a list with one component `$data` containing 2 dataframes:
 
 ### Clean data
 
-This step ensures all columns have the desired type. It will also move these columns to the beginnning of the table.
+This step ensures all columns have the desired type. It will also move these columns to the beginning of the table.
+
+To cast data to the appropriate type, this function two arguments created below: `rec_type` (for the records table) and `cam_type` (for the cameras table).
 
 ```{r}
 rec_type <- list(Station = "as.character",
                  Date = list("as_date",
                              format = "%Y-%m-%d"),
                  Time = "times",
-                 DateTimeOriginal = "as.POSIXct")
+                 DateTimeOriginal = list("as.POSIXct",
+                                         tz = "Etc/GMT-8"))
 
 cam_type <- list(Station = "as.character",
                  Setup_date = list("as.Date",
                                    format = "%d/%m/%Y"), 
                  Retrieval_date = list("as.Date",
                                        format = "%d/%m/%Y"))
+```
 
+These lists contain the information about how to convert column types.
+
++ Values contain the casting function to apply (e.g. `as.Date` will translate to `as.date(x)`). Values cal also be lists to provide additional arguments: for instance, `list("as.Date", format = "%d/%m/%Y")` will translate to `as.Date(x,  format = "%d/%m/%Y")`.
++ the names of the list give the corresponding column of the data that should be casted.
+
+```{r}
 dat_clean <- clean_data(dat, 
                         rec_type = rec_type,
                         cam_type = cam_type)
 ```
+
 
 ```{r}
 head(dat_clean$data$observations)
@@ -121,11 +132,11 @@ head(dat$data$deployments)
 Again the imported file is a list with one component `$data`:
 
 + `$data$observations` contains the cameras and records information
-+ `$data$deployments` is `NULL`
++ `$data$deployments` is `NULL` (because only one file was imported)
 
 ### Clean data
 
-Here this step will split the information between cameras and records. It will move all columns listed in `cam_type` in the cameras file.
+This step will split the information between cameras and records. To do this, it will move all columns listed in `cam_type` in the cameras file.
 
 ```{r}
 cam_type2 <- list(Station = "as.character",
@@ -155,11 +166,16 @@ head(dat_clean$data$deployments)
 ## CamtrapDP format (json file)
 
 ### Read data
+
+The `read_data` function can also read json files corresponding to camtrapDP datapackage.
+
 ```{r}
 dat <- read_data(records_path = "https://raw.githubusercontent.com/tdwg/camtrap-dp/main/example/datapackage.json")
 ```
 
-Internally, we use the function `read_camtrap_dp` from the `camtraptor` package. The imported object is a `list` and the observations and deployments info are in the `$data` slot.
+Internally, we use the function `read_camtrap_dp` from the `camtraptor` package (here, it would give the same result to use use directly this function). 
+
+The imported object is a `list` and the observations and deployments info are in the `$data` slot.
 
 ```{r}
 class(dat)
@@ -181,13 +197,16 @@ class(dat$data$observations$timestamp)
 
 
 ```{r}
-rec_type <- list(timestamp = "as.POSIXct")
+rec_type <- list(timestamp = list("as.POSIXct",
+                                  tz = "UTC"))
 
 dat_clean <- clean_data(dat, 
                         rec_type = rec_type)
 
 # timestamp is back to POSIX
 class(dat_clean$data$observations$timestamp)
+# The timezone is the one we specified
+attr(dat_clean$data$observations$timestamp, "tzone")
 ```
 
 ```{r}

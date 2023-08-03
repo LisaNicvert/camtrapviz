@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
 library(camtrapviz)
 library(ggiraph)
 library(dplyr)
+library(ggplot2)
 ```
 
 This vignette demonstrates how to filter camera trap data based on 4 criteria:
@@ -46,21 +47,29 @@ girafe(ggobj = p)
 
 ## Filter cameras
 
-We can filter out one camera:
+We can filter out cameras (NB: it is also possible to give a single camera in input).
+
+Below are the cameras list for the original files:
 
 ```{r}
-# Original cameras in observations and deployments
+# Original cameras in observations and 
 unique(mica$data$observations$deploymentID)
+
+# Original cameras in deployments 
 unique(mica$data$deployments$deploymentID)
 ```
 
 ```{r}
 cam_filter <- filter_data(mica, 
                           cam_col_rec = "deploymentID", 
-                          cam_filter = "29b7d356-4bb4-4ec4-b792-2af5cc32efa8")
+                          cam_filter = c("29b7d356-4bb4-4ec4-b792-2af5cc32efa8", "577b543a-2cf1-4b23-b6d2-cda7e2eac372"))
+```
 
-# The camera was filtered out
+The cameras have been filtered out from both observations and deployments tables:
+
+```{r}
 unique(cam_filter$data$observations$deploymentID)
+
 unique(cam_filter$data$deployments$deploymentID)
 ```
 
@@ -70,49 +79,40 @@ plot_points(cam_filter$data$observations,
             timestamp_col = "timestamp")
 ```
 
-We can also filter out multiple cameras (and it is the same for species and observation type).
-
-```{r}
-cam_filter <- filter_data(mica, 
-                          cam_col_rec = "deploymentID", 
-                          cam_filter = c("29b7d356-4bb4-4ec4-b792-2af5cc32efa8", "577b543a-2cf1-4b23-b6d2-cda7e2eac372"))
-
-# The cameras were filtered out
-unique(cam_filter$data$observations$deploymentID)
-unique(cam_filter$data$deployments$deploymentID)
-```
-
 ## Filter species
 
-We can filter out by species:
+We can filter out by species (removing one or several species):
+
+Below is the initial species list:
+```{r}
+unique(mica$data$observations$vernacularNames.en)
+```
+
 
 ```{r}
-# Initial species list
-unique(mica$data$observations$vernacularNames.en)
-
 spp_filter <- filter_data(mica, 
                           spp_col = "vernacularNames.en", 
                           spp_filter = "great herons")
-# great herons were removed
+```
+
+After data cleaning, `great herons` was removed.
+```{r}
 unique(spp_filter$data$observations$vernacularNames.en) 
 ```
 
-```{r}
-plot_points(spp_filter$data$observations,
-            camera_col = "deploymentID",
-            timestamp_col = "timestamp")
-```
 
 ## Filter observation type
 
-We can filter out by observation type. For instance, if we want to keep only animals (and not unidentifiable, humans...):
+We can filter out by observation type. It can be useful for instance if we want to keep only animals (and not unidentifiable, humans...).
+
+Below are the initial values of observation types:
 
 ```{r}
-# Initial values of observation types
 obstype <- mica$data$observations$observationType
 unique(obstype)
 ```
 
+Let's filter out all categories except `animal`:
 
 ```{r}
 # Define the types we want to remove
@@ -122,33 +122,77 @@ obs_out
 obs_filter <- filter_data(mica, 
                           obs_col = "observationType", 
                           obs_filter = obs_out)
+```
 
-# In the end, only animal is kept
+The only observation type remaining after data cleaning is `animal`.
+
+```{r}
 unique(obs_filter$data$observations$observationType)
 ```
 
 ## Filter dates
 
-It is also possible to specify date bounds to the data:
+It is also possible to specify date bounds to the data.
+
+Here is the original date range:
 
 ```{r}
 # Original date range
-range(mica$data$observations$timestamp)
+(old_range <- range(mica$data$observations$timestamp))
+```
 
+
+Let's filter a subset of the data between January, 1st 2020 and January, 1st 2021.
+
+```{r}
+new_range <- c("2020-01-01", "2021-01-01")
+```
+
+
+We visualize this filter on a plot: solid lines are the old data bounds and dashed lines represent the new date range.
+
+```{r}
+plot_points(mica$data$observations, 
+            camera_col = "deploymentID",
+            timestamp_col = "timestamp") +
+  ggplot2::geom_vline(xintercept = as.POSIXct(new_range, 
+                                              tz = "UTC"),
+                      linetype = "dashed") +
+  ggplot2::geom_vline(xintercept = old_range)
+```
+
+
+Let's filter the data.
+
+```{r}
 date_filter <- filter_data(mica, 
                            timestamp_col = "timestamp", 
-                           daterange = as.Date(c("2020-01-01", "2021-04-18")))
+                           daterange = new_range)
+```
 
+The `daterange` argument can also be a `Date` or `POSIX`:
+
+```{r}
+(new_range_date <- as.Date(new_range))
+date_filter <- filter_data(mica, 
+                           timestamp_col = "timestamp", 
+                           daterange = new_range_date)
+
+(new_range_posix <- as.POSIXct(new_range))
+date_filter <- filter_data(mica, 
+                           timestamp_col = "timestamp", 
+                           daterange = new_range_posix)
+```
+
+
+The new data range is comprised within the specified bounds (January, 1st 2020 and January, 1st 2021).
+
+```{r}
 # The new range is restricted
 range(date_filter$data$observations$timestamp)
 ```
 
-```{r}
-plot_points(date_filter$data$observations,
-            camera_col = "deploymentID",
-            timestamp_col = "timestamp")
-```
-We can do the same using date and time as columns. Let's create these columns:
+It is also possible to filter data that has date and times i two columns. First, we create a dataset with these two columns:
 
 ```{r}
 mica_date_time <- mica
@@ -163,28 +207,54 @@ mica_date_time$data$observations |>
   head()
 ```
 
+And we filter dates on these data.
 
 ```{r}
 date_filter <- filter_data(mica_date_time, 
                            date_col = "date",
                            time_col = "time", 
-                           daterange = as.Date(c("2020-01-01", "2021-04-18")))
+                           daterange = new_range)
+```
 
-# The new range is the same as above
+
+The new data range is the same as above.
+
+```{r}
 range(date_filter$data$observations$timestamp)
 ```
+
 
 ## Combine filters
 
 Finally, it is possible to combine multiple conditions to customize data filtering:
 
 ```{r}
-custom <- filter_data(mica,
-                      spp_filter = c("great herons", "grey heron"),
-                      spp_col = "vernacularNames.en",
-                      cam_filter = "29b7d356-4bb4-4ec4-b792-2af5cc32efa8",
-                      cam_col_rec = "deploymentID",
-                      timestamp_col = "timestamp",
-                      daterange = as.Date(c("2020-01-01", "2021-04-18")))
+custom_filter <- filter_data(mica,
+                             cam_filter = "29b7d356-4bb4-4ec4-b792-2af5cc32efa8",
+                             cam_col_rec = "deploymentID",
+                             spp_filter = c("great herons", "grey heron"),
+                             spp_col = "vernacularNames.en",
+                             timestamp_col = "timestamp",
+                             daterange = c("2020-01-01", "2021-04-18"))
+```
+
+
+Let's check the filtering:
+
+```{r}
+# Full dataset
+unique(mica$data$observations$deploymentID)
+# Filtered dataset
+unique(custom_filter$data$observations$deploymentID)
+
+# Full dataset
+unique(mica$data$observations$vernacularNames.en)
+# Filtered dataset
+unique(custom_filter$data$observations$vernacularNames.en)
+
+# Full dataset
+range(mica$data$observations$timestamp)
+# Filtered dataset
+range(custom_filter$data$observations$timestamp)
 ```
 
