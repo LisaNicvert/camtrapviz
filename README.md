@@ -41,11 +41,11 @@ Two example datasets are provided:
 
 You can also choose data to analyze from your computer.
 
-![](man/figures/shinyapp_data_import.png "Data import module"){width="50%"}
+<img src="man/figures/shinyapp_data_import.png" alt="Data import module" width="50%">
 
 The Shiny app uses [Shinymeta](https://rstudio.github.io/shinymeta/) to display and export the underlying code to the Shiny app.
 
-![](man/figures/show_code.png "In-app plot with a show code button"){style="display: inline-block;" width="48%"} ![](man/figures/show_code_shown.png "Plotting code displayed in the app"){style="display: inline-block;" width="48%"}
+<img src="man/figures/show_code.png" alt="In-app plot with a show code button" style="display: inline-block;" width="48%"> <img src="man/figures/show_code_shown.png" alt="Plotting code displayed in the app" style="display: inline-block;" width="48%">
 
 ### Data reading and formatting
 
