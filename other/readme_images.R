@@ -14,13 +14,15 @@ library(ggiraph)
 library(ggplot2)
 library(here)
 library(mapview)
+library(dplyr)
 
 # Import and prepare data -------------------------------------------------
 
 data(recordTableSample, package = "camtrapR")
 data(camtraps, package = "camtrapR")
 
-recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal)
+recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal,
+                                                 tz = "Etc/GMT-8")
 recordTableSample$Date <- as.Date(recordTableSample$Date)
 recordTableSample$Time <- chron::times(recordTableSample$Time)
 
@@ -71,3 +73,29 @@ ggsave(here("man/figures/plot_spp_bars.png"),
 
 # Interactive plot (for website)
 ggiraph::girafe(ggobj = p)
+
+
+# Activity plot -----------------------------------------------------------
+
+# Convert times to radians
+recordTableSample <- recordTableSample |> 
+  mutate(time_radians = as.numeric(Time)*2*pi,
+         .after = Time)
+
+PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
+
+vm <- activity::fitact(PBE_records$time_radians)
+pdf_vm <- as.data.frame(vm@pdf)
+
+plot_activity(fitted_data = pdf_vm,
+              times_fit = "x",
+              y_fit = "y",
+              true_data = PBE_records,
+              times_true = "Time",
+              unit = "clock",
+              freq = TRUE,
+              interactive = TRUE)
+
+ggsave(here("man/figures/plot_activity.png"),
+       width = 12, height = 10, 
+       unit = "cm")

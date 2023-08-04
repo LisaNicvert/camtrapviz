@@ -1,14 +1,16 @@
 # camtrapviz
 
+<!-- badges: start -->
+
+[![CRAN status](https://www.r-pkg.org/badges/version/camtrapviz)](https://CRAN.R-project.org/package=camtrapviz) [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) [![R-CMD-check](https://github.com/LisaNicvert/camtrapviz/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LisaNicvert/camtrapviz/actions/workflows/R-CMD-check.yaml)
+
+<!-- badges: end -->
+
 *This package is currently under development*
 
-`camtrapviz` is a R and Shiny package designed to make it easier to visualize and summarize camera trap data. it is intended for data where species have already been tagged and compiled in tables. The package website can be found at: <https://lisanicvert.github.io/camtrapviz/>.
+`camtrapviz` is a R and Shiny package to visualize and summarize camera trap data. It is intended for camera trap data where species have already been tagged and compiled in tables.
 
-For the moment, this package allows to:
-
--   read and format camera trap data
--   plot data
--   summarize and analyze data
+The package website can be found at: <https://lisanicvert.github.io/camtrapviz/>.
 
 ## Installation
 
@@ -19,7 +21,9 @@ devtools::install_github("https://github.com/LisaNicvert/camtrapviz",
                          build_vignettes = TRUE)
 ```
 
-## Shiny interface
+## Functions
+
+### Shiny interface
 
 A Shiny interface run from your computer allows to analyze camera trap data interactively. To run the app, use:
 
@@ -27,42 +31,51 @@ A Shiny interface run from your computer allows to analyze camera trap data inte
 run_camtrapviz()
 ```
 
-Two example datasets from the [`camtrapR`](https://jniedballa.github.io/camtrapR/) and [`camtraptor`](https://inbo.github.io/camtraptor/index.html) R packages are provided. You can also choose data to analyze from your computer.
+![](man/figures/shinyapp.png "Overview of the Shiny interface")
 
-## Data reading and formatting
+Two example datasets are provided:
 
-The package implements functions to read and clean data. Below are a few examples:
+-   [data](https://jniedballa.github.io/camtrapR/reference/recordTableSample.html) and [cameras](https://jniedballa.github.io/camtrapR/reference/camtraps.html) from the camtrapR package
 
--   [`read_data`](https://lisanicvert.github.io/camtrapviz/reference/read_data.html) allows to read camera trap data from one or two CSV file(s) or the JSON metadata of a [camtrapDP data package](https://tdwg.github.io/camtrap-dp/).
--   [`filter_data`](https://lisanicvert.github.io/camtrapviz/reference/filter_data.html) allows to select a subset of camera trap data based on species, cameras and dates.
+-   a [camtrapDP datapackage](https://inbo.github.io/camtraptor/reference/mica.html) from the camtraptor R package.
 
-## Dataviz
+You can also choose data to analyze from your computer.
 
-There are several functions to visualize data. Some are illustrated below (using the example dataset frop the [`camtrapR`](https://jniedballa.github.io/camtrapR/) package).
+![](man/figures/shinyapp_data_import.png "Data import module"){width="50%"}
 
-First, you can plot the observations of each camera versus time with the [`plot_points`](https://lisanicvert.github.io/camtrapviz/reference/plot_points.html) function:
+The Shiny app uses [Shinymeta](https://rstudio.github.io/shinymeta/) to display and export the underlying code to the Shiny app.
 
-![Plot observations](man/figures/plot_points.png)
+![](man/figures/show_code.png "In-app plot with a show code button"){style="display: inline-block;" width="48%"} ![](man/figures/show_code_shown.png "Plotting code displayed in the app"){style="display: inline-block;" width="48%"}
 
-You can also plot the cameras on a map with the [`plot_map`](https://lisanicvert.github.io/camtrapviz/reference/plot_map.html) function (interactive leaflet map):
+### Data reading and formatting
 
-![Cameras map](man/figures/map.png)
+The package implements functions to read and clean data (see vignettes on [data import and cleaning](https://lisanicvert.github.io/camtrapviz/articles/read-and-clean-data.html) and on [data filtering](https://lisanicvert.github.io/camtrapviz/articles/filter-data.html)).
 
-It is also possible to plot capture event counts with [`plot_species_bars`](https://lisanicvert.github.io/camtrapviz/reference/plot_species_bars.html):
+### Dataviz
 
-![Capture events counts per species](man/figures/plot_spp_bars.png)
+There are several functions to visualize data that are illustrated below (using the example dataset from the [camtrapR](https://jniedballa.github.io/camtrapR/) package).
 
-For more details on plots, see the [plots vignette](https://lisanicvert.github.io/camtrapviz/articles/plots.html).
+First, you can plot the observations of each camera versus time:
 
-## Data summary and analysis
+![](man/figures/plot_points.png "Plot observations")
+
+You can also plot the cameras on a map:
+
+![](man/figures/map.png "Cameras map")
+
+It is also possible to plot capture event counts:
+
+![](man/figures/plot_spp_bars.png "Capture events counts per species")
+
+You can also plot the activity histogram and curve of the species:
+
+![](man/figures/plot_activity.png "Activity plot")
+
+For more details on plots, see the [vignette on plots](https://lisanicvert.github.io/camtrapviz/articles/plots.html) and the [vignette on activity plots](https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html).
+
+### Data summary and analysis
 
 Other functions allow more specific analyses:
 
--   [`summarize_camera`](https://lisanicvert.github.io/camtrapviz/reference/summarize_cameras.html) allows to get sampling start, end and length.
--   [`summarize_species`](https://lisanicvert.github.io/camtrapviz/reference/summarize_species.html) allows to get species sightings count, the number and proportions of cameras where a species was captured.
--   [`get_diversity_table`](https://lisanicvert.github.io/camtrapviz/reference/get_diversity_table.html) computes various diversity indices from a species occurrence dataframe.
--   [`fit_vonMises`](https://lisanicvert.github.io/camtrapviz/reference/fit_vonMises.html) and [`vonMises_density`](https://lisanicvert.github.io/camtrapviz/reference/vonMises_density.html) allow to fit and compute the activity density curve.
-
-### Vignettes
-
-R vignettes are provided to exemplify the packages functionalities (this is a work in progress). Vignettes are available on the [package's website](https://lisanicvert.github.io/camtrapviz/).
+-   summarize species or cameras information (see [vignette](https://lisanicvert.github.io/camtrapviz/articles/summarize.html))
+-   get diversity indices at cameras from a species occurrence dataframe with [`get_diversity_table`](https://lisanicvert.github.io/camtrapviz/reference/get_diversity_table.html) (vignette will be developed shortly).
