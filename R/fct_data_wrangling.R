@@ -947,8 +947,8 @@ filter_data <- function(dat,
 #'                                  "C3", "C3", "C3"),
 #'                       species = c("cat", "cow", "rabbit",
 #'                                   "cat", "cat", "cow", "rabbit"),
-#'                       count = c(30, 30, 30, 30, 88, 1, 1),
-#'                       prop = c(1/3, 1/3, 1/3, 1, 88/90, 1/90, 1/90))
+#'                       individuals = c(30, 30, 30, 30, 88, 1, 1),
+#'                       individuals_prop = c(1/3, 1/3, 1/3, 1, 88/90, 1/90, 1/90))
 #' get_diversity_indices(countdf, 
 #'                       spp_col = "species", cam_col = "camera")
 get_diversity_indices <- function(count_df, spp_col, cam_col,
