@@ -78,4 +78,4 @@ For more details on plots, see the [vignette on plots](https://lisanicvert.githu
 Other functions allow more specific analyses:
 
 -   summarize species or cameras information (see [vignette](https://lisanicvert.github.io/camtrapviz/articles/summarize.html))
--   get diversity indices at cameras from a species occurrence dataframe with [`get_diversity_table`](https://lisanicvert.github.io/camtrapviz/reference/get_diversity_table.html) (vignette will be developed shortly).
+-   get diversity indices at cameras from a species occurrence dataframe with [`get_diversity_indices`](https://lisanicvert.github.io/camtrapviz/reference/get_diversity_indices.html) (vignette will be developed shortly).

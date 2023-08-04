@@ -129,11 +129,12 @@ allspeciesServer <- function(id,
 # Compute diversity indices -----------------------------------------------
   diversity_df <- metaReactive({
     "# Summarize species and cameras ---"
-    count_df <- get_diversity_table(..(camtrap_data())$data$observations,
-                                    cam_col = ..(cam_col_rec()),
-                                    spp_col = ..(spp_col()),
-                                    count_col = ..(mapping_cameras()$count_col), 
-                                    keep_all_levels = TRUE)
+    count_df <- summarize_species(..(camtrap_data())$data$observations,
+                                  cam_col = ..(cam_col_rec()),
+                                  spp_col = ..(spp_col()),
+                                  count_col = ..(mapping_cameras()$count_col), 
+                                  by_cam = TRUE,
+                                  keep_all_camera_levels = TRUE)
     
     "# Compute diversity indices ---"
     get_diversity_indices(count_df, 

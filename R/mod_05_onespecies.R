@@ -268,18 +268,19 @@ onespeciesServer <- function(id,
     
     abundance_df <- metaReactive({
       "# Get species abundance ---"
-      get_diversity_table(..(filtered_records()),
-                          cam_col = ..(cam_col_rec()),
-                          spp_col = ..(spp_col()),
-                          count_col = ..(mapping_cameras()$count_col), 
-                          keep_all_levels = TRUE)
+      summarize_species(..(filtered_records()),
+                        cam_col = ..(cam_col_rec()),
+                        spp_col = ..(spp_col()),
+                        count_col = ..(mapping_cameras()$count_col), 
+                        by_cam = TRUE,
+                        keep_all_camera_levels = TRUE)
     }, bindToReturn = TRUE, varname = "abundance_df")
     
     ## Abundance map ----------------------------------------------------------- 
     
     output$plot_abundance_map <- metaRender(renderLeaflet, {
       "# Plot abundance map ---"
-      abundance <- ..(abundance_df())$count
+      abundance <- ..(abundance_df())$individuals
       names(abundance) <- ..(abundance_df())[[..(cam_col_rec())]]
       
       "# Set hovering labels (replace NA with 'No data')"
@@ -312,7 +313,7 @@ onespeciesServer <- function(id,
         abundance_df_plot[is.na(abundance_df_plot)] <- 0
         
         gg <- plot_diversity(abundance_df_plot, 
-                             div_col = "count", 
+                             div_col = "individuals", 
                              cam_col = ..(cam_col_rec()),
                              interactive = TRUE) +
           ylab("Count") +

@@ -8,13 +8,13 @@ get_diversity_indices(
   count_df,
   spp_col,
   cam_col,
-  count_col = "count",
-  prop_col = "prop"
+  count_col = "individuals",
+  prop_col = "individuals_prop"
 )
 }
 \arguments{
 \item{count_df}{Dataframe summarizing counts per species. Can be
-computed using the records dataframe with the \code{get_diversity_table}
+computed using the records dataframe with the \code{summarize_species}
 function.}
 
 \item{spp_col}{Name of the column containing species names}

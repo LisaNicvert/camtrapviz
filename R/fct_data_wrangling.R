@@ -906,82 +906,13 @@ filter_data <- function(dat,
 
 # Diversity ---------------------------------------------------------------
 
-#' Get diversity table
-#' 
-#' Compute a table with various diversity indices from a species
-#' occurrence dataframe.
-#'
-#' @param df The dataframe
-#' @param cam_col Name of the column containing cameras names
-#' @param spp_col Name of the column containing species names
-#' @param keep_all_levels Should we keep all camera levels even 
-#' those that have no rows in `df`? (Checked only if `cam_col` is a factor)
-#' @param count_col Name of the column containing species counts (optional)
-#'
-#' @return A dataframe with one row per camera-species combination.
-#' For each camera-species, we have the count (column `count`) 
-#' and proportion (column `prop`) of individuals of each species seen at this camera.
-#' 
-#' @export
-#'
-#' @examples
-#' df <- data.frame(species = c("zebra", "cat", "cat", "cow", "cow", NA, NA),
-#'                  type = c("animal", "animal", "animal", "animal", "animal", "human", "blank"),
-#'                  camera = c("C1", "C1", "C1", "C1", "C2", "C2", "C3"),
-#'                  count = c(1, 1, 1, 50, 3, 1, NA))
-#' get_diversity_table(df,
-#'                     cam_col = "camera",
-#'                     spp_col = "species",
-#'                     count_col = "count")
-get_diversity_table <- function(df, cam_col, spp_col, 
-                                count_col = NULL, 
-                                keep_all_levels = TRUE) {
-  
-  # One row per camera and species
-  res <- df |>
-    group_by(.data[[cam_col]], 
-             .data[[spp_col]]) |>
-    summarise(count = ifelse(is.null(count_col),
-                             n(), sum(.data[[count_col]])),
-              .groups = "drop") |> 
-    group_by(.data[[cam_col]]) |> 
-    mutate(prop = count/sum(count)) |>
-    dplyr::ungroup()
-  
-  # Add unused levels
-  if(is.factor(df[[cam_col]]) & keep_all_levels) {
-    # Create df with missing factors
-    cam_levels <- levels(df[[cam_col]])
-    to_add <- cam_levels[!(cam_levels %in% res[[cam_col]])]
-    
-    # Add missing cameras
-    if (length(to_add) != 0) {
-      to_add <- factor(to_add, levels = cam_levels)
-      
-      missing_cams <- data.frame(cam = to_add, empty = TRUE)
-      colnames(missing_cams)[1] <- cam_col
-      
-      res <- res |> 
-        mutate(empty = FALSE) |>
-        dplyr::bind_rows(missing_cams)
-    }
-    # Reorder
-    res <- res |> 
-      dplyr::arrange(.data[[cam_col]])
-  }
-
-  res <- as.data.frame(res)
-  return(res)
-  
-}
-
 #' Get diversity indices
 #' 
 #' From a summary table of camera/species, return richness, Shannon
 #' and Simpson diversity indices.
 #'
 #' @param count_df Dataframe summarizing counts per species. Can be 
-#' computed using the records dataframe with the `get_diversity_table`
+#' computed using the records dataframe with the `summarize_species`
 #' function.
 #' @param spp_col Name of the column containing species names
 #' @param cam_col Name of the column containing cameras names
@@ -1021,8 +952,8 @@ get_diversity_table <- function(df, cam_col, spp_col,
 #' get_diversity_indices(countdf, 
 #'                       spp_col = "species", cam_col = "camera")
 get_diversity_indices <- function(count_df, spp_col, cam_col,
-                                  count_col = "count",
-                                  prop_col = "prop") {
+                                  count_col = "individuals",
+                                  prop_col = "individuals_prop") {
   
   if ("empty" %in% colnames(count_df)) {
     diversity_df <- count_df |>

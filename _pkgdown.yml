@@ -21,7 +21,6 @@ reference:
 - title: "Analyze data"
   contents:
   - get_diversity_indices
-  - get_diversity_table
   - time_to_circular
   - vonMises_density
   - fit_vonMises
