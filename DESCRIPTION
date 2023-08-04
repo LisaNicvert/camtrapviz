@@ -42,6 +42,6 @@ Suggests:
     RColorBrewer,
     activity
 VignetteBuilder: knitr
-URL: https://lisanicvert.github.io/camtrapviz/
+URL: https://lisanicvert.github.io/camtrapviz/, https://github.com/LisaNicvert/camtrapviz
 Depends: 
     R (>= 4.1.0)
