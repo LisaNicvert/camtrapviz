@@ -1,0 +1,81 @@
+---
+title: "Diversity analyses"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Diversity analyses}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message=FALSE, results='hide'}
+library(camtrapviz)
+library(ggiraph)
+library(ggplot2)
+```
+
+This vignette is a work in progress showing how this package allows to compute diversity indices from camera trap data.
+
+## Import data
+
+```{r}
+data(mica, package = "camtraptor")
+records <- mica$data$observations
+```
+
+## Compute diversity index
+
+Step 1: summarize data
+
+```{r}
+spp_cam <- summarize_species(records, 
+                             spp_col = "vernacularNames.en", 
+                             cam_col = "deploymentID",
+                             obs_col = "observationType",
+                             count_col = "count",
+                             by_cam = TRUE,
+                             NA_count_placeholder = 1)
+
+knitr::kable(spp_cam)
+```
+Step 2: compute diversity indices
+
+```{r}
+div <- get_diversity_indices(spp_cam,
+                             spp_col = "vernacularNames.en",
+                             cam_col = "deploymentID")
+
+knitr::kable(div)
+```
+```{r}
+p <- plot_diversity(div, 
+                    div_col = "richness", 
+                    cam_col = "deploymentID", 
+                    interactive = TRUE) +
+  ggtitle("Species richness")
+
+girafe(ggobj = p)
+
+p <- plot_diversity(div, 
+                    div_col = "shannon", 
+                    cam_col = "deploymentID", 
+                    interactive = TRUE) +
+  ggtitle("Shannon diversity index")
+
+girafe(ggobj = p)
+
+p <- plot_diversity(div, 
+                    div_col = "simpson", 
+                    cam_col = "deploymentID", 
+                    interactive = TRUE) +
+  ggtitle("Simpson diversity index")
+
+girafe(ggobj = p)
+```
+
