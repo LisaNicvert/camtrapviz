@@ -10,6 +10,9 @@
     <loc>https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html</loc>
   </url>
   <url>
+    <loc>https://lisanicvert.github.io/camtrapviz/articles/diversity.html</loc>
+  </url>
+  <url>
     <loc>https://lisanicvert.github.io/camtrapviz/articles/filter-data.html</loc>
   </url>
   <url>
@@ -59,9 +62,6 @@
   </url>
   <url>
     <loc>https://lisanicvert.github.io/camtrapviz/reference/get_diversity_indices.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/get_diversity_table.html</loc>
   </url>
   <url>
     <loc>https://lisanicvert.github.io/camtrapviz/reference/get_nspecies.html</loc>

@@ -27,14 +27,21 @@
     <a class="dropdown-item" href="../articles/read-and-clean-data.html">Read and clean data</a>
     <a class="dropdown-item" href="../articles/filter-data.html">Filter data</a>
     <a class="dropdown-item" href="../articles/summarize.html">Summarize data</a>
-    <a class="dropdown-item" href="../articles/plots.html">Plots</a>
+    <a class="dropdown-item" href="../articles/diversity.html">Diversity analyses</a>
     <a class="dropdown-item" href="../articles/activity-patterns.html">Activity patterns</a>
+    <a class="dropdown-item" href="../articles/plots.html">Plots</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
-      <ul class="navbar-nav"></ul></div>
+      <ul class="navbar-nav"><li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/LisaNicvert/camtrapviz/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div>
 
     
   </div>
@@ -42,7 +49,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>Summarize species</h1>
-      
+      <small class="dont-index">Source: <a href="https://github.com/LisaNicvert/camtrapviz/blob/HEAD/R/fct_data_wrangling.R" class="external-link"><code>R/fct_data_wrangling.R</code></a></small>
       <div class="d-none name"><code>summarize_species.Rd</code></div>
     </div>
 
@@ -54,11 +61,13 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">summarize_species</span><span class="op">(</span></span>
 <span>  <span class="va">df</span>,</span>
-<span>  <span class="va">species_col</span>,</span>
+<span>  <span class="va">spp_col</span>,</span>
 <span>  cam_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  obs_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  count_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ncam <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  by_cam <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  keep_all_camera_levels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  NA_count_placeholder <span class="op">=</span> <span class="cn">NA</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -69,12 +78,13 @@
 <dd><p>the observation dataframe to summarize</p></dd>
 
 
-<dt>species_col</dt>
+<dt>spp_col</dt>
 <dd><p>Name of the species column</p></dd>
 
 
 <dt>cam_col</dt>
-<dd><p>Name of the column containing camera codes (optional)</p></dd>
+<dd><p>Name of the column containing camera codes (optional if
+<code>by_cam</code> is <code>FALSE</code>)</p></dd>
 
 
 <dt>obs_col</dt>
@@ -88,33 +98,49 @@
 <dt>ncam</dt>
 <dd><p>Number of cameras to take into account when computing
 the proportion of cameras the species was ween on. If <code>NULL</code>,
-defaults to the number of cameras present in the <code>df</code>.</p></dd>
+defaults to the number of cameras present in the <code>df</code> (not needed
+if <code>cam_col</code> is not provided).</p></dd>
+
+
+<dt>by_cam</dt>
+<dd><p>Should the values be summarized by camera? If yes,
+there will be one row per cameras-species</p></dd>
+
+
+<dt>keep_all_camera_levels</dt>
+<dd><p>If there is a camera on which no species were
+seen, should it be present in the output? Not needed
+if <code>cam_col</code> is not provided.</p></dd>
 
 
 <dt>NA_count_placeholder</dt>
 <dd><p>Value with which to replace NAs present
 in the column containing counts. Defaults to NA (i.e. values are not
-replaced)</p></dd>
+replaced).</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>A table summarizing species information with the following columns:</p><ul><li><p>Species (named like <code>species_col</code>): species identity
-(same as the <code>species_col</code> input column)</p></li>
+<p>A table summarizing species information with the following columns:</p><ul><li><p>Species (named like <code>spp_col</code>): species identity
+(same as the <code>spp_col</code> input column)</p></li>
 <li><p>Observation type (present only if <code>obs_col</code> is not <code>NULL</code> and named like
 <code>obs_col</code>): observation type (same as the <code>obs_col</code> input column)</p></li>
-<li><p><code>n_sightings</code>: number of rows where the species was photographed.</p></li>
-<li><p><code>n_individuals</code>: count of individuals observed on all
+<li><p><code>sightings</code>: number of rows where the species was photographed.</p></li>
+<li><p><code>individuals</code>: count of individuals observed on all
 pictures (using the input <code>count_col</code> column).
-If <code>count_col</code> is <code>NULL</code>, it contains the same values as <code>n_sightings</code>.
-If there are NAs in the input  <code>count_col</code>, they will propagate in <code>n_individuals</code>
+If <code>count_col</code> is <code>NULL</code>, it contains the same values as <code>sightings</code>.
+If there are NAs in the input  <code>count_col</code>, they will propagate in <code>individuals</code>
 (unless a value is specified in <code>NA_count_placeholder</code>).</p></li>
-<li><p><code>n_cameras</code> (present only if <code>cam_col</code> is not <code>NULL</code>) : the number of cameras the species was seen on.</p></li>
+</ul><p>If <code>by_cam</code> is <code>FALSE</code>, the following rows are also present:</p><ul><li><p><code>n_cameras</code> (present only if <code>cam_col</code> is not <code>NULL</code>) : the number of cameras the species was seen on.</p></li>
 <li><p><code>prop_cam</code> (present only if <code>cam_col</code> is not <code>NULL</code>): the proportion of cameras the species was seen on.
 If <code>ncam</code> is provided, then it uses <code>ncam</code> as the total number of cameras.</p></li>
-</ul></div>
+</ul><p>If <code>by_cam</code> is <code>TRUE</code>, the following rows are also present:</p><ul><li><p><code>sightings_prop</code>: the proportion of sightings represented by the species at the camera.</p></li>
+<li><p><code>individuals_prop</code>: the proportion of individuans represented by the species at the camera.</p></li>
+</ul><p>Finally, if <code>keep_all_camera_levels</code> is <code>TRUE</code>, a final column named
+<code>empty</code> is added to indicate which cameras were empty (have no data).</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -122,11 +148,32 @@ If <code>ncam</code> is provided, then it uses <code>ncam</code> as the total nu
 <span class="r-in"><span>                 type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"animal"</span>, <span class="st">"animal"</span>, <span class="st">"animal"</span>, <span class="st">"animal"</span>, <span class="st">"human"</span>, <span class="st">"blank"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                 camera <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C1"</span>, <span class="st">"C1"</span>, <span class="st">"C2"</span>, <span class="st">"C3"</span>, <span class="st">"C3"</span>, <span class="st">"C4"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                 count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">50</span>, <span class="fl">1</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">summarize_species</span><span class="op">(</span><span class="va">df</span>, </span></span>
-<span class="r-in"><span>                         species_col <span class="op">=</span> <span class="st">"species"</span>, cam_col <span class="op">=</span> <span class="st">"camera"</span>,</span></span>
-<span class="r-in"><span>                         obs_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
-<span class="r-in"><span>                         count_col <span class="op">=</span> <span class="st">"count"</span>,</span></span>
-<span class="r-in"><span>                         NA_count_placeholder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># Summarize species across all cameras</span></span></span>
+<span class="r-in"><span><span class="fu">summarize_species</span><span class="op">(</span><span class="va">df</span>, </span></span>
+<span class="r-in"><span>                  spp_col <span class="op">=</span> <span class="st">"species"</span>, cam_col <span class="op">=</span> <span class="st">"camera"</span>,</span></span>
+<span class="r-in"><span>                  obs_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
+<span class="r-in"><span>                  count_col <span class="op">=</span> <span class="st">"count"</span>,</span></span>
+<span class="r-in"><span>                  NA_count_placeholder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   species   type sightings individuals n_cameras prop_cam</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     cat animal         2           4         2     0.50</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     cow animal         1          50         1     0.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   zebra animal         1           1         1     0.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4    &lt;NA&gt;  blank         1           1         1     0.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5    &lt;NA&gt;  human         1           1         1     0.25</span>
+<span class="r-in"><span><span class="co"># Summarize per species and cameras</span></span></span>
+<span class="r-in"><span><span class="fu">summarize_species</span><span class="op">(</span><span class="va">df</span>, </span></span>
+<span class="r-in"><span>                  spp_col <span class="op">=</span> <span class="st">"species"</span>, cam_col <span class="op">=</span> <span class="st">"camera"</span>,</span></span>
+<span class="r-in"><span>                  obs_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
+<span class="r-in"><span>                  count_col <span class="op">=</span> <span class="st">"count"</span>,</span></span>
+<span class="r-in"><span>                  by_cam <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>                  NA_count_placeholder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   species   type camera sightings individuals sightings_prop individuals_prop</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     cat animal     C1         1           1            0.5       0.50000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     cat animal     C2         1           3            1.0       1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3     cow animal     C3         1          50            0.5       0.98039216</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   zebra animal     C1         1           1            0.5       0.50000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5    &lt;NA&gt;  blank     C4         1           1            1.0       1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6    &lt;NA&gt;  human     C3         1           1            0.5       0.01960784</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

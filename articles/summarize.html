@@ -44,8 +44,9 @@
     <a class="dropdown-item" href="../articles/read-and-clean-data.html">Read and clean data</a>
     <a class="dropdown-item" href="../articles/filter-data.html">Filter data</a>
     <a class="dropdown-item" href="../articles/summarize.html">Summarize data</a>
-    <a class="dropdown-item" href="../articles/plots.html">Plots</a>
+    <a class="dropdown-item" href="../articles/diversity.html">Diversity analyses</a>
     <a class="dropdown-item" href="../articles/activity-patterns.html">Activity patterns</a>
+    <a class="dropdown-item" href="../articles/plots.html">Plots</a>
   </div>
 </li>
       </ul>
@@ -53,7 +54,14 @@
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
 </form>
 
-      <ul class="navbar-nav"></ul>
+      <ul class="navbar-nav">
+<li class="nav-item">
+  <a class="external-link nav-link" href="https://github.com/LisaNicvert/camtrapviz/" aria-label="github">
+    <span class="fab fa fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 
     
@@ -68,7 +76,7 @@
       <img src="" class="logo" alt=""><h1>Summarize data</h1>
             
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/LisaNicvert/camtrapviz/blob/HEAD/vignettes/summarize.Rmd" class="external-link"><code>vignettes/summarize.Rmd</code></a></small>
       <div class="d-none name"><code>summarize.Rmd</code></div>
     </div>
 
@@ -333,18 +341,21 @@ information from the observations will be used.</p>
 <div class="section level2">
 <h2 id="species-information">Species information<a class="anchor" aria-label="anchor" href="#species-information"></a>
 </h2>
+<div class="section level3">
+<h3 id="group-species-across-cameras">Group species across cameras<a class="anchor" aria-label="anchor" href="#group-species-across-cameras"></a>
+</h3>
 <p>We can also summarize the species sightings with the function
 <code>summarize_species</code>.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sppsum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_species.html">summarize_species</a></span><span class="op">(</span><span class="va">recordTableSample</span>,</span>
-<span>                            species_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
+<span>                            spp_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
 <span>                            cam_col <span class="op">=</span> <span class="st">"Station"</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">sppsum</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="left">Species</th>
-<th align="right">n_sightings</th>
-<th align="right">n_individuals</th>
+<th align="right">sightings</th>
+<th align="right">individuals</th>
 <th align="right">n_cameras</th>
 <th align="right">prop_cam</th>
 </tr></thead>
@@ -391,13 +402,12 @@ information from the observations will be used.</p>
 <li>the first column is named as the species column (here
 <code>Species</code>) and contains species name</li>
 <li>
-<code>n_sightings</code> is the number of sightings of the species
-(corresponding to row coun in the data)</li>
+<code>sightings</code> is the number of sightings of the species
+(corresponding to row count in the data)</li>
 <li>
-<code>n_individuals</code> takes into account the information from
-the counting column (if provided). Else, it is the same as
-<code>n_sightings</code>
-</li>
+<code>individuals</code> takes into account the information from the
+counting column (if provided). Else, it is the same as
+<code>sightings</code>.</li>
 <li>
 <code>n_cameras</code> gives the number of cameras the species was
 observed on.</li>
@@ -410,15 +420,15 @@ was observed on.</li>
 <code class="sourceCode R"><span><span class="va">with_count</span> <span class="op">&lt;-</span> <span class="va">recordTableSample</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>count <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">sppsum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_species.html">summarize_species</a></span><span class="op">(</span><span class="va">with_count</span>,</span>
-<span>                            species_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
+<span>                            spp_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
 <span>                            cam_col <span class="op">=</span> <span class="st">"Station"</span>, </span>
 <span>                            count_col <span class="op">=</span> <span class="st">"count"</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">sppsum</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="left">Species</th>
-<th align="right">n_sightings</th>
-<th align="right">n_individuals</th>
+<th align="right">sightings</th>
+<th align="right">individuals</th>
 <th align="right">n_cameras</th>
 <th align="right">prop_cam</th>
 </tr></thead>
@@ -460,10 +470,69 @@ was observed on.</li>
 </tr>
 </tbody>
 </table>
+<p>If any of the count data is <code>NA</code>, it is possible to
+provide a value to replace it:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">with_count_NA</span> <span class="op">&lt;-</span> <span class="va">with_count</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">Species</span> <span class="op">==</span> <span class="st">"PBE"</span>, <span class="cn">NA</span>, <span class="va">count</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sppsum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_species.html">summarize_species</a></span><span class="op">(</span><span class="va">with_count_NA</span>,</span>
+<span>                            spp_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
+<span>                            cam_col <span class="op">=</span> <span class="st">"Station"</span>, </span>
+<span>                            count_col <span class="op">=</span> <span class="st">"count"</span>,</span>
+<span>                            NA_count_placeholder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">sppsum</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">Species</th>
+<th align="right">sightings</th>
+<th align="right">individuals</th>
+<th align="right">n_cameras</th>
+<th align="right">prop_cam</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">EGY</td>
+<td align="right">6</td>
+<td align="right">18</td>
+<td align="right">1</td>
+<td align="right">0.3333333</td>
+</tr>
+<tr class="even">
+<td align="left">MNE</td>
+<td align="right">2</td>
+<td align="right">6</td>
+<td align="right">1</td>
+<td align="right">0.3333333</td>
+</tr>
+<tr class="odd">
+<td align="left">PBE</td>
+<td align="right">18</td>
+<td align="right">18</td>
+<td align="right">3</td>
+<td align="right">1.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">TRA</td>
+<td align="right">8</td>
+<td align="right">24</td>
+<td align="right">1</td>
+<td align="right">0.3333333</td>
+</tr>
+<tr class="odd">
+<td align="left">VTA</td>
+<td align="right">5</td>
+<td align="right">15</td>
+<td align="right">3</td>
+<td align="right">1.0000000</td>
+</tr>
+</tbody>
+</table>
 <p>If <code>obs_col</code> is included, the final table will have one
 more column describing type and the values will be summarized by
 <code>species_col</code> and <code>obs_col</code>.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">with_obstype</span> <span class="op">&lt;-</span> <span class="va">recordTableSample</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"animal"</span><span class="op">)</span></span>
 <span><span class="va">with_obstype</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">with_obstype</span>,</span>
@@ -472,7 +541,7 @@ more column describing type and the values will be summarized by
 <span>                      <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fl">11</span><span class="op">)</span>, <span class="st">"fire"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sppsum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_species.html">summarize_species</a></span><span class="op">(</span><span class="va">with_obstype</span>,</span>
-<span>                            species_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
+<span>                            spp_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
 <span>                            cam_col <span class="op">=</span> <span class="st">"Station"</span>, </span>
 <span>                            obs_col <span class="op">=</span> <span class="st">"type"</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">sppsum</span><span class="op">)</span></span></code></pre></div>
@@ -480,8 +549,8 @@ more column describing type and the values will be summarized by
 <thead><tr class="header">
 <th align="left">Species</th>
 <th align="left">type</th>
-<th align="right">n_sightings</th>
-<th align="right">n_individuals</th>
+<th align="right">sightings</th>
+<th align="right">individuals</th>
 <th align="right">n_cameras</th>
 <th align="right">prop_cam</th>
 </tr></thead>
@@ -544,6 +613,120 @@ more column describing type and the values will be summarized by
 </tr>
 </tbody>
 </table>
+</div>
+<div class="section level3">
+<h3 id="summarize-per-species-and-cameras">Summarize per species and cameras<a class="anchor" aria-label="anchor" href="#summarize-per-species-and-cameras"></a>
+</h3>
+<p>It is also possible to summarize the information per species and
+camera using the argument <code>by_cam</code>:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bycam</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_species.html">summarize_species</a></span><span class="op">(</span><span class="va">recordTableSample</span>,</span>
+<span>                           spp_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
+<span>                           cam_col <span class="op">=</span> <span class="st">"Station"</span>,</span>
+<span>                           by_cam <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">bycam</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="11%">
+<col width="12%">
+<col width="14%">
+<col width="16%">
+<col width="21%">
+<col width="23%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Species</th>
+<th align="left">Station</th>
+<th align="right">sightings</th>
+<th align="right">individuals</th>
+<th align="right">sightings_prop</th>
+<th align="right">individuals_prop</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">EGY</td>
+<td align="left">StationC</td>
+<td align="right">6</td>
+<td align="right">6</td>
+<td align="right">0.2857143</td>
+<td align="right">0.2857143</td>
+</tr>
+<tr class="even">
+<td align="left">MNE</td>
+<td align="left">StationB</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">0.1666667</td>
+<td align="right">0.1666667</td>
+</tr>
+<tr class="odd">
+<td align="left">PBE</td>
+<td align="left">StationA</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">0.6666667</td>
+<td align="right">0.6666667</td>
+</tr>
+<tr class="even">
+<td align="left">PBE</td>
+<td align="left">StationB</td>
+<td align="right">8</td>
+<td align="right">8</td>
+<td align="right">0.6666667</td>
+<td align="right">0.6666667</td>
+</tr>
+<tr class="odd">
+<td align="left">PBE</td>
+<td align="left">StationC</td>
+<td align="right">6</td>
+<td align="right">6</td>
+<td align="right">0.2857143</td>
+<td align="right">0.2857143</td>
+</tr>
+<tr class="even">
+<td align="left">TRA</td>
+<td align="left">StationC</td>
+<td align="right">8</td>
+<td align="right">8</td>
+<td align="right">0.3809524</td>
+<td align="right">0.3809524</td>
+</tr>
+<tr class="odd">
+<td align="left">VTA</td>
+<td align="left">StationA</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">0.3333333</td>
+<td align="right">0.3333333</td>
+</tr>
+<tr class="even">
+<td align="left">VTA</td>
+<td align="left">StationB</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">0.1666667</td>
+<td align="right">0.1666667</td>
+</tr>
+<tr class="odd">
+<td align="left">VTA</td>
+<td align="left">StationC</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">0.0476190</td>
+<td align="right">0.0476190</td>
+</tr>
+</tbody>
+</table>
+<p>Then, we obtain a table with one row per species and camera. The four
+first columns are the same as without the <code>by_cam</code> option,
+but the following rows differ:</p>
+<ul>
+<li><p><code>sightings_prop</code> is the proportion of sightings of a
+given species at a given camera</p></li>
+<li><p><code>individuals_prop</code> is the proportion of individuans of
+a given species at a given camera</p></li>
+</ul>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
