@@ -902,7 +902,6 @@ importServer <- function(id) {
         if (input$example_file == "mica") {
           tz <- "Etc/GMT"
         } else if (input$example_file == "recordTableSample") {
-          fmt_date_rec <- NULL
           tz <- "Etc/GMT-8"
         }
       } else {
@@ -915,26 +914,24 @@ importServer <- function(id) {
       if (input$input_type == 1) { # Example files (known date format)
         if (input$example_file == "mica") {
           # No need to cast mica data which comes in the right format already
-          fmt_date_rec <- NULL
-          fmt_posix <- NULL
-          
-          fmt_date_cam <- NULL
+          fmt_date <- NULL
+          fmt_posix_rec <- NULL
+          fmt_posix_cam <- NULL
         } else if (input$example_file == "recordTableSample") {
-          fmt_date_rec <- NULL
-          fmt_posix <- "%Y-%m-%d %T"
-          
-          fmt_date_cam <- "%d/%m/%Y"
+          fmt_date <- "%d/%m/%Y"
+          fmt_posix_rec <- "%Y-%m-%d %T"
+          fmt_posix_cam <- "%d/%m/%Y"
         }
       } else { # Manual file input
-        fmt_date_rec <- dates_formats
-        fmt_posix <- datetimes_formats
-        
-        fmt_date_cam <- dates_formats
+        fmt_date <- dates_formats
+        fmt_posix_rec <- datetimes_formats
+        fmt_posix_cam <- c(datetimes_formats,
+                           dates_formats) # Also add dates formats in case setup and retrieval are POSIX and not dates
       }
       
-      list(date_rec = fmt_date_rec,
-           posix = fmt_posix,
-           date_cam = fmt_date_cam)
+      list(date = fmt_date,
+           posix_cam = fmt_posix_cam,
+           posix_rec = fmt_posix_rec)
     })
     
 # Clean data --------------------------------------------------------------
@@ -999,24 +996,29 @@ importServer <- function(id) {
       posix_cast <- records_widgets |>
         filter(cast == "as.POSIXct")
       posix_cast <- posix_cast$widget
-      posix_cast <- unname(unlist(mapping_records()[posix_cast]))
+      posix_cast <- c(unname(unlist(mapping_records()[posix_cast])),
+                      unname(unlist(mapping_cameras()$mapping[posix_cast]))) 
       
       # Add a casting type only if relevant
-      if (!all(is.null(fmt()$date_rec))) {
+      if (!all(is.null(fmt()$date))) {
         castval_rec <- add_date_options(castval_rec,
-                                        formats = fmt()$date_rec,
+                                        formats = fmt()$date,
+                                        names_to_add = dates_cast)
+        castval_cam <- add_date_options(castval_cam,
+                                        formats = fmt()$date,
                                         names_to_add = dates_cast)
       }
-      if (!all(is.null(fmt()$posix))) {
+      if (!all(is.null(fmt()$posix_rec)) || !is.null(tz()) ) {
         castval_rec <- add_date_options(castval_rec,
-                                        formats = fmt()$posix,
+                                        formats = fmt()$posix_rec,
                                         tz = tz(),
                                         names_to_add = posix_cast)
       }
-      if (!all(is.null(fmt()$date_cam))) {
+      if (!all(is.null(fmt()$posix_cam)) || !is.null(tz()) ) {
         castval_cam <- add_date_options(castval_cam,
-                                        formats = fmt()$date_cam,
-                                        names_to_add = dates_cast)
+                                        formats = fmt()$posix_cam,
+                                        tz = tz(),
+                                        names_to_add = posix_cast)
       }
       
       metaExpr({
