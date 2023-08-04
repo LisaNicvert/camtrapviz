@@ -496,31 +496,47 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #' Summarize species information from a data table
 #'
 #' @param df the observation dataframe to summarize
-#' @param species_col Name of the species column
+#' @param spp_col Name of the species column
 #' @param obs_col Name of the observation type column (optional)
 #' @param count_col Name of the column containing species count (optional)
-#' @param cam_col Name of the column containing camera codes (optional)
+#' @param cam_col Name of the column containing camera codes (optional if
+#' `by_cam` is `FALSE`)
 #' @param ncam Number of cameras to take into account when computing
 #' the proportion of cameras the species was ween on. If `NULL`, 
-#' defaults to the number of cameras present in the `df`.
+#' defaults to the number of cameras present in the `df` (not needed
+#' if `cam_col` is not provided).
 #' @param NA_count_placeholder Value with which to replace NAs present
 #' in the column containing counts. Defaults to NA (i.e. values are not
-#' replaced)
+#' replaced).
+#' @param by_cam Should the values be summarized by camera? If yes, 
+#' there will be one row per cameras-species  
+#' @param keep_all_camera_levels If there is a camera on which no species were
+#' seen, should it be present in the output? Not needed
+#' if `cam_col` is not provided.
 #'
 #' @return A table summarizing species information with the following columns:
-#' + Species (named like `species_col`): species identity 
-#' (same as the `species_col` input column)
+#' + Species (named like `spp_col`): species identity 
+#' (same as the `spp_col` input column)
 #' + Observation type (present only if `obs_col` is not `NULL` and named like 
 #' `obs_col`): observation type (same as the `obs_col` input column)
-#' + `n_sightings`: number of rows where the species was photographed.
-#' + `n_individuals`: count of individuals observed on all
+#' + `sightings`: number of rows where the species was photographed.
+#' + `individuals`: count of individuals observed on all
 #' pictures (using the input `count_col` column).
-#' If `count_col` is `NULL`, it contains the same values as `n_sightings`.
-#' If there are NAs in the input  `count_col`, they will propagate in `n_individuals`
+#' If `count_col` is `NULL`, it contains the same values as `sightings`.
+#' If there are NAs in the input  `count_col`, they will propagate in `individuals`
 #' (unless a value is specified in `NA_count_placeholder`).
+#' 
+#' If `by_cam` is `FALSE`, the following rows are also present:
 #' + `n_cameras` (present only if `cam_col` is not `NULL`) : the number of cameras the species was seen on.
 #' + `prop_cam` (present only if `cam_col` is not `NULL`): the proportion of cameras the species was seen on.
 #' If `ncam` is provided, then it uses `ncam` as the total number of cameras.
+#' 
+#' If `by_cam` is `TRUE`, the following rows are also present:
+#' + `sightings_prop`: the proportion of sightings represented by the species at the camera.
+#' + `individuals_prop`: the proportion of individuans represented by the species at the camera.
+#' 
+#' Finally, if `keep_all_camera_levels` is `TRUE`, a final column named
+#' `empty` is added to indicate which cameras were empty (have no data).
 #' 
 #' @export
 #'
@@ -529,20 +545,31 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #'                  type = c("animal", "animal", "animal", "animal", "human", "blank"),
 #'                  camera = c("C1", "C1", "C2", "C3", "C3", "C4"),
 #'                  count = c(1, 1, 3, 50, 1, NA))
-#' res <- summarize_species(df, 
-#'                          species_col = "species", cam_col = "camera",
-#'                          obs_col = "type",
-#'                          count_col = "count",
-#'                          NA_count_placeholder = 1)
+#' # Summarize species across all cameras
+#' summarize_species(df, 
+#'                   spp_col = "species", cam_col = "camera",
+#'                   obs_col = "type",
+#'                   count_col = "count",
+#'                   NA_count_placeholder = 1)
+#' # Summarize per species and cameras
+#' summarize_species(df, 
+#'                   spp_col = "species", cam_col = "camera",
+#'                   obs_col = "type",
+#'                   count_col = "count",
+#'                   by_cam = TRUE,
+#'                   NA_count_placeholder = 1)
 summarize_species <- function(df, 
-                              species_col, 
+                              spp_col, 
                               cam_col = NULL,
                               obs_col = NULL,
                               count_col = NULL,
                               ncam = NULL,
+                              by_cam = FALSE,
+                              keep_all_camera_levels = FALSE,
                               NA_count_placeholder = NA) {
   
-  # Set and check ncam ---
+  # Check data input ---
+  # Set and check ncam
   if (!is.null(cam_col)) {
     ncam_df <- length(unique(df[[cam_col]]))
     if (is.null(ncam)) {
@@ -554,6 +581,14 @@ summarize_species <- function(df,
       }
     }
   }
+  
+  # Check that cam_col is provided if by_cam is TRUE
+  if (by_cam) {
+    if (is.null(cam_col)) {
+      stop("cam_col must be provided when by_cam is TRUE.")
+    }
+  }
+  
   
   # Replace NAs in count ---
   if (!is.null(count_col)) {
@@ -570,35 +605,115 @@ summarize_species <- function(df,
   
   # Group data ---
   if (!is.null(obs_col)) { # obs_col provided
-    res <- df |> 
-      group_by(.data[[species_col]], .data[[obs_col]])
+    if (by_cam) {
+      # Group by camera
+      res <- df |> 
+        group_by(.data[[spp_col]], .data[[obs_col]],
+                 .data[[cam_col]])
+    } else {
+      # Don't group by camera
+      res <- df |> 
+        group_by(.data[[spp_col]], .data[[obs_col]])
+    }
+    
   } else {
-    res <- df |> 
-      group_by(.data[[species_col]])
+    if (by_cam) {
+      # Group by camera
+      res <- df |> 
+        group_by(.data[[spp_col]], .data[[cam_col]])
+    } else {
+      # Don't group by camera
+      res <- df |> 
+        group_by(.data[[spp_col]])
+    }
   }
   
   # Summarize ---
-  if (!is.null(cam_col)) {
+  if (is.null(cam_col) || by_cam) {
+    # Just add n sightings and individuals
     res <- res |> 
-      summarise(n_sightings = n(),
-                n_individuals = ifelse(is.null(count_col), 
+      summarise(sightings = n(),
+                individuals = ifelse(is.null(count_col), 
                                        n(), # Simply count rows
                                        sum(.data[[count_col]]) # else sum count col
                 ),
-                n_cameras = length(unique(.data[[cam_col]]))
+                .groups = "drop"
+      )
+    if (by_cam) {
+      # Add the proportion of species seen on the camera
+      res <- res |> 
+        group_by(.data[[cam_col]]) |> 
+        mutate(across(c("sightings", "individuals"), 
+                      ~ .x/sum(.x),
+                      .names = "{.col}_prop")
+               ) |>
+        dplyr::ungroup()
+    }
+    
+  } else {
+    # If cam_col is provided but we don't group by camera,
+    # Add the number of cameras the species was seen on
+    res <- res |> 
+      summarise(sightings = n(),
+                individuals = ifelse(is.null(count_col), 
+                                     n(), # Simply count rows
+                                     sum(.data[[count_col]]) # else sum count col
+                ),
+                n_cameras = length(unique(.data[[cam_col]])),
+                .groups = "drop"
       )
     # Add prop_cam
     res$prop_cam <- res$n_cameras/ncam
-  } else {
-    res <- res |> 
-      summarise(n_sightings = n(),
-                n_individuals = ifelse(is.null(count_col), 
-                                       n(), # Simply count rows
-                                       sum(.data[[count_col]]) # else sum count col
-                )
-      )
   }
   
+  
+  if(!is.null(cam_col)) {
+    # If keep_all_camera_levels, add unused levels
+    if(keep_all_camera_levels & is.factor(df[[cam_col]])) {
+      # Create df with missing factors
+      cam_levels <- levels(as.factor(df[[cam_col]]))
+      to_add <- cam_levels[!(cam_levels %in% res[[cam_col]])]
+      
+      # Add missing cameras
+      if (length(to_add) != 0) {
+        to_add <- factor(to_add, levels = cam_levels)
+        
+        missing_cams <- data.frame(cam = to_add, empty = TRUE)
+        colnames(missing_cams)[1] <- cam_col
+        
+        res <- res |> 
+          mutate(empty = FALSE) |>
+          dplyr::bind_rows(missing_cams)
+      }
+    }
+  }
+  
+  # Arrange table
+  if (!by_cam) {
+    if (is.null(obs_col)) {
+      res <- res |> 
+        dplyr::arrange(.data[[spp_col]],
+                       na.last = TRUE)
+    } else {
+      res <- res |> 
+        dplyr::arrange(.data[[spp_col]],
+                       .data[[obs_col]],
+                       na.last = TRUE)
+    }
+  } else {
+    if (is.null(obs_col)) {
+      res <- res |> 
+        dplyr::arrange(.data[[spp_col]],
+                       .data[[cam_col]],
+                       na.last = TRUE)
+    } else {
+      res <- res |> 
+        dplyr::arrange(.data[[spp_col]],
+                       .data[[obs_col]],
+                       .data[[cam_col]],
+                       na.last = TRUE)
+    }
+  }
   
   # Convert tibble to dataframe
   res <- as.data.frame(res)

@@ -98,11 +98,13 @@ knitr::kable(camsum)
 
 ## Species information
 
+### Group species across cameras
+
 We can also summarize the species sightings with the function `summarize_species`.
 
 ```{r}
 sppsum <- summarize_species(recordTableSample,
-                            species_col = "Species", 
+                            spp_col = "Species", 
                             cam_col = "Station")
 knitr::kable(sppsum)
 ```
@@ -110,8 +112,8 @@ knitr::kable(sppsum)
 The summary table has the following columns:
 
 -   the first column is named as the species column (here `Species`) and contains species name
--   `n_sightings` is the number of sightings of the species (corresponding to row coun in the data)
--   `n_individuals` takes into account the information from the counting column (if provided). Else, it is the same as `n_sightings`
+-   `sightings` is the number of sightings of the species (corresponding to row count in the data)
+-   `individuals` takes into account the information from the counting column (if provided). Else, it is the same as `sightings`.
 -   `n_cameras` gives the number of cameras the species was observed on.
 -   `prop_cam` gives the proportion of cameras the species was observed on.
 
@@ -121,9 +123,24 @@ We can also include the count information:
 with_count <- recordTableSample |> 
   mutate(count = 3)
 sppsum <- summarize_species(with_count,
-                            species_col = "Species", 
+                            spp_col = "Species", 
                             cam_col = "Station", 
                             count_col = "count")
+knitr::kable(sppsum)
+```
+
+If any of the count data is `NA`, it is possible to provide a value to replace it:
+
+```{r}
+with_count_NA <- with_count |> 
+  mutate(count = ifelse(Species == "PBE", NA, count))
+
+sppsum <- summarize_species(with_count_NA,
+                            spp_col = "Species", 
+                            cam_col = "Station", 
+                            count_col = "count",
+                            NA_count_placeholder = 1)
+
 knitr::kable(sppsum)
 ```
 
@@ -138,8 +155,26 @@ with_obstype <- rbind(with_obstype,
                       c(rep(NA, 11), "fire"))
 
 sppsum <- summarize_species(with_obstype,
-                            species_col = "Species", 
+                            spp_col = "Species", 
                             cam_col = "Station", 
                             obs_col = "type")
 knitr::kable(sppsum)
 ```
+
+### Summarize per species and cameras
+
+It is also possible to summarize the information per species and camera using the argument `by_cam`:
+
+```{r}
+bycam <- summarize_species(recordTableSample,
+                           spp_col = "Species", 
+                           cam_col = "Station",
+                           by_cam = TRUE)
+knitr::kable(bycam)
+```
+
+Then, we obtain a table with one row per species and camera. The four first columns are the same as without the `by_cam` option, but the following rows differ:
+
+-   `sightings_prop` is the proportion of sightings of a given species at a given camera
+
+-   `individuals_prop` is the proportion of individuans of a given species at a given camera

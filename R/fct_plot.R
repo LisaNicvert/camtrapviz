@@ -454,7 +454,7 @@ plot_species_bars <- function(df,
   
   # Summarize species
   dfp <- summarize_species(df, 
-                           species_col = spp_col, 
+                           spp_col = spp_col, 
                            count_col = count_col,
                            obs_col = obs_col,
                            NA_count_placeholder = NA_count_placeholder)
@@ -465,16 +465,16 @@ plot_species_bars <- function(df,
   }
   
   if (interactive) {
-    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], n_individuals),
-                          y = n_individuals,
+    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], individuals),
+                          y = individuals,
                           tooltip = paste(.data[[spp_col]], 
-                                          n_individuals, 
+                                          individuals, 
                                           sep = ": ")
     )) +
       geom_col_interactive()
   } else {
-    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], n_individuals),
-                          y = n_individuals)) +
+    gg <- ggplot(dfp, aes(x = stats::reorder(.data[[spp_col]], individuals),
+                          y = individuals)) +
       geom_col()
   }
   gg <- gg +

@@ -174,7 +174,7 @@ summaryServer <- function(id,
       dat <- ..(camtrap_data())$data$observations
       ncam <- nrow(..(cameras_values()))
       summarize_species(df = dat, 
-                        species_col = ..(spp_col()), 
+                        spp_col = ..(spp_col()), 
                         cam_col = ..(cam_col_rec()), 
                         obs_col = ..(obs_col()),
                         count_col = ..(unname(mapping_records()$count_col)),

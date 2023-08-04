@@ -12,6 +12,7 @@ Compute and visualize common descriptors for camera trap data. A Shiny app allow
 Useful links:
 \itemize{
   \item \url{https://lisanicvert.github.io/camtrapviz/}
+  \item \url{https://github.com/LisaNicvert/camtrapviz}
 }
 
 }

@@ -155,7 +155,7 @@ allspeciesServer <- function(id,
     
     # Set height
     nspecies <- nrow(summarize_species(camtrap_data()$data$observations,
-                                       species_col = spp_col(), 
+                                       spp_col = spp_col(), 
                                        obs_col = obs_col()))
     unit <- nspecies/6
     height <- max(5, 

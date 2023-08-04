@@ -449,11 +449,13 @@ test_that("Summarize species", {
                    count = c(1, 1, 1, 50, 3, 4, 1, NA))
   
   # Without obstype ---
-  res <- summarize_species(df, species_col = "species", cam_col = "camera")
+  res <- summarize_species(df, 
+                           species_col = "species", 
+                           cam_col = "camera")
   
   expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA),
-                         n_sightings = c(2, 2, 1, 1, 2),
-                         n_individuals = c(2, 2, 1, 1, 2),
+                         sightings = c(2, 2, 1, 1, 2),
+                         individuals = c(2, 2, 1, 1, 2),
                          n_cameras = c(1, 2, 1, 1, 2))
   expected$prop_cam <- expected$n_cameras/4
   expect_equal(res, expected)
@@ -464,8 +466,8 @@ test_that("Summarize species", {
                            obs_col = "type")
   expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA, NA),
                          type = c("animal", "animal", "animal", "animal", "blank", "human"),
-                         n_sightings = c(2, 2, 1, 1, 1, 1),
-                         n_individuals = c(2, 2, 1, 1, 1, 1),
+                         sightings = c(2, 2, 1, 1, 1, 1),
+                         individuals = c(2, 2, 1, 1, 1, 1),
                          n_cameras = c(1, 2, 1, 1, 1, 1))
   expected$prop_cam <- expected$n_cameras/4
   expect_equal(res, expected)
@@ -475,7 +477,7 @@ test_that("Summarize species", {
                                             species_col = "species", cam_col = "camera",
                                             obs_col = "type",
                                             count_col = "count"))
-  expected$n_individuals <- c(2, 53, 4, 1, NA, 1)
+  expected$individuals <- c(2, 53, 4, 1, NA, 1)
   expected$prop_cam <- expected$n_cameras/4
   expect_equal(res, expected)
   
@@ -519,7 +521,7 @@ test_that("Summarize species with NA in count",{
                                             species_col = "species", 
                                             cam_col = "camera",
                                             count_col = "count"))
-  expect_true(is.na(res$n_individuals))
+  expect_true(is.na(res$individuals))
   
   # With NA replacement ---
   res <- summarize_species(df, 
@@ -527,7 +529,7 @@ test_that("Summarize species with NA in count",{
                            cam_col = "camera",
                            count_col = "count",
                            NA_count_placeholder = 1)
-  expect_equal(res$n_individuals, 7)
+  expect_equal(res$individuals, 7)
 })
 
 test_that("Summarize species without camera", {
@@ -539,8 +541,8 @@ test_that("Summarize species without camera", {
   res <- summarize_species(df, species_col = "species")
   
   expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA),
-                         n_sightings = c(2, 2, 1, 1, 2),
-                         n_individuals = c(2, 2, 1, 1, 2))
+                         sightings = c(2, 2, 1, 1, 2),
+                         individuals = c(2, 2, 1, 1, 2))
   expect_equal(res, expected)
   
   # With obstype ---
@@ -549,8 +551,8 @@ test_that("Summarize species without camera", {
                            obs_col = "type")
   expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA, NA),
                          type = c("animal", "animal", "animal", "animal", "blank", "human"),
-                         n_sightings = c(2, 2, 1, 1, 1, 1),
-                         n_individuals = c(2, 2, 1, 1, 1, 1))
+                         sightings = c(2, 2, 1, 1, 1, 1),
+                         individuals = c(2, 2, 1, 1, 1, 1))
   expect_equal(res, expected)
   
   # With count ---
@@ -558,8 +560,119 @@ test_that("Summarize species without camera", {
                                             species_col = "species",
                                             obs_col = "type",
                                             count_col = "count"))
-  expected$n_individuals <- c(2, 53, 4, 1, NA, 1)
+  expected$individuals <- c(2, 53, 4, 1, NA, 1)
   expect_equal(res, expected)
+})
+
+
+test_that("Summarize species per camera too", {
+  # Synthetic data ---
+  df <- data.frame(species = c("zebra", "cat", "cat", "cow", "cow", NA, NA),
+                   type = c("animal", "animal", "animal", "animal", "animal", "human", "blank"),
+                   camera = c("C1", "C1", "C1", "C1", "C2", "C3", "C4"),
+                   count = c(1, 1, 1, 50, 3, 1, NA))
+  
+  # Check error message ---
+  expect_error(summarize_species(df, 
+                                 spp_col = "species",
+                                 by_cam = TRUE),
+               "cam_col must be provided when by_cam is TRUE.")
+  
+  # Simplest case ---
+  tab <- summarize_species(df,
+                           cam_col = "camera",
+                           spp_col = "species",
+                           by_cam = TRUE)
+  expected <- data.frame(species = c("cat", 
+                                     "cow", "cow", 
+                                     "zebra",
+                                     NA, NA),
+                         camera = c("C1", 
+                                    "C1", "C2", 
+                                    "C1", 
+                                    "C3", "C4"),
+                         sightings = c(2, 
+                                       1, 1, 
+                                       1, 
+                                       1, 1),
+                         individuals = c(2, 
+                                         1, 1, 
+                                         1, 
+                                         1, 1),
+                         sightings_prop = c(0.5, 
+                                            0.25, 1,
+                                            0.25, 
+                                            1, 1),
+                         individuals_prop = c(0.5, 
+                                              0.25, 1,
+                                              0.25, 
+                                              1, 1))
+  expect_equal(tab, expected)
+  
+  # Add count ---
+  expect_warning(summarize_species(df,
+                                   cam_col = "camera",
+                                   spp_col = "species",
+                                   count_col = "count",
+                                   by_cam = TRUE),
+                 "There are NAs in the count column; if you want to replace them with a value, use NA_count_placeholder.",
+                 fixed = TRUE)
+  
+  tab <- suppressWarnings(summarize_species(df,
+                                            cam_col = "camera",
+                                            spp_col = "species",
+                                            count_col = "count",
+                                            by_cam = TRUE))
+  expected2 <- expected
+  expected2$individuals <- c(2, 
+                             50, 3, 
+                             1, 
+                             1, NA)
+  expected2$individuals_prop <- c(2/53,
+                                  50/53, 1, 
+                                  1/53, 
+                                  1, NA)
+  expect_equal(tab, expected2)
+  
+  # Add missing camera ---
+  dflevels <- df
+  camlevels <- c("C5", "C1", "C2", "C3", "C4")
+  dflevels$camera <- factor(dflevels$camera, 
+                            levels = camlevels)
+  
+  tab <- suppressWarnings(summarize_species(dflevels,
+                                            cam_col = "camera",
+                                            spp_col = "species",
+                                            count_col = "count", 
+                                            by_cam = TRUE,
+                                            keep_all_camera_levels = TRUE))
+  
+  newcol <- data.frame(species = NA, 
+                       camera = "C5", 
+                       sightings = NA, individuals = NA,
+                       sightings_prop = NA, individuals_prop = NA,
+                       empty = TRUE)
+  expected3 <- expected2 |> mutate(empty = FALSE)
+  expected3 <- rbind(expected3[1:4, ], newcol, expected3[5:6, ])
+  expected3$camera <- factor(expected3$camera,
+                             levels = camlevels)
+  rownames(expected3) <- NULL
+  expect_equal(tab, expected3)
+  
+  # No missing camera in levels ---
+  dflevels <- df
+  dflevels$camera <- factor(dflevels$camera)
+  tab <- suppressWarnings(summarize_species(dflevels,
+                                            cam_col = "camera",
+                                            spp_col = "species",
+                                            count_col = "count", 
+                                            by_cam = TRUE,
+                                            keep_all_camera_levels = TRUE))
+  
+  expected4 <- expected2
+  expected4$camera <- factor(expected4$camera)
+  expect_equal(tab, expected4)
+
 })
 
 test_that("Reorder named values", {
@@ -784,92 +897,6 @@ test_that("Filter data (dates)", {
 })
 
 # Diversity ---------------------------------------------------------------
-
-test_that("Get diversity df", {
-  
-  # Normal case ---
-  df <- data.frame(species = c("zebra", "cat", "cat", "cow", "cow", NA, NA),
-                   type = c("animal", "animal", "animal", "animal", "animal", "human", "blank"),
-                   camera = c("C1", "C1", "C1", "C1", "C2", "C2", "C3"),
-                   count = c(1, 1, 1, 50, 3, 1, NA))
-  
-  tab <- get_diversity_table(df,
-                             cam_col = "camera",
-                             spp_col = "species")
-  expected <- data.frame(camera = c("C1", "C1", "C1", 
-                                    "C2", "C2", 
-                                    "C3"),
-                         species = c("cat", "cow", "zebra",
-                                     "cow", NA,
-                                     NA),
-                         count = c(2, 1, 1, 
-                                   1, 1,
-                                   1),
-                         prop = c(0.5, 0.25, 0.25,
-                                  0.5, 0.5,
-                                  1))
-  expect_equal(tab, expected)
-  
-  # Add count ---
-  tab <- get_diversity_table(df,
-                             cam_col = "camera",
-                             spp_col = "species",
-                             count_col = "count")
-  expected2 <- expected
-  expected2$count <- c(2, 50, 1, 
-                       3, 1,
-                       NA)
-  expected2$prop <- c(2/53, 50/53, 1/53, 
-                      3/4, 1/4,
-                      NA)
-  expect_equal(tab, expected2)
-  
-  # Add missing camera ---
-  dflevels <- df
-  dflevels$camera <- factor(dflevels$camera, 
-                            levels = c("C4", "C1", "C2", "C3"))
-  
-  tab <- get_diversity_table(dflevels,
-                             cam_col = "camera",
-                             spp_col = "species",
-                             count_col = "count", 
-                             keep_all_levels = TRUE)
-  expected3 <- data.frame(camera = factor(c("C4", "C1", "C1", "C1", 
-                                            "C2", "C2", 
-                                            "C3"),
-                                          levels = c("C4", "C1", "C2", "C3")),
-                          species = c(NA, 
-                                      "cat", "cow", "zebra",
-                                      "cow", NA,
-                                      NA),
-                          count = c(NA,
-                                    2, 50, 1, 
-                                    3, 1,
-                                    NA),
-                          prop = c(NA,
-                                   2/53, 50/53, 1/53, 
-                                   3/4, 1/4,
-                                   NA),
-                          empty = c(TRUE, 
-                                    FALSE, FALSE, FALSE,
-                                    FALSE, FALSE,
-                                    FALSE))
-  
-  expect_equal(tab, expected3)
-  
-  # No missing camera in levels ---
-  dflevels <- df
-  dflevels$camera <- factor(dflevels$camera)
-  tab <- get_diversity_table(dflevels,
-                             cam_col = "camera",
-                             spp_col = "species",
-                             count_col = "count", 
-                             keep_all_levels = TRUE)
-  
-  expected4 <- expected2
-  expected4$camera <- factor(expected4$camera)
-  expect_equal(tab, expected4)
-})
 
 test_that("Get diversity indices", {
   countdf <- data.frame(camera = c("C1", "C1", "C1",

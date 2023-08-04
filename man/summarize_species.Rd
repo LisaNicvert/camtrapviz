@@ -6,20 +6,23 @@
 \usage{
 summarize_species(
   df,
-  species_col,
+  spp_col,
   cam_col = NULL,
   obs_col = NULL,
   count_col = NULL,
   ncam = NULL,
+  by_cam = FALSE,
+  keep_all_camera_levels = FALSE,
   NA_count_placeholder = NA
 )
 }
 \arguments{
 \item{df}{the observation dataframe to summarize}
 
-\item{species_col}{Name of the species column}
+\item{spp_col}{Name of the species column}
 
-\item{cam_col}{Name of the column containing camera codes (optional)}
+\item{cam_col}{Name of the column containing camera codes (optional if
+\code{by_cam} is \code{FALSE})}
 
 \item{obs_col}{Name of the observation type column (optional)}
 
@@ -27,29 +30,50 @@ summarize_species(
 
 \item{ncam}{Number of cameras to take into account when computing
 the proportion of cameras the species was ween on. If \code{NULL},
-defaults to the number of cameras present in the \code{df}.}
+defaults to the number of cameras present in the \code{df} (not needed
+if \code{cam_col} is not provided).}
+
+\item{by_cam}{Should the values be summarized by camera? If yes,
+there will be one row per cameras-species}
+
+\item{keep_all_camera_levels}{If there is a camera on which no species were
+seen, should it be present in the output? Not needed
+if \code{cam_col} is not provided.}
 
 \item{NA_count_placeholder}{Value with which to replace NAs present
 in the column containing counts. Defaults to NA (i.e. values are not
-replaced)}
+replaced).}
 }
 \value{
 A table summarizing species information with the following columns:
 \itemize{
-\item Species (named like \code{species_col}): species identity
-(same as the \code{species_col} input column)
+\item Species (named like \code{spp_col}): species identity
+(same as the \code{spp_col} input column)
 \item Observation type (present only if \code{obs_col} is not \code{NULL} and named like
 \code{obs_col}): observation type (same as the \code{obs_col} input column)
-\item \code{n_sightings}: number of rows where the species was photographed.
-\item \code{n_individuals}: count of individuals observed on all
+\item \code{sightings}: number of rows where the species was photographed.
+\item \code{individuals}: count of individuals observed on all
 pictures (using the input \code{count_col} column).
-If \code{count_col} is \code{NULL}, it contains the same values as \code{n_sightings}.
-If there are NAs in the input  \code{count_col}, they will propagate in \code{n_individuals}
+If \code{count_col} is \code{NULL}, it contains the same values as \code{sightings}.
+If there are NAs in the input  \code{count_col}, they will propagate in \code{individuals}
 (unless a value is specified in \code{NA_count_placeholder}).
+}
+
+If \code{by_cam} is \code{FALSE}, the following rows are also present:
+\itemize{
 \item \code{n_cameras} (present only if \code{cam_col} is not \code{NULL}) : the number of cameras the species was seen on.
 \item \code{prop_cam} (present only if \code{cam_col} is not \code{NULL}): the proportion of cameras the species was seen on.
 If \code{ncam} is provided, then it uses \code{ncam} as the total number of cameras.
 }
+
+If \code{by_cam} is \code{TRUE}, the following rows are also present:
+\itemize{
+\item \code{sightings_prop}: the proportion of sightings represented by the species at the camera.
+\item \code{individuals_prop}: the proportion of individuans represented by the species at the camera.
+}
+
+Finally, if \code{keep_all_camera_levels} is \code{TRUE}, a final column named
+\code{empty} is added to indicate which cameras were empty (have no data).
 }
 \description{
 Summarize species information from a data table
@@ -59,9 +83,17 @@ df <- data.frame(species = c("zebra", "cat", "cat", "cow", NA, NA),
                  type = c("animal", "animal", "animal", "animal", "human", "blank"),
                  camera = c("C1", "C1", "C2", "C3", "C3", "C4"),
                  count = c(1, 1, 3, 50, 1, NA))
-res <- summarize_species(df, 
-                         species_col = "species", cam_col = "camera",
-                         obs_col = "type",
-                         count_col = "count",
-                         NA_count_placeholder = 1)
+# Summarize species across all cameras
+summarize_species(df, 
+                  spp_col = "species", cam_col = "camera",
+                  obs_col = "type",
+                  count_col = "count",
+                  NA_count_placeholder = 1)
+# Summarize per species and cameras
+summarize_species(df, 
+                  spp_col = "species", cam_col = "camera",
+                  obs_col = "type",
+                  count_col = "count",
+                  by_cam = TRUE,
+                  NA_count_placeholder = 1)
 }
