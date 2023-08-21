@@ -382,7 +382,9 @@ get_all_species <- function(df,
 #' (where `NA` values in `spp_col` are replaced as described above).
 #' + a column named like `obs_col` containing unique corresponding
 #' observations types (if `obs_col` is provided).
-#' + the columns of the dataframe are named as ID_xx where xx are numbers.
+#' + if `obs_col` is not `NULL`, the rows of the dataframe are named 
+#' as `spp_type` where `spp` is the species value and 
+#' `type` is the observation type value. Else, rows are named as `spp`.
 #' Else, returns only the unique values of 
 #' `spp_col`.
 #' 
@@ -445,7 +447,13 @@ get_unique_species <- function(df,
   if (return_df) {
     # Add ID
     res <- as.data.frame(spp_df) # Convert tibble to df
-    rownames(res) <- paste("ID", 1:nrow(res), sep = "_")
+    
+    if (!is.null(obs_col)) {
+      rownames(res) <- paste(res[[spp_col]], res[[obs_col]], sep = "_")
+    } else {
+      rownames(res) <- res[[spp_col]]
+    }
+    
   } else {
     res <- spp_df[[spp_col]]
   }

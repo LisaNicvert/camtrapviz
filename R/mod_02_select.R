@@ -166,7 +166,46 @@ selectServer <- function(id,
       update_columns(session = session, 
                      prefix = "daterange", 
                      df = camtrap_data()$data$observations)
-            
+      
+
+      # Get selected species and cameras ----------------------------------------------------
+
+      selected_spp_id <- reactive({
+        if (input$spp_manually == "manually") {
+          res <- input$spp_select
+          validate(need(!is.null(res), 
+                        "You need to keep at least one species"))
+        } else {
+          df <- camtrap_data()$data$observations
+          
+          validate(need(!all(is.null(input$spp_col_val)), 
+                        "You need to keep at least one species"))
+          
+          filtered_df <- df[df[[input$spp_col]] %in% input$spp_col_val]
+          
+          res_df <- get_unique_species(filtered_df,
+                                       spp_col =  spp_col(),
+                                       obs_col = obs_col(),
+                                       reorder = TRUE)
+          res <- rownames(res_df)
+        }
+        res
+      })
+      
+      selected_cam <- reactive({
+        if (input$cam_manually == "manually") {
+          res <- input$cam_select
+          validate(need(!is.null(res), 
+                        "You need to keep at least one camera"))
+        } else {
+          df <- camtrap_data()$data$deployments
+          validate(need(!all(is.null(input$cam_col_val)), 
+                        "You need to keep at least one camera"))
+          res <- df[df[[input$cam_col]] %in% input$cam_col_val, 
+                    cam_col_cam()]
+        }
+        res
+      })
   
       # Get species and cameras -------------------------------------------------
       
@@ -191,17 +230,18 @@ selectServer <- function(id,
       # Display species and cameras ---------------------------------------------
   
       output$species_list <- renderText({
-        species <- species_df()[input$spp_select, ]
-  
+        
+        species <- species_df()[selected_spp_id(), ]
+
         if (is.data.frame(species)) {
           species <- species[[spp_col()]]
         }
-        
+
         paste("Selected species:", paste(species, collapse = ", "))
       })
         
       output$cameras_list <- renderText({
-        paste("Selected cameras:", paste(input$cam_select, collapse = ", "))
+        paste("Selected cameras:", paste(selected_cam(), collapse = ", "))
       })
       
       # Update selectInput ------------------------------------------------------
@@ -219,12 +259,14 @@ selectServer <- function(id,
       })
       
       observe({
-        choices <- as.list(rownames(species_df()))
-        names(choices) <- species_df()[[spp_col()]]
-        shinyWidgets::updatePickerInput(session = session,
-                                        "spp_select",
-                                        choices = choices,
-                                        selected = default_species())
+        if (input$spp_manually == "manually") {
+          choices <- as.list(rownames(species_df()))
+          names(choices) <- species_df()[[spp_col()]]
+          shinyWidgets::updatePickerInput(session = session,
+                                          "spp_select",
+                                          choices = choices,
+                                          selected = default_species())
+        }
       })
       
       observe({
@@ -238,6 +280,11 @@ selectServer <- function(id,
       # Filter tables -----------------------------------------------------------
 
       dat_filtered <- metaReactive2({
+        # Validate ---
+        if (input$daterange_manually != "manually") {
+          validate(need(!all(is.null(input$daterange_col_val)), 
+                        "You need to keep some pictures"))
+        }
         
         # Get values to filter on ---
         # Get rows corresponding to selected obs_col
@@ -245,7 +292,7 @@ selectServer <- function(id,
         
         if (has_type) {
           # Get species/observations to filter out
-          all_filter <- species_df()[!rownames(species_df()) %in% input$spp_select, ]
+          all_filter <- species_df()[!rownames(species_df()) %in% selected_spp_id(), ]
           
           # Get species values
           spp_filter <- all_filter[all_filter[[obs_col()]] == "animal", ]
@@ -258,18 +305,21 @@ selectServer <- function(id,
           # Obs filter is NULL
           obs_filter <- NULL
           # Get species to filter out
-          spp_filter <- species_df()[!rownames(species_df()) %in% input$spp_select, ]
+          spp_filter <- species_df()[!rownames(species_df()) %in% selected_spp_id(), ]
         }
         
-        # # Get rows corresponding to selected cam_col
-        # cam_filter <- input$cam_select
         # Get cameras to filter out
-        cam_filter <- cameras()[!cameras() %in% input$cam_select]
+        cam_filter <- cameras()[!cameras() %in% selected_cam()]
         
-        # Get data range
-        if (is.null(input$daterange_select)) {
-          daterange <- default_daterange()
+        # Get date range
+        if (input$daterange_manually == "manually") {
+          if (is.null(input$daterange_select)) {
+            daterange <- default_daterange()
+          } else {
+            daterange <- input$daterange_select
+          }
         } else {
+          # daterange <- NULL
           daterange <- input$daterange_select
         }
       
@@ -284,7 +334,7 @@ selectServer <- function(id,
           # Filter obs_col
           # Check has type and length != 0, 
           # in case there were only animals selected
-          filter_data(..(camtrap_data()), 
+          d <- filter_data(..(camtrap_data()), 
                       spp_col = ..(spp_col()),
                       spp_filter = spp_filter,
                       obs_col = ..(mapping_records()$obs_col),
@@ -298,6 +348,13 @@ selectServer <- function(id,
                       time_col = ..(mapping_records()$time_col),
                       cameras_as_factor = TRUE)
           
+          if (input$daterange_manually == "manually") {
+            d$data$observations <- d$data$observations |>
+              dplyr::filter(.data[[input$daterange_col]] %in% input$daterange_col_val)
+
+          }
+          
+          d
         }, bindToReturn = TRUE, localize = FALSE)
         
       }, varname = "dat_filtered")
