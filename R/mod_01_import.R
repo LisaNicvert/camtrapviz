@@ -464,8 +464,8 @@ importServer <- function(id) {
         }
       }
       
-    ) |> bindEvent(input$lat_col, input$lon_col,
-                   input$lat_col_cov, input$lon_col_cov) 
+    ) |> shiny::bindEvent(input$lat_col, input$lon_col,
+                          input$lat_col_cov, input$lon_col_cov) 
     
     
 # Read files --------------------------------------------------------------
@@ -871,7 +871,7 @@ importServer <- function(id) {
                             selected = nullval)
         }
       }
-    }) |> bindEvent(input$lat_col, input$lat_col_cov)
+    }) |> shiny::bindEvent(input$lat_col, input$lat_col_cov)
     
     # Update latitude
     observe({
@@ -892,7 +892,7 @@ importServer <- function(id) {
                             selected = nullval)
         }
       }
-    }) |> bindEvent(input$lon_col, input$lon_col_cov)
+    }) |> shiny::bindEvent(input$lon_col, input$lon_col_cov)
 
 
 # Timezone and dates formats handling -------------------------------------------------------
