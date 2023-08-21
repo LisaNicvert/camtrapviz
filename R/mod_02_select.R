@@ -60,6 +60,43 @@ selectServer <- function(id,
   moduleServer(
     id,
     function(input, output, session) {
+      
+
+      # Helper function ---------------------------------------------------------
+      #' Update colums
+      #' 
+      #' Function to update values to choose in the columns
+      #'
+      #' @param session session
+      #' @param prefix prefix to use to fing the widgets
+      #' @param df dataframe to pick columns in
+      #'
+      #' @return Nothing but modifies the existing selectizeInput
+      #' @noRd
+      update_columns <- function(session,
+                                 prefix, 
+                                 df) {
+        
+        # Which column?
+        observe({
+          updateSelectizeInput(session = session,
+                               paste(prefix, "col", 
+                                     sep = "_"),
+                               choices = colnames(df))
+        }) |> shiny::bindEvent(df)
+        
+        # Which values?
+        observe({
+          col <- input[[paste(prefix, "col", sep = "_")]]
+          choices_col <- sort(unique(df[[col]]), 
+                              na.last = TRUE)
+          
+          updateSelectizeInput(session = session,
+                               paste(prefix, "col_val", sep = "_"),
+                               choices = choices_col)
+        }) |> shiny::bindEvent(input[[paste(prefix, "col", sep = "_")]])
+      }
+      
 
       # Test reactive input -----------------------------------------------------
       
@@ -85,18 +122,6 @@ selectServer <- function(id,
       cam_col_rec <- reactive({
         unname(mapping_records()$cam_col)
       })
-      
-      # col_filter_range <- reactive({
-      #   # Get the column to use to filter the range on
-      #   # if date_col is in records we'll use this
-      #   # Else we'll use timestamp
-      #   if (!is.null(mapping_records()$date_col)) {
-      #     unname(mapping_records()$date_col)
-      #   } else {
-      #     unname(mapping_records()$timestamp_col)
-      #   }
-      # })
-      
 
       # Create daterange widget -------------------------------------------------
       
@@ -128,7 +153,20 @@ selectServer <- function(id,
       })
       
 
+
+      # Update columns ----------------------------------------------------------
+      update_columns(session = session, 
+                     prefix = "spp", 
+                     df = camtrap_data()$data$observations)
       
+      update_columns(session = session, 
+                     prefix = "cam", 
+                     df = camtrap_data()$data$deployments)
+      
+      update_columns(session = session, 
+                     prefix = "daterange", 
+                     df = camtrap_data()$data$observations)
+            
   
       # Get species and cameras -------------------------------------------------
       

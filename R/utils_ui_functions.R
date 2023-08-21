@@ -53,7 +53,7 @@ create_dashboard <- function(tagList,
 #' Select values
 #' 
 #' Function to create a set of widgets used to select
-#' values based on a column or based o the values of another column
+#' values based on a column or based on the values of another column
 #'
 #' @param prefix the prefix to use for radioButtons and select(ize)Input
 #' widgets
