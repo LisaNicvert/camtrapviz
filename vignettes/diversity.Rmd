@@ -20,7 +20,7 @@ library(ggiraph)
 library(ggplot2)
 ```
 
-This vignette is a work in progress showing how this package allows to compute diversity indices from camera trap data.
+This vignette shows how to compute diversity indices from camera trap data.
 
 ## Import data
 
@@ -29,9 +29,9 @@ data(mica, package = "camtraptor")
 records <- mica$data$observations
 ```
 
-## Compute diversity index
+## Summarize data
 
-Step 1: summarize data
+To compute diversity indices, we need the number and proportion of sightings for each species per camera. For that, we use the function `summarize_species` with `by_cam = TRUE`:
 
 ```{r}
 spp_cam <- summarize_species(records, 
@@ -44,7 +44,11 @@ spp_cam <- summarize_species(records,
 
 knitr::kable(spp_cam)
 ```
-Step 2: compute diversity indices
+
+## Compute diversity indices
+
+Then, we can compute diversity indices by feeding this summary dataframe to the `get_diversity_indices` function.
+
 
 ```{r}
 div <- get_diversity_indices(spp_cam,
@@ -53,29 +57,65 @@ div <- get_diversity_indices(spp_cam,
 
 knitr::kable(div)
 ```
+
+Let $i = 1 ... S$ denote the species and $j = 1 ... C$ denote the cameras.
+$S_j$ is the number of species seen at camera $j$. $N_j$ is the total number of individuals of all species seen at a camera $j$. $n_{ij}$ and $p_{ij}$ represent respectively the count and proportion if individuals of species $i$ seen at a camera $j$. This function computes:
+
+-   richness $R_j = S_j$ (the number of species seen at camera $j$).
+-   Shannon index $H_j = -\sum_{i = 1}^{S_j} p_{ij} \ln(p_{ij})$. It ranges between 0 and $+\infty$, zero indicating the lowest diversity.
+-   Simpson index $D_j = \sum_{ = 1}^{S_j} \frac{n_{ij}(n_{ij} - 1) }{N_j(N_j - 1)}$.  It ranges between 0 and 1, one indicating the lowest diversity.
+
+Optionally, you can also provide the name of the columns containing counts and proportions (but they default to the name given by the `summarize_species` function). 
+
 ```{r}
-p <- plot_diversity(div, 
-                    div_col = "richness", 
-                    cam_col = "deploymentID", 
-                    interactive = TRUE) +
+div <- get_diversity_indices(spp_cam,
+                             spp_col = "vernacularNames.en",
+                             cam_col = "deploymentID",
+                             count_col = "individuals",
+                             prop_col = "individuals_prop")
+```
+
+## Plot diversity indices
+
+Although it is then simple to use the diversity dataframe to make a custom plot, the helper function `plot_diversity` is provided. 
+
+Here, we plot the richness.
+
+```{r}
+plot_diversity(div, 
+               div_col = "richness", 
+               cam_col = "deploymentID") +
+  ggtitle("Species richness")
+```
+
+The plot can alsp be made interactive.
+
+```{r}
+pr <- plot_diversity(div, 
+                     div_col = "richness", 
+                     cam_col = "deploymentID", 
+                     interactive = TRUE) +
   ggtitle("Species richness")
 
-girafe(ggobj = p)
+girafe(ggobj = pr)
+```
 
-p <- plot_diversity(div, 
-                    div_col = "shannon", 
-                    cam_col = "deploymentID", 
-                    interactive = TRUE) +
+Finally, by changing the `div_col` argument you can plot multiple diversity indices.
+
+```{r}
+ph <- plot_diversity(div, 
+                     div_col = "shannon", 
+                     cam_col = "deploymentID", 
+                     interactive = TRUE) +
   ggtitle("Shannon diversity index")
 
-girafe(ggobj = p)
+pd <- plot_diversity(div, 
+                     div_col = "simpson", 
+                     cam_col = "deploymentID", 
+                     interactive = TRUE) +
+   ggtitle("Simpson diversity index")
 
-p <- plot_diversity(div, 
-                    div_col = "simpson", 
-                    cam_col = "deploymentID", 
-                    interactive = TRUE) +
-  ggtitle("Simpson diversity index")
-
-girafe(ggobj = p)
+girafe(ggobj = ph) 
+girafe(ggobj = pd)
 ```
 

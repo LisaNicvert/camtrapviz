@@ -921,24 +921,10 @@ filter_data <- function(dat,
 #'
 #' @return A dataframe with one row per camera summarizing diversity indices.
 #' 
-#' @details
-#' Richness is computed as the number of the different species seen at the
-#' camera.
-#' 
-#' Shannon index is computed as: 
-#' \deqn{-\sum p_i ln(p_i)}
-#' Where p_i represents the proportion of the abundance of species i at
-#' a camera over the the total number of individuals of all species 
-#' seen at this camera.
-#' It ranges between 0 and +infinity, zero indicating the 
-#' lowest diversity.
-#' 
-#' Simpson index is computed as: 
-#' \deqn{(\sum n_i (n_i - 1))/(N (N-1))}
-#' Where n_i represents the abundance of species i at
-#' a camera over the total number of individuals of all species 
-#' seen at this camera.
-#' It ranges between 0 and 1, one indicating the lowest diversity.
+#' @details Computes the richness, Shannon and Simpson indices.
+#' See [vignette](https://lisanicvert.github.io/camtrapviz/articles/diversity.html)
+#' (or run \code{vignette("diversity", package = "camtrapviz")}) 
+#' for details on the formulas of the diversity indices.
 #' 
 #' @export
 #'
