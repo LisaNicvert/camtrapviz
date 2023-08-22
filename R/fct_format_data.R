@@ -317,6 +317,8 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #' 
 #' @export
 #' 
+#' @seealso [\code{vignette("read-and-clean-data", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/read-and-clean-data.html)
+#' 
 #' @examples
 #' # Create synthetic dataset
 #' records <- data.frame(foo = 1:6,

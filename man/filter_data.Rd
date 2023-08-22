@@ -104,3 +104,7 @@ filter_data(dat,
             daterange = as.Date(c("2009-05-01", "2009-05-15")),
             timestamp_col = "DateTimeOriginal")
 }
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/filter-data.html}{\code{vignette("filter-data", package = "camtrapviz")}},
+\code{\link[=filter_cameras_in_both_tables]{filter_cameras_in_both_tables()}}
+}

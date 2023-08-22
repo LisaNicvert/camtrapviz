@@ -40,3 +40,6 @@ hist(as.numeric(recordTableSample$Time)*2*pi,
      freq = FALSE, breaks = seq(0, 2*pi, by = pi/8))
 lines(as.numeric(dt$x), dt$density, type = "l")
 }
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html}{\code{vignette("activity-patterns", package = "camtrapviz")}}
+}

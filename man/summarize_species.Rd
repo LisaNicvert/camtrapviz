@@ -97,3 +97,7 @@ summarize_species(df,
                   by_cam = TRUE,
                   NA_count_placeholder = 1)
 }
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/summarize.html}{\code{vignette("summarize", package = "camtrapviz")}},
+\code{\link[=summarize_cameras]{summarize_cameras()}}
+}

@@ -31,3 +31,6 @@ plot_diversity(df,
                div_col = "count", 
                cam_col = "camera")
 }
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/plots.html}{\code{vignette("plots", package = "camtrapviz")}}
+}

@@ -12,7 +12,7 @@ time_to_circular(time, units = c("radians", "hours"), circular = FALSE)
 
 \item{units}{The unit to use (subset of values used in in \code{circular::circular})}
 
-\item{circular}{Return an object of class circular?}
+\item{circular}{Return an object of class circular}
 }
 \value{
 the times converted to the desired unit.

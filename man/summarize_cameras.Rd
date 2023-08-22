@@ -58,11 +58,10 @@ and if \code{setup} and \code{retrieval} are the same (e.g. unique picture),
 \code{sampling_length} is zero.
 \item \code{pictures}: the number of pictures taken with this camera (it
 is zero if the camera is only in \code{dfcam} but not in \code{df}).
-\item \code{species}: number of species caught on camera. This column is present only
-if \code{spp_col} is provided. If \code{obs_col} is provided, species
+\item \code{species} (present only if \code{spp_col} is provided): number of species
+caught on camera. If \code{obs_col} is provided, species
 marked as \code{NA} in \code{spp_col} but which have different values
 in \code{obs_type} are counted as different species.
-(if \code{obs_col} is not \code{animal_code}).
 \item \code{setup} containing the start of the sampling for each camera.
 \item \code{retrieval} containing the end of the sampling for each camera.
 \item \code{setup_origin} containing the method used to determine the
@@ -109,9 +108,14 @@ cameras <- data.frame(camera = c("A", "B", "C"),
 summarize_cameras(records, 
                   cam_col = "camera", timestamp_col = "stamp", 
                   dfcam = cameras, 
-                  setup_col = "setup", retrieval_col = "retrieval")
+                  setup_col = "setup", retrieval_col = "retrieval",
+                  spp_col = "species")
 # Since camera A had no setup date, the first picture is used.
 # For camera B, setup and retrieval are taken from dfcam.
 # For camera C, as it is present only on dfcam and has no retrieval date,
 # only a setup date is indicated.
+}
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/summarize.html}{\code{vignette("summarize", package = "camtrapviz")}},
+\code{\link[=summarize_species]{summarize_species()}}
 }

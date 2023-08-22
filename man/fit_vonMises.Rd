@@ -26,3 +26,6 @@ recordTableSample <- recordTableSample[recordTableSample$Species == "PBE", ]
 recordTableSample$Time <- chron::times(recordTableSample$Time)
 fit_vonMises(recordTableSample$Time, k = 3)
 }
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html}{\code{vignette("activity-patterns", package = "camtrapviz")}}
+}

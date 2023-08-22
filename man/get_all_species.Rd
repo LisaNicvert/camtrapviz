@@ -61,3 +61,6 @@ get_all_species(df, spp_col = "species", return_df = FALSE)
 # Don't use the type column
 get_all_species(df, spp_col = "species")
 }
+\seealso{
+\code{\link[=get_unique_species]{get_unique_species()}}
+}

@@ -34,8 +34,7 @@ and Simpson diversity indices.
 }
 \details{
 Computes the richness, Shannon and Simpson indices.
-See \href{https://lisanicvert.github.io/camtrapviz/articles/diversity.html}{vignette}
-(or run \code{vignette("diversity", package = "camtrapviz")})
+See \href{https://lisanicvert.github.io/camtrapviz/articles/diversity.html}{\code{vignette("diversity", package = "camtrapviz")}}
 for details on the formulas of the diversity indices.
 }
 \examples{
@@ -47,4 +46,8 @@ countdf <- data.frame(camera = c("C1", "C1", "C1", "C2",
                       individuals_prop = c(1/3, 1/3, 1/3, 1, 88/90, 1/90, 1/90))
 get_diversity_indices(countdf, 
                       spp_col = "species", cam_col = "camera")
+}
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/diversity.html}{\code{vignette("diversity", package = "camtrapviz")}},
+\code{\link[=summarize_species]{summarize_species()}}
 }

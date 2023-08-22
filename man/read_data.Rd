@@ -62,3 +62,6 @@ read_data(records_path = "records.csv", sep_records = ",",
 read_data(records_path = "datapackage.json")
 }
 }
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/read-and-clean-data.html}{\code{vignette("read-and-clean-data", package = "camtrapviz")}}
+}

@@ -128,3 +128,6 @@ plot_activity(fitted_data = pdf_vm,
               freq = FALSE,
               n = nrow(PBE_records))
 }
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html}{\code{vignette("activity-patterns", package = "camtrapviz")}}
+}

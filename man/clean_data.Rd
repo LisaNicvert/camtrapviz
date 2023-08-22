@@ -103,3 +103,6 @@ clean_data(dat,
            rec_type = rec_type,
            cam_type = cam_type)
 }
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/read-and-clean-data.html}{\code{vignette("read-and-clean-data", package = "camtrapviz")}}
+}

@@ -92,6 +92,8 @@
 #' different species.
 #'
 #' @export
+#' 
+#' @seealso [\code{vignette("plots", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/plots.html)
 #'
 #' @examples
 #' data("recordTableSample", package = "camtrapR")
@@ -441,6 +443,8 @@ plot_points <- function(df,
 #' 
 #' @export
 #'
+#' @seealso [\code{vignette("plots", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/plots.html)
+#'
 #' @examples
 #' data("recordTableSample", package = "camtrapR")
 #' plot_species_bars(recordTableSample,
@@ -521,6 +525,8 @@ plot_species_bars <- function(df,
 #' When clicking on a camera, a popup displaying the camera name appears.
 #' 
 #' @export
+#' 
+#' @seealso [\code{vignette("plots", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/plots.html)
 #' 
 #' @examples
 #' data(camtraps, package = "camtrapR")
@@ -813,6 +819,8 @@ update_map <- function(map_id,
 #' original code of `plot.actmod`.
 #' 
 #' @export
+#' 
+#' @seealso [\code{vignette("activity-patterns", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html)
 #'
 #' @examples
 #' library(activity)
@@ -999,6 +1007,8 @@ plot_activity <- function(true_data = NULL,
 #' as bars (in x) following the different cameras (in y).
 #' 
 #' @export
+#'
+#' @seealso [\code{vignette("plots", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/plots.html)
 #'
 #' @examples
 #' # Create synthetic data ---

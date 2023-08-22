@@ -166,3 +166,6 @@ plot_points(recordTableSample,
             caminfo_setup = "Setup_date",
             caminfo_retrieval = "Retrieval_date")
 }
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/plots.html}{\code{vignette("plots", package = "camtrapviz")}}
+}

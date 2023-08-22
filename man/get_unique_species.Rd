@@ -74,3 +74,6 @@ get_unique_species(df, spp_col = "species", return_df = FALSE,
 get_unique_species(df, spp_col = "species",
                    reorder = TRUE)
 }
+\seealso{
+\code{\link[=get_all_species]{get_all_species()}}
+}

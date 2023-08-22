@@ -74,3 +74,6 @@ plot_map(camtraps,
          crs = 32650, # Here we use the EPSG code for UTM zone 50N
          cam_col = "Station")
 }
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/plots.html}{\code{vignette("plots", package = "camtrapviz")}}
+}

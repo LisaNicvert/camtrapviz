@@ -44,3 +44,6 @@ data("recordTableSample", package = "camtrapR")
 plot_species_bars(recordTableSample,
                   spp_col = "Species")
 }
+\seealso{
+\href{https://lisanicvert.github.io/camtrapviz/articles/plots.html}{\code{vignette("plots", package = "camtrapviz")}}
+}

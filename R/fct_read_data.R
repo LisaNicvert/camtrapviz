@@ -99,6 +99,9 @@ get_named_list <- function(df, col, widget_values) {
 #'    + `$observations` (records)
 #'    
 #' @export
+#' 
+#' @seealso [\code{vignette("read-and-clean-data", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/read-and-clean-data.html)
+#' 
 #' @examples
 #' \dontrun{
 #' # Read only records

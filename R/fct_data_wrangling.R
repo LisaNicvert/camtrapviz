@@ -100,6 +100,9 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
 #' 
 #' @export
 #' 
+#' @seealso [\code{vignette("summarize", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/summarize.html),
+#' [summarize_species()]
+#' 
 #' @examples
 #' # Create synthetic data
 #' records <- data.frame(species = c("pigeon", "mouse", "pigeon", "mouse", "mouse"),
@@ -350,6 +353,7 @@ summarize_cameras <- function(df, cam_col,
 #' Else, returns only the character vector containing the values of 
 #' `spp_col`.
 #' 
+#' @seealso [get_unique_species()]
 #' 
 #' @export
 #'
@@ -438,6 +442,8 @@ get_all_species <- function(df,
 #' If `return_df` is `FALSE`, returns only the unique values of 
 #' `spp_col`.
 #' @export
+#' 
+#' @seealso [get_all_species()]
 #'
 #' @examples
 #' df <- data.frame(species = c("rabbit", "cat", "cat", NA, NA, 
@@ -601,6 +607,9 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #' 
 #' @export
 #'
+#' @seealso [\code{vignette("summarize", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/summarize.html),
+#' [summarize_cameras()]
+#' 
 #' @examples
 #' df <- data.frame(species = c("zebra", "cat", "cat", "cow", NA, NA),
 #'                  type = c("animal", "animal", "animal", "animal", "human", "blank"),
@@ -835,6 +844,9 @@ summarize_species <- function(df,
 #' 
 #' @export
 #'
+#' @seealso [\code{vignette("filter-data", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/filter-data.html),
+#' [filter_cameras_in_both_tables()]
+#' 
 #' @examples
 #' data("recordTableSample", package = "camtrapR")
 #' recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal)
@@ -999,12 +1011,13 @@ filter_data <- function(dat,
 #' @return A dataframe with one row per camera summarizing diversity indices.
 #' 
 #' @details Computes the richness, Shannon and Simpson indices.
-#' See [vignette](https://lisanicvert.github.io/camtrapviz/articles/diversity.html)
-#' (or run \code{vignette("diversity", package = "camtrapviz")}) 
+#' See [\code{vignette("diversity", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/diversity.html)
 #' for details on the formulas of the diversity indices.
 #' 
 #' @export
-#'
+#' 
+#' @seealso [\code{vignette("diversity", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/diversity.html),
+#' [summarize_species()]
 #' @examples
 #' countdf <- data.frame(camera = c("C1", "C1", "C1", "C2",
 #'                                  "C3", "C3", "C3"),
@@ -1050,7 +1063,7 @@ get_diversity_indices <- function(count_df, spp_col, cam_col,
 #' 
 #' @param time The time of the day (must be an object of class
 #' `times` from the `chron` package)
-#' @param circular Return an object of class circular? 
+#' @param circular Return an object of class circular
 #' @param units The unit to use (subset of values used in in `circular::circular`)
 #'
 #' @return the times converted to the desired unit. 
@@ -1099,7 +1112,9 @@ time_to_circular <- function(time,
 #' `movMF`.
 #' 
 #' @export
-#'
+#' 
+#' @seealso [\code{vignette("activity-patterns", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html)
+#' 
 #' @examples
 #' data("recordTableSample", package = "camtrapR")
 #' recordTableSample <- recordTableSample[recordTableSample$Species == "PBE", ]
@@ -1139,6 +1154,7 @@ fit_vonMises <- function(time, k) {
 #'
 #' @export
 #'
+#' @seealso [\code{vignette("activity-patterns", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html)
 #' @examples
 #' data("recordTableSample", package = "camtrapR")
 #' recordTableSample <- recordTableSample[recordTableSample$Species == "PBE", ]
