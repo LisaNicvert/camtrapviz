@@ -72,6 +72,8 @@ cameras metadata based on species, cameras and dates.</p>
 <span>  cam_col_rec <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cam_col_cam <span class="op">=</span> <span class="va">cam_col_rec</span>,</span>
 <span>  daterange <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  col_custom <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  val_custom <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  timestamp_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  date_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -123,6 +125,14 @@ Defaults to the same value as <code>cam_col_rec</code>.</p></dd>
 <dd><p>Date range to filter on for the data (will filter
 observations' times so that <code>times &gt;= daterange[1]</code> and
 <code>times &lt;= daterange[2]</code>). Can be either a Date or a POSIX.</p></dd>
+
+
+<dt>col_custom</dt>
+<dd><p>name of a custom column in to filter values in <code>dat$data$observations</code>.</p></dd>
+
+
+<dt>val_custom</dt>
+<dd><p>values to keep in the custom column <code>col_custom</code>.</p></dd>
 
 
 <dt>timestamp_col</dt>

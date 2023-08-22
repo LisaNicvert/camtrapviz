@@ -127,7 +127,9 @@ This dataframe has the following columns (type character):</p><ul><li><p>a colum
 (where <code>NA</code> values in <code>spp_col</code> are replaced as described above).</p></li>
 <li><p>a column named like <code>obs_col</code> containing unique corresponding
 observations types (if <code>obs_col</code> is provided).</p></li>
-<li><p>the columns of the dataframe are named as ID_xx where xx are numbers.
+<li><p>if <code>obs_col</code> is not <code>NULL</code>, the rows of the dataframe are named
+as <code>spp_type</code> where <code>spp</code> is the species value and
+<code>type</code> is the observation type value. Else, rows are named as <code>spp</code>.
 Else, returns only the unique values of
 <code>spp_col</code>.</p></li>
 </ul></div>
@@ -141,13 +143,13 @@ Else, returns only the unique values of
 <span class="r-in"><span><span class="co"># Use the type column</span></span></span>
 <span class="r-in"><span><span class="fu">get_unique_species</span><span class="op">(</span><span class="va">df</span>, spp_col <span class="op">=</span> <span class="st">"species"</span>, obs_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
 <span class="r-in"><span>                   reorder <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            species   type</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ID_1           cat animal</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ID_2        rabbit animal</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ID_3         blank  blank</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ID_4          fire   fire</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ID_5 cameratrapper  human</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ID_6       tourist  human</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                           species   type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cat_animal                    cat animal</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rabbit_animal              rabbit animal</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> blank_blank                 blank  blank</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> fire_fire                    fire   fire</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cameratrapper_human cameratrapper  human</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> tourist_human             tourist  human</span>
 <span class="r-in"><span><span class="co"># Use the type column but return a vector</span></span></span>
 <span class="r-in"><span><span class="fu">get_unique_species</span><span class="op">(</span><span class="va">df</span>, spp_col <span class="op">=</span> <span class="st">"species"</span>, return_df <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>                   reorder <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
