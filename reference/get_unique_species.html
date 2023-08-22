@@ -123,16 +123,21 @@ replaced with the corresponding value in <code>obs_col</code></p>
 <p>(if <code>obs_col</code> is not <code>animal_code</code>).
 If <code>return_df</code> is <code>TRUE</code>, returns a dataframe containing
 unique species and observation type.
-This dataframe has the following columns (type character):</p><ul><li><p>a column named like <code>spp_col</code> containing species names
+This dataframe has the following columns (type character):</p><ul><li><p>a column <code>ID</code> to uniquely identify each species/observation
+combination. If <code>obs_col</code> is not <code>NULL</code>, the IDs are of the form
+<code>spp_type</code> where <code>spp</code> is the species value and
+<code>type</code> is the observation type value. Else, IDs are of the form <code>spp</code>.</p></li>
+<li><p>a column named like <code>spp_col</code> containing species names
 (where <code>NA</code> values in <code>spp_col</code> are replaced as described above).</p></li>
 <li><p>a column named like <code>obs_col</code> containing unique corresponding
-observations types (if <code>obs_col</code> is provided).</p></li>
-<li><p>if <code>obs_col</code> is not <code>NULL</code>, the rows of the dataframe are named
-as <code>spp_type</code> where <code>spp</code> is the species value and
-<code>type</code> is the observation type value. Else, rows are named as <code>spp</code>.
-Else, returns only the unique values of
+observations types (if <code>obs_col</code> is provided).
+If <code>return_df</code> is <code>FALSE</code>, returns only the unique values of
 <code>spp_col</code>.</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="get_all_species.html">get_all_species()</a></code></p></div>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -143,13 +148,13 @@ Else, returns only the unique values of
 <span class="r-in"><span><span class="co"># Use the type column</span></span></span>
 <span class="r-in"><span><span class="fu">get_unique_species</span><span class="op">(</span><span class="va">df</span>, spp_col <span class="op">=</span> <span class="st">"species"</span>, obs_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
 <span class="r-in"><span>                   reorder <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                           species   type</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cat_animal                    cat animal</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rabbit_animal              rabbit animal</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> blank_blank                 blank  blank</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> fire_fire                    fire   fire</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cameratrapper_human cameratrapper  human</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> tourist_human             tourist  human</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                    ID       species   type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1          cat_animal           cat animal</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2       rabbit_animal        rabbit animal</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3         blank_blank         blank  blank</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4           fire_fire          fire   fire</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 cameratrapper_human cameratrapper  human</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       tourist_human       tourist  human</span>
 <span class="r-in"><span><span class="co"># Use the type column but return a vector</span></span></span>
 <span class="r-in"><span><span class="fu">get_unique_species</span><span class="op">(</span><span class="va">df</span>, spp_col <span class="op">=</span> <span class="st">"species"</span>, return_df <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>                   reorder <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>

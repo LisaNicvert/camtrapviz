@@ -68,7 +68,9 @@
 <span>  dfcam <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cam_col_dfcam <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  setup_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  retrieval_col <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  retrieval_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  spp_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  obs_col <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -114,23 +116,38 @@ in <code>dfcam</code> (optional)</p></dd>
 <dd><p>name of the column containing retrieval date or datetime
 in <code>dfcam</code> (optional)</p></dd>
 
+
+<dt>spp_col</dt>
+<dd><p>name of the species column (optional). If present,
+the summarry will include the number of species seen on each camera.</p></dd>
+
+
+<dt>obs_col</dt>
+<dd><p>name of the observation type column</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
 <p>The summary is returned as a dataframe with the following columns:</p><ul><li><p>a column named as <code>cam_col</code> containing the camera ID.</p></li>
+<li><p><code>sampling_length</code> length of the sampling period in days (computed
+with the <code>cameraOperation</code> function from the <code>camtrapR</code> package).
+If <code>setup</code> or <code>retrieval</code> are <code>NA</code>, then <code>sampling_length</code> is <code>NA</code>
+and if <code>setup</code> and <code>retrieval</code> are the same (e.g. unique picture),
+<code>sampling_length</code> is zero.</p></li>
+<li><p><code>pictures</code>: the number of pictures taken with this camera (it
+is zero if the camera is only in <code>dfcam</code> but not in <code>df</code>).</p></li>
+<li><p><code>species</code> (present only if <code>spp_col</code> is provided): number of species
+caught on camera. If <code>obs_col</code> is provided, species
+marked as <code>NA</code> in <code>spp_col</code> but which have different values
+in <code>obs_type</code> are counted as different species.</p></li>
 <li><p><code>setup</code> containing the start of the sampling for each camera.</p></li>
 <li><p><code>retrieval</code> containing the end of the sampling for each camera.</p></li>
 <li><p><code>setup_origin</code> containing the method used to determine the
 start of the sampling (<code>picture</code> or <code>setup</code>)</p></li>
 <li><p><code>retrieval_origin</code> containing the method used to determine the
 end of the sampling (<code>picture</code> or <code>retrieval</code>)</p></li>
-<li><p><code>sampling_length</code> length of the sampling period in days (computed
-with the <code>cameraOperation</code> function from the <code>camtrapR</code> package).
-If <code>setup</code> or <code>retrieval</code> are <code>NA</code>, then <code>sampling_length</code> is <code>NA</code>
-and if <code>setup</code> and <code>retrieval</code> are the same (e.g. unique picture),
-<code>sampling_length</code> is zero.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -151,6 +168,11 @@ As this function uses the <code>cameraOperation</code> function from
 the <code>camtrapR</code> package, the camera names may not contain
 <code>Cam</code> as it is a reserved name in this function.</p></li>
 </ul></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><a href="https://lisanicvert.github.io/camtrapviz/articles/summarize.html"><code><a href="../articles/summarize.html">vignette("summarize", package = "camtrapviz")</a></code></a>,
+<code><a href="summarize_species.html">summarize_species()</a></code></p></div>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -167,7 +189,8 @@ the <code>camtrapR</code> package, the camera names may not contain
 <span class="r-in"><span><span class="fu">summarize_cameras</span><span class="op">(</span><span class="va">records</span>, </span></span>
 <span class="r-in"><span>                  cam_col <span class="op">=</span> <span class="st">"camera"</span>, timestamp_col <span class="op">=</span> <span class="st">"stamp"</span>, </span></span>
 <span class="r-in"><span>                  dfcam <span class="op">=</span> <span class="va">cameras</span>, </span></span>
-<span class="r-in"><span>                  setup_col <span class="op">=</span> <span class="st">"setup"</span>, retrieval_col <span class="op">=</span> <span class="st">"retrieval"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                  setup_col <span class="op">=</span> <span class="st">"setup"</span>, retrieval_col <span class="op">=</span> <span class="st">"retrieval"</span>,</span></span>
+<span class="r-in"><span>                  spp_col <span class="op">=</span> <span class="st">"species"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> which was just loaded, will retire in October 2023.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Please refer to R-spatial evolution reports for details, especially</span>
@@ -176,15 +199,14 @@ the <code>camtrapR</code> package, the camera names may not contain
 <span class="r-msg co"><span class="r-pr">#&gt;</span> package maintainers should consider adding sf to Suggests:.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> The sp package is now running under evolution status 2</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>      (status 2 uses the sf package in place of rgdal)</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> CTtable was converted from tibble to data.frame</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   camera               setup  retrieval setup_origin retrieval_origin</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1      A 2022-01-01 10:22:01 2022-03-01      picture         metadata</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2      B 2021-12-01 00:00:00 2022-03-01     metadata         metadata</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3      C 2021-12-01 00:00:00       &lt;NA&gt;     metadata             &lt;NA&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   sampling_length</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1          58.568</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2          90.000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3              NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   camera pictures species sampling_length               setup  retrieval</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1      A        2       2          58.568 2022-01-01 10:22:01 2022-03-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2      B        3       2          90.000 2021-12-01 00:00:00 2022-03-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3      C        0      NA              NA 2021-12-01 00:00:00       &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   setup_origin retrieval_origin</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1      picture         metadata</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     metadata         metadata</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3     metadata             &lt;NA&gt;</span>
 <span class="r-in"><span><span class="co"># Since camera A had no setup date, the first picture is used.</span></span></span>
 <span class="r-in"><span><span class="co"># For camera B, setup and retrieval are taken from dfcam.</span></span></span>
 <span class="r-in"><span><span class="co"># For camera C, as it is present only on dfcam and has no retrieval date,</span></span></span>

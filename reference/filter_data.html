@@ -72,8 +72,8 @@ cameras metadata based on species, cameras and dates.</p>
 <span>  cam_col_rec <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cam_col_cam <span class="op">=</span> <span class="va">cam_col_rec</span>,</span>
 <span>  daterange <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  col_custom <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  val_custom <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  custom_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  custom_filter <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  timestamp_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  date_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -127,12 +127,13 @@ observations' times so that <code>times &gt;= daterange[1]</code> and
 <code>times &lt;= daterange[2]</code>). Can be either a Date or a POSIX.</p></dd>
 
 
-<dt>col_custom</dt>
-<dd><p>name of a custom column in to filter values in <code>dat$data$observations</code>.</p></dd>
+<dt>custom_col</dt>
+<dd><p>name of a custom column in to filter values in
+<code>dat$data$observations</code>.</p></dd>
 
 
-<dt>val_custom</dt>
-<dd><p>values to keep in the custom column <code>col_custom</code>.</p></dd>
+<dt>custom_filter</dt>
+<dd><p>values to filter out in the custom column <code>custom_col</code>.</p></dd>
 
 
 <dt>timestamp_col</dt>
@@ -172,10 +173,15 @@ but cameras also remove cameras from <code>dat$data$deployments</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>For the <code>spp_filter</code>, <code>cam_filter</code> and <code>daterange</code> values:
+    <p>For the <code>spp_filter</code>, <code>cam_filter</code>, <code>daterange</code> and <code>custom_col</code> values:
 if they are <code>NULL</code>, data are not filtered on that condition.
 Also note that e.g. if all species are in <code>spp_filter</code>, then
 all species will be filtered out.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><a href="https://lisanicvert.github.io/camtrapviz/articles/filter-data.html"><code><a href="../articles/filter-data.html">vignette("filter-data", package = "camtrapviz")</a></code></a>,
+<code><a href="filter_cameras_in_both_tables.html">filter_cameras_in_both_tables()</a></code></p></div>
     </div>
 
     <div class="section level2">

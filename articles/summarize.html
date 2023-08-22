@@ -124,56 +124,67 @@ computed from first and last picture.</p>
 <span><span class="co">#&gt; package maintainers should consider adding sf to Suggests:.</span></span>
 <span><span class="co">#&gt; The sp package is now running under evolution status 2</span></span>
 <span><span class="co">#&gt;      (status 2 uses the sf package in place of rgdal)</span></span>
-<span><span class="co">#&gt; CTtable was converted from tibble to data.frame</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">camsum</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="9%">
-<col width="21%">
-<col width="21%">
-<col width="13%">
-<col width="17%">
+<col width="8%">
+<col width="8%">
+<col width="15%">
+<col width="19%">
+<col width="19%">
+<col width="12%">
 <col width="16%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Station</th>
+<th align="right">pictures</th>
+<th align="right">sampling_length</th>
 <th align="left">setup</th>
 <th align="left">retrieval</th>
 <th align="left">setup_origin</th>
 <th align="left">retrieval_origin</th>
-<th align="right">sampling_length</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">StationA</td>
+<td align="right">6</td>
+<td align="right">27.5028</td>
 <td align="left">2009-04-10 05:07:00</td>
 <td align="left">2009-05-07 17:11:00</td>
 <td align="left">picture</td>
 <td align="left">picture</td>
-<td align="right">27.5028</td>
 </tr>
 <tr class="even">
 <td align="left">StationB</td>
+<td align="right">12</td>
+<td align="right">39.0833</td>
 <td align="left">2009-04-05 00:11:00</td>
 <td align="left">2009-05-14 02:11:00</td>
 <td align="left">picture</td>
 <td align="left">picture</td>
-<td align="right">39.0833</td>
 </tr>
 <tr class="odd">
 <td align="left">StationC</td>
+<td align="right">21</td>
+<td align="right">35.9805</td>
 <td align="left">2009-04-06 03:00:00</td>
 <td align="left">2009-05-12 02:32:00</td>
 <td align="left">picture</td>
 <td align="left">picture</td>
-<td align="right">35.9805</td>
 </tr>
 </tbody>
 </table>
 <p>The summary table has the following columns:</p>
 <ul>
-<li>the first column is named as the cameras ID column (here
-<code>Station</code>) and contains cameras ID</li>
+<li>The first column is named as the cameras ID column (here
+<code>Station</code>) and contains cameras ID.</li>
+<li>
+<code>pictures</code> is the number of pictures caught on each
+camera.</li>
+<li>
+<code>sampling_length</code> is the length of the sampling period in
+days (computed with the <code>cameraOperation</code> function from the
+<code>camtrapR</code> package).</li>
 <li>
 <code>setup</code> contains the start of the sampling for each
 camera.</li>
@@ -183,76 +194,146 @@ camera.</li>
 <li>
 <code>setup_origin</code> containing the method used to determine
 the start of the sampling (possible values are <code>picture</code> or
-<code>setup</code>)</li>
+<code>setup</code>).</li>
 <li>
 <code>retrieval_origin</code> containing the method used to
 determine the end of the sampling (<code>picture</code> or
-<code>setup</code>)</li>
-<li>
-<code>sampling_length</code> length of the sampling period in days
-(computed with the <code>cameraOperation</code> function from the
-<code>camtrapR</code> package).</li>
+<code>setup</code>).</li>
 </ul>
-<p>If we provide the cameras dataframe, whenever possible the sampling
-information will be obtained from setup and retrieval columns.</p>
+<p>If we add the species column with the <code>spp_col</code> argument,
+a column <code>species</code> is added to the summary (it contains the
+number of species caught on each camera).</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">camsum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_cameras.html">summarize_cameras</a></span><span class="op">(</span><span class="va">recordTableSample</span>,</span>
 <span>                            cam_col <span class="op">=</span> <span class="st">"Station"</span>,</span>
 <span>                            date_col <span class="op">=</span> <span class="st">"Date"</span>,</span>
 <span>                            time_col <span class="op">=</span> <span class="st">"Time"</span>,</span>
-<span>                            dfcam <span class="op">=</span> <span class="va">camtraps</span>, </span>
-<span>                            cam_col_dfcam <span class="op">=</span> <span class="st">"Station"</span>, </span>
-<span>                            setup_col <span class="op">=</span> <span class="st">"Setup_date"</span>,</span>
-<span>                            retrieval_col <span class="op">=</span> <span class="st">"Retrieval_date"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; CTtable was converted from tibble to data.frame</span></span>
+<span>                            spp_col <span class="op">=</span> <span class="st">"Species"</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">camsum</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
+<col width="8%">
+<col width="8%">
+<col width="7%">
+<col width="14%">
+<col width="17%">
+<col width="17%">
 <col width="11%">
-<col width="14%">
-<col width="14%">
-<col width="16%">
-<col width="22%">
-<col width="20%">
+<col width="15%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Station</th>
+<th align="right">pictures</th>
+<th align="right">species</th>
+<th align="right">sampling_length</th>
 <th align="left">setup</th>
 <th align="left">retrieval</th>
 <th align="left">setup_origin</th>
 <th align="left">retrieval_origin</th>
-<th align="right">sampling_length</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">StationA</td>
+<td align="right">6</td>
+<td align="right">2</td>
+<td align="right">27.5028</td>
+<td align="left">2009-04-10 05:07:00</td>
+<td align="left">2009-05-07 17:11:00</td>
+<td align="left">picture</td>
+<td align="left">picture</td>
+</tr>
+<tr class="even">
+<td align="left">StationB</td>
+<td align="right">12</td>
+<td align="right">3</td>
+<td align="right">39.0833</td>
+<td align="left">2009-04-05 00:11:00</td>
+<td align="left">2009-05-14 02:11:00</td>
+<td align="left">picture</td>
+<td align="left">picture</td>
+</tr>
+<tr class="odd">
+<td align="left">StationC</td>
+<td align="right">21</td>
+<td align="right">4</td>
+<td align="right">35.9805</td>
+<td align="left">2009-04-06 03:00:00</td>
+<td align="left">2009-05-12 02:32:00</td>
+<td align="left">picture</td>
+<td align="left">picture</td>
+</tr>
+</tbody>
+</table>
+<p>If we provide the cameras dataframe, whenever possible the sampling
+information will be obtained from setup and retrieval columns.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">camsum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_cameras.html">summarize_cameras</a></span><span class="op">(</span><span class="va">recordTableSample</span>,</span>
+<span>                            cam_col <span class="op">=</span> <span class="st">"Station"</span>,</span>
+<span>                            date_col <span class="op">=</span> <span class="st">"Date"</span>,</span>
+<span>                            time_col <span class="op">=</span> <span class="st">"Time"</span>,</span>
+<span>                            spp_col <span class="op">=</span> <span class="st">"Species"</span>,</span>
+<span>                            dfcam <span class="op">=</span> <span class="va">camtraps</span>, </span>
+<span>                            cam_col_dfcam <span class="op">=</span> <span class="st">"Station"</span>, </span>
+<span>                            setup_col <span class="op">=</span> <span class="st">"Setup_date"</span>,</span>
+<span>                            retrieval_col <span class="op">=</span> <span class="st">"Retrieval_date"</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">camsum</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="9%">
+<col width="9%">
+<col width="8%">
+<col width="17%">
+<col width="11%">
+<col width="11%">
+<col width="13%">
+<col width="18%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Station</th>
+<th align="right">pictures</th>
+<th align="right">species</th>
+<th align="right">sampling_length</th>
+<th align="left">setup</th>
+<th align="left">retrieval</th>
+<th align="left">setup_origin</th>
+<th align="left">retrieval_origin</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="right">6</td>
+<td align="right">2</td>
+<td align="right">42</td>
 <td align="left">2009-04-02</td>
 <td align="left">2009-05-14</td>
 <td align="left">metadata</td>
 <td align="left">metadata</td>
-<td align="right">42</td>
 </tr>
 <tr class="even">
 <td align="left">StationB</td>
+<td align="right">12</td>
+<td align="right">3</td>
+<td align="right">43</td>
 <td align="left">2009-04-03</td>
 <td align="left">2009-05-16</td>
 <td align="left">metadata</td>
 <td align="left">metadata</td>
-<td align="right">43</td>
 </tr>
 <tr class="odd">
 <td align="left">StationC</td>
+<td align="right">21</td>
+<td align="right">4</td>
+<td align="right">43</td>
 <td align="left">2009-04-04</td>
 <td align="left">2009-05-17</td>
 <td align="left">metadata</td>
 <td align="left">metadata</td>
-<td align="right">43</td>
 </tr>
 </tbody>
 </table>
 <p>If some information is missing from the camera dataframe, then the
 information from the observations will be used.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cam_missing</span> <span class="op">&lt;-</span> <span class="va">camtraps</span></span>
 <span><span class="va">cam_missing</span><span class="op">$</span><span class="va">Retrieval_date</span><span class="op">[</span><span class="va">cam_missing</span><span class="op">$</span><span class="va">Station</span> <span class="op">==</span> <span class="st">"StationA"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
 <span></span>
@@ -282,58 +363,68 @@ information from the observations will be used.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">camsum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_cameras.html">summarize_cameras</a></span><span class="op">(</span><span class="va">recordTableSample</span>,</span>
 <span>                            cam_col <span class="op">=</span> <span class="st">"Station"</span>,</span>
 <span>                            date_col <span class="op">=</span> <span class="st">"Date"</span>,</span>
 <span>                            time_col <span class="op">=</span> <span class="st">"Time"</span>,</span>
+<span>                            spp_col <span class="op">=</span> <span class="st">"Species"</span>,</span>
 <span>                            dfcam <span class="op">=</span> <span class="va">cam_missing</span>, </span>
 <span>                            cam_col_dfcam <span class="op">=</span> <span class="st">"Station"</span>, </span>
 <span>                            setup_col <span class="op">=</span> <span class="st">"Setup_date"</span>,</span>
 <span>                            retrieval_col <span class="op">=</span> <span class="st">"Retrieval_date"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; CTtable was converted from tibble to data.frame</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">camsum</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="10%">
-<col width="12%">
-<col width="23%">
+<col width="8%">
+<col width="8%">
+<col width="7%">
 <col width="15%">
+<col width="10%">
 <col width="19%">
-<col width="18%">
+<col width="12%">
+<col width="16%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Station</th>
+<th align="right">pictures</th>
+<th align="right">species</th>
+<th align="right">sampling_length</th>
 <th align="left">setup</th>
 <th align="left">retrieval</th>
 <th align="left">setup_origin</th>
 <th align="left">retrieval_origin</th>
-<th align="right">sampling_length</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">StationA</td>
+<td align="right">6</td>
+<td align="right">2</td>
+<td align="right">35.716</td>
 <td align="left">2009-04-02</td>
 <td align="left">2009-05-07 17:11:00</td>
 <td align="left">metadata</td>
 <td align="left">picture</td>
-<td align="right">35.716</td>
 </tr>
 <tr class="even">
 <td align="left">StationB</td>
+<td align="right">12</td>
+<td align="right">3</td>
+<td align="right">43.000</td>
 <td align="left">2009-04-03</td>
 <td align="left">2009-05-16 00:00:00</td>
 <td align="left">metadata</td>
 <td align="left">metadata</td>
-<td align="right">43.000</td>
 </tr>
 <tr class="odd">
 <td align="left">StationC</td>
+<td align="right">21</td>
+<td align="right">4</td>
+<td align="right">43.000</td>
 <td align="left">2009-04-04</td>
 <td align="left">2009-05-17 00:00:00</td>
 <td align="left">metadata</td>
 <td align="left">metadata</td>
-<td align="right">43.000</td>
 </tr>
 </tbody>
 </table>
@@ -346,7 +437,7 @@ information from the observations will be used.</p>
 </h3>
 <p>We can also summarize the species sightings with the function
 <code>summarize_species</code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sppsum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_species.html">summarize_species</a></span><span class="op">(</span><span class="va">recordTableSample</span>,</span>
 <span>                            spp_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
 <span>                            cam_col <span class="op">=</span> <span class="st">"Station"</span><span class="op">)</span></span>
@@ -416,7 +507,7 @@ observed on.</li>
 was observed on.</li>
 </ul>
 <p>We can also include the count information:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">with_count</span> <span class="op">&lt;-</span> <span class="va">recordTableSample</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>count <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">sppsum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_species.html">summarize_species</a></span><span class="op">(</span><span class="va">with_count</span>,</span>
@@ -472,7 +563,7 @@ was observed on.</li>
 </table>
 <p>If any of the count data is <code>NA</code>, it is possible to
 provide a value to replace it:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">with_count_NA</span> <span class="op">&lt;-</span> <span class="va">with_count</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">Species</span> <span class="op">==</span> <span class="st">"PBE"</span>, <span class="cn">NA</span>, <span class="va">count</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -532,7 +623,7 @@ provide a value to replace it:</p>
 <p>If <code>obs_col</code> is included, the final table will have one
 more column describing type and the values will be summarized by
 <code>species_col</code> and <code>obs_col</code>.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">with_obstype</span> <span class="op">&lt;-</span> <span class="va">recordTableSample</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"animal"</span><span class="op">)</span></span>
 <span><span class="va">with_obstype</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">with_obstype</span>,</span>
@@ -619,7 +710,7 @@ more column describing type and the values will be summarized by
 </h3>
 <p>It is also possible to summarize the information per species and
 camera using the argument <code>by_cam</code>:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bycam</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_species.html">summarize_species</a></span><span class="op">(</span><span class="va">recordTableSample</span>,</span>
 <span>                           spp_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
 <span>                           cam_col <span class="op">=</span> <span class="st">"Station"</span>,</span>
