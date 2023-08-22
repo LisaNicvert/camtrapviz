@@ -206,8 +206,8 @@ selectServer <- function(id,
           df <- camtrap_data()$data$deployments
           validate(need(!all(is.null(input$cam_col_val)), 
                         "You need to keep at least one camera"))
-          res <- df[df[[input$cam_col]] %in% input$cam_col_val, 
-                    cam_col_cam()]
+          res <- df[df[[input$cam_col]] %in% input$cam_col_val, ]
+          res <- res[[cam_col_cam()]]
         }
         res
       })
