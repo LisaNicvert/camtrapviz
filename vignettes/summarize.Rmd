@@ -53,12 +53,24 @@ knitr::kable(camsum)
 
 The summary table has the following columns:
 
--   the first column is named as the cameras ID column (here `Station`) and contains cameras ID
+-   The first column is named as the cameras ID column (here `Station`) and contains cameras ID.
+-   `pictures` is the number of pictures caught on each camera.
+-   `sampling_length` is the length of the sampling period in days (computed with the `cameraOperation` function from the `camtrapR` package).
 -   `setup` contains the start of the sampling for each camera.
 -   `retrieval` contains the end of the sampling for each camera.
--   `setup_origin` containing the method used to determine the start of the sampling (possible values are `picture` or `setup`)
--   `retrieval_origin` containing the method used to determine the end of the sampling (`picture` or `setup`)
--   `sampling_length` length of the sampling period in days (computed with the `cameraOperation` function from the `camtrapR` package).
+-   `setup_origin` containing the method used to determine the start of the sampling (possible values are `picture` or `setup`).
+-   `retrieval_origin` containing the method used to determine the end of the sampling (`picture` or `setup`).
+
+If we add the species column with the `spp_col` argument, a column `species` is added to the summary (it contains the number of species caught on each camera).
+
+```{r}
+camsum <- summarize_cameras(recordTableSample,
+                            cam_col = "Station",
+                            date_col = "Date",
+                            time_col = "Time",
+                            spp_col = "Species")
+knitr::kable(camsum)
+```
 
 If we provide the cameras dataframe, whenever possible the sampling information will be obtained from setup and retrieval columns.
 
@@ -67,6 +79,7 @@ camsum <- summarize_cameras(recordTableSample,
                             cam_col = "Station",
                             date_col = "Date",
                             time_col = "Time",
+                            spp_col = "Species",
                             dfcam = camtraps, 
                             cam_col_dfcam = "Station", 
                             setup_col = "Setup_date",
@@ -89,6 +102,7 @@ camsum <- summarize_cameras(recordTableSample,
                             cam_col = "Station",
                             date_col = "Date",
                             time_col = "Time",
+                            spp_col = "Species",
                             dfcam = cam_missing, 
                             cam_col_dfcam = "Station", 
                             setup_col = "Setup_date",
