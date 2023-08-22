@@ -13,7 +13,8 @@ summarize_cameras(
   dfcam = NULL,
   cam_col_dfcam = NULL,
   setup_col = NULL,
-  retrieval_col = NULL
+  retrieval_col = NULL,
+  spp_col = NULL
 )
 }
 \arguments{
@@ -39,6 +40,9 @@ in \code{dfcam} (optional)}
 
 \item{retrieval_col}{name of the column containing retrieval date or datetime
 in \code{dfcam} (optional)}
+
+\item{spp_col}{name of the species column (optional). If present,
+the summarry will include the number of species seen on each camera.}
 }
 \value{
 The summary is returned as a dataframe with the following columns:

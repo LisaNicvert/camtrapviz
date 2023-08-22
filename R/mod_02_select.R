@@ -191,7 +191,7 @@ selectServer <- function(id,
                                        obs_col = obs_col(),
                                        reorder = TRUE,
                                        return_df = TRUE)
-          res <- rownames(res_df)
+          res <- res_df$ID
         }
         res
       })
@@ -236,12 +236,11 @@ selectServer <- function(id,
   
       output$species_list <- renderText({
         
-        species <- species_df()[selected_spp_id(), ]
-
-        if (is.data.frame(species)) {
-          species <- species[[spp_col()]]
-        }
-
+        # Get df subset where ID is in selected_spp_id()
+        species <- species_df()[species_df()$ID %in% selected_spp_id(), ]
+        # Get species names
+        species <- species[[spp_col()]]
+        
         paste("Selected species:", paste(species, collapse = ", "))
       })
         
@@ -254,18 +253,18 @@ selectServer <- function(id,
       default_species <- reactive({
         if (is.null(obs_col())) {
           # All species selected
-          default <- rownames(species_df())
+          default <- species_df()$ID
         } else {
           # Get animal species only
           is_animal <- species_df()[[obs_col()]] == "animal"
-          default <- rownames(species_df()[is_animal, ])
+          default <- species_df()$ID[is_animal]
         }
         default
       })
       
       observe({
         if (input$spp_manually == "manually") {
-          choices <- as.list(rownames(species_df()))
+          choices <- as.list(species_df()$ID)
           names(choices) <- species_df()[[spp_col()]]
           shinyWidgets::updatePickerInput(session = session,
                                           "spp_select",
@@ -297,7 +296,7 @@ selectServer <- function(id,
         
         if (has_type) {
           # Get species/observations to filter out
-          all_filter <- species_df()[!rownames(species_df()) %in% selected_spp_id(), ]
+          all_filter <- species_df()[!species_df()$ID %in% selected_spp_id(), ]
           
           # Get species values
           spp_filter <- all_filter[all_filter[[obs_col()]] == "animal", ]
@@ -310,7 +309,7 @@ selectServer <- function(id,
           # Obs filter is NULL
           obs_filter <- NULL
           # Get species to filter out
-          spp_filter <- species_df()[!rownames(species_df()) %in% selected_spp_id(), ]
+          spp_filter <- species_df()[!species_df()$ID %in% selected_spp_id(), ]
         }
         
         # Get cameras to filter out
@@ -324,14 +323,14 @@ selectServer <- function(id,
           } else {
             daterange <- input$daterange_select
           }
-          col_custom <- NULL
-          val_custom <- NULL
+          custom_col <- NULL
+          custom_filter <- NULL
         } else {
           # Custom column and values are provided
           daterange <- NULL
-          col_custom <- input$daterange_col
+          custom_col <- input$daterange_col
           df <- camtrap_data()$data$observations
-          val_custom <- unique(df[[col_custom]][!(df[[col_custom]] %in% input$daterange_col_val)])
+          custom_filter <- unique(df[[custom_col]][!(df[[custom_col]] %in% input$daterange_col_val)])
         }
       
         metaExpr({
@@ -340,7 +339,7 @@ selectServer <- function(id,
           cam_filter <- ..(cam_filter)
           obs_filter <- ..(obs_filter)
           date_filter <- ..(daterange)
-          val_custom_filter <- ..(val_custom)
+          custom_filter <- ..(custom_filter)
           
           "# Filter ---"
           # Filter obs_col
@@ -358,8 +357,8 @@ selectServer <- function(id,
                       timestamp_col = ..(mapping_records()$timestamp_col),
                       date_col = ..(mapping_records()$date_col),
                       time_col = ..(mapping_records()$time_col),
-                      col_custom = ..(col_custom),
-                      val_custom = val_custom_filter,
+                      custom_col = ..(custom_col),
+                      custom_filter = custom_filter,
                       cameras_as_factor = TRUE)
 
         }, bindToReturn = TRUE, localize = FALSE)

@@ -39,14 +39,15 @@ If \code{return_df} is \code{TRUE}, returns a dataframe containing
 unique species and observation type.
 This dataframe has the following columns (type character):
 \itemize{
+\item a column \code{ID} to uniquely identify each species/observation
+combination. If \code{obs_col} is not \code{NULL}, the IDs are of the form
+\code{spp_type} where \code{spp} is the species value and
+\code{type} is the observation type value. Else, IDs are of the form \code{spp}.
 \item a column named like \code{spp_col} containing species names
 (where \code{NA} values in \code{spp_col} are replaced as described above).
 \item a column named like \code{obs_col} containing unique corresponding
 observations types (if \code{obs_col} is provided).
-\item if \code{obs_col} is not \code{NULL}, the rows of the dataframe are named
-as \code{spp_type} where \code{spp} is the species value and
-\code{type} is the observation type value. Else, rows are named as \code{spp}.
-Else, returns only the unique values of
+If \code{return_df} is \code{FALSE}, returns only the unique values of
 \code{spp_col}.
 }
 }

@@ -81,9 +81,9 @@ test_that("Summarize cameras raises errors", {
 })
 
 test_that("Summarize cameras (no dfcam)", {
-  expected_colnames <- c("deploymentID", "setup", "retrieval",
-                         "setup_origin", "retrieval_origin",
-                         "sampling_length")
+  expected_colnames <- c("deploymentID", "pictures", "sampling_length", 
+                         "setup", "retrieval",
+                         "setup_origin", "retrieval_origin")
   
   res <- summarize_cameras(mica$data$observations, 
                            cam_col = "deploymentID", 
@@ -94,6 +94,11 @@ test_that("Summarize cameras (no dfcam)", {
   expect_true(all(res$setup < res$retrieval))
   expect_equal(rep("picture", nrow(res)), res$setup_origin)
   expect_equal(rep("picture", nrow(res)), res$retrieval_origin)
+  # Test npic
+  npic <- mica$data$observations |> 
+    group_by(deploymentID) |> 
+    summarise(n = n())
+  expect_equal(npic$n, res$pictures)
   # Test duration
   len <- mica$data$observations |> group_by(deploymentID) |>
     summarize(len = as.numeric(max(timestamp) - min(timestamp), "days"))
@@ -105,9 +110,9 @@ test_that("Summarize cameras (no dfcam)", {
                            time_col = "eventTime",
                            date_col = "eventDate")
   
-  expected_colnames <- c("cameraID", "setup", "retrieval",
-                         "setup_origin", "retrieval_origin",
-                         "sampling_length")
+  expected_colnames <- c("cameraID", "pictures", "sampling_length", 
+                         "setup", "retrieval",
+                         "setup_origin", "retrieval_origin")
   expect_equal(colnames(res), expected_colnames)
   expect_equal(class(res$setup), c("POSIXct", "POSIXt"))
   expect_true(all(res$setup < res$retrieval))
@@ -120,7 +125,6 @@ test_that("Summarize cameras (no dfcam)", {
 })
 
 test_that("Summarize cameras with camera df", {
-  # No NAs
   res <- summarize_cameras(kga, 
                            cam_col = "cameraID", 
                            time_col = "eventTime",
@@ -128,14 +132,20 @@ test_that("Summarize cameras with camera df", {
                            dfcam = kga_cameras,
                            cam_col_dfcam = "cameraID", 
                            setup_col = "Setup.Date")
-  expected_colnames <- c("cameraID", "setup", "retrieval",
-                         "setup_origin", "retrieval_origin",
-                         "sampling_length")
+  
+  expected_colnames <- c("cameraID", "pictures", "sampling_length", 
+                         "setup", "retrieval",
+                         "setup_origin", "retrieval_origin")
   expect_equal(colnames(res), expected_colnames)
   expect_equal(class(res$setup), c("POSIXct", "POSIXt"))
   expect_true(all(res$setup < res$retrieval))
   expect_equal(rep("metadata", nrow(res)), res$setup_origin)
   expect_equal(rep("picture", nrow(res)), res$retrieval_origin)
+  # Test npic
+  npic <- kga |> 
+    group_by(cameraID) |> 
+    summarise(n = n())
+  expect_equal(npic$n, res$pictures)
   # Test duration
   setup <- kga_cameras$Setup.Date[kga_cameras$cameraID == "KGA_A02"]
   retrieval <- kga[kga$cameraID == "KGA_A02", ]
@@ -240,11 +250,12 @@ test_that("Summarize cameras with a camera with one obs", {
                            timestamp_col = "stamp",
                            cam_col = "camera")
   expected <- data.frame(camera = "A01",
+                         pictures = 1,
+                         sampling_length = 0,
                          setup = as.POSIXct("2020-04-01 12:00:00"),
                          retrieval = as.POSIXct("2020-04-01 12:00:00"),
                          setup_origin = "picture",
-                         retrieval_origin = "picture",
-                         sampling_length = 0)
+                         retrieval_origin = "picture")
   expect_equal(res, expected)
   
   # Two cameras
@@ -258,13 +269,14 @@ test_that("Summarize cameras with a camera with one obs", {
                            timestamp_col = "stamp",
                            cam_col = "camera")
   expected <- data.frame(camera = c("A01", "A02"),
+                         pictures = c(1, 2),
+                         sampling_length = c(0, 5),
                          setup = as.POSIXct(c("2020-04-01 12:00:00",
                                               "2020-04-07 12:00:00")),
                          retrieval = as.POSIXct(c("2020-04-01 12:00:00",
                                                   "2020-04-12 12:00:00")),
                          setup_origin = c("picture", "picture"),
-                         retrieval_origin = c("picture", "picture"),
-                         sampling_length = c(0, 5))
+                         retrieval_origin = c("picture", "picture"))
   expect_equal(res, expected)
   
   # Two pictures with same date
@@ -277,11 +289,12 @@ test_that("Summarize cameras with a camera with one obs", {
                            timestamp_col = "stamp",
                            cam_col = "camera")
   expected <- data.frame(camera = "A01",
+                         pictures = 2,
+                         sampling_length = 0,
                          setup = as.POSIXct("2020-04-01 12:00:00"),
                          retrieval = as.POSIXct("2020-04-01 12:00:00"),
                          setup_origin = "picture",
-                         retrieval_origin = "picture",
-                         sampling_length = 0)
+                         retrieval_origin = "picture")
   expect_equal(res, expected)
 })
 
@@ -303,6 +316,8 @@ test_that("Summarize cameras (dfcam with no setup or retrieval)", {
                            cam_col_dfcam = "camera")
   
   expected <- data.frame(camera = c("A01", "A02", "A03"),
+                         pictures = c(2, 2, 0),
+                         sampling_length = c(1, 1, NA),
                          setup = as.POSIXct(c("2020-04-01 12:00:00",
                                               "2020-04-11 12:00:00",
                                               NA)),
@@ -310,8 +325,7 @@ test_that("Summarize cameras (dfcam with no setup or retrieval)", {
                                                   "2020-04-12 12:00:00",
                                                   NA)),
                          setup_origin = c("picture", "picture", NA),
-                         retrieval_origin = c("picture", "picture", NA),
-                         sampling_length = c(1, 1, NA))
+                         retrieval_origin = c("picture", "picture", NA))
   expect_equal(res, expected)
   
   # Don't give cam_col_dfcam
@@ -367,11 +381,13 @@ test_that("Get unique species", {
                             reorder = TRUE,
                             return_df = TRUE)
   expected <- data.frame(species = c("cameratrapper", "cat", "rabbit", "tourist", NA))
-  rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
+  expected <- expected |> 
+    mutate(ID = species, .before = 1)
   expect_equal(res, expected)
   
   # No observation type and reorder
-  res <- get_unique_species(df, spp_col = "species", reorder = TRUE)
+  res <- get_unique_species(df, spp_col = "species", 
+                            reorder = TRUE)
   expected_char <- expected$species
   expect_equal(res, expected_char)
   
@@ -383,7 +399,9 @@ test_that("Get unique species", {
                                      "blank", "fire", "cameratrapper", "tourist"),
                          type = c("animal", "animal",
                                   "blank", "fire", "human", "human"))
-  rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
+  expected <- expected |> 
+    mutate(ID = paste(species, type, sep = "_"), 
+           .before = 1)
   expect_equal(res, expected)
   
   # With observation type and return character
@@ -423,7 +441,9 @@ test_that("Get unique species", {
                             reorder = TRUE)
   expected <- data.frame(species = c("cat", "blank", "human", NA),
                          type = c("animal", "blank", "human", NA))
-  rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
+  expected <- expected |> 
+    mutate(ID = paste(species, type, sep = "_"), 
+           .before = 1)
   expect_equal(res, expected)
   
 })
@@ -437,7 +457,9 @@ test_that("Get species (obstype but no other than animal)", {
   
   expected <- data.frame(species = c("cat", "cow", "rabbit"),
                          type = rep("animal", 3))
-  rownames(expected) <- paste("ID", 1:nrow(expected), sep = "_")
+  expected <- expected |> 
+    mutate(ID = paste(species, type, sep = "_"), 
+           .before = 1)
   expect_equal(res, expected)
 })
 
@@ -450,7 +472,7 @@ test_that("Summarize species", {
   
   # Without obstype ---
   res <- summarize_species(df, 
-                           species_col = "species", 
+                           spp_col = "species", 
                            cam_col = "camera")
   
   expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA),
@@ -462,7 +484,7 @@ test_that("Summarize species", {
   
   # With obstype ---
   res <- summarize_species(df, 
-                           species_col = "species", cam_col = "camera",
+                           spp_col = "species", cam_col = "camera",
                            obs_col = "type")
   expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA, NA),
                          type = c("animal", "animal", "animal", "animal", "blank", "human"),
@@ -474,7 +496,8 @@ test_that("Summarize species", {
   
   # With count ---
   res <- suppressWarnings(summarize_species(df, 
-                                            species_col = "species", cam_col = "camera",
+                                            spp_col = "species", 
+                                            cam_col = "camera",
                                             obs_col = "type",
                                             count_col = "count"))
   expected$individuals <- c(2, 53, 4, 1, NA, 1)
@@ -483,7 +506,8 @@ test_that("Summarize species", {
   
   # With ncam ---
   res <- suppressWarnings(summarize_species(df, 
-                                            species_col = "species", cam_col = "camera",
+                                            spp_col = "species", 
+                                            cam_col = "camera",
                                             obs_col = "type",
                                             count_col = "count",
                                             ncam = 50))
@@ -496,7 +520,7 @@ test_that("Summarize species throws a warning", {
   df <- data.frame(species = rep("cat", 10),
                    camera = 1:10)
   expect_warning(summarize_species(df, 
-                                   species_col = "species", 
+                                   spp_col = "species", 
                                    cam_col = "camera",
                                    ncam = 3),
                  "ncam is smaller than the number of cameras in df: are you sure it's what you want?", 
@@ -511,21 +535,21 @@ test_that("Summarize species with NA in count",{
   # Without NA replacement ---
   # Check warning
   expect_warning(summarize_species(df, 
-                                   species_col = "species", 
+                                   spp_col = "species", 
                                    cam_col = "camera",
                                    count_col = "count"),
                  "There are NAs in the count column; if you want to replace them with a value, use NA_count_placeholder.",
                  fixed = TRUE)
   # Check value
   res <- suppressWarnings(summarize_species(df, 
-                                            species_col = "species", 
+                                            spp_col = "species", 
                                             cam_col = "camera",
                                             count_col = "count"))
   expect_true(is.na(res$individuals))
   
   # With NA replacement ---
   res <- summarize_species(df, 
-                           species_col = "species", 
+                           spp_col = "species", 
                            cam_col = "camera",
                            count_col = "count",
                            NA_count_placeholder = 1)
@@ -538,7 +562,7 @@ test_that("Summarize species without camera", {
                    count = c(1, 1, 1, 50, 3, 4, 1, NA))
   
   # Without obstype ---
-  res <- summarize_species(df, species_col = "species")
+  res <- summarize_species(df, spp_col = "species")
   
   expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA),
                          sightings = c(2, 2, 1, 1, 2),
@@ -547,7 +571,7 @@ test_that("Summarize species without camera", {
   
   # With obstype ---
   res <- summarize_species(df, 
-                           species_col = "species",
+                           spp_col = "species",
                            obs_col = "type")
   expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA, NA),
                          type = c("animal", "animal", "animal", "animal", "blank", "human"),
@@ -557,7 +581,7 @@ test_that("Summarize species without camera", {
   
   # With count ---
   res <- suppressWarnings(summarize_species(df, 
-                                            species_col = "species",
+                                            spp_col = "species",
                                             obs_col = "type",
                                             count_col = "count"))
   expected$individuals <- c(2, 53, 4, 1, NA, 1)
@@ -921,12 +945,12 @@ test_that("Get diversity indices", {
                         species = c("cat", "cow", "rabbit",
                                     "cat",
                                     "cat", "cow", "rabbit"),
-                        count = c(30, 30, 30,
-                                  30,
-                                  88, 1, 1),
-                        prop = c(1/3, 1/3, 1/3,
-                                 1,
-                                 88/90, 1/90, 1/90))
+                        individuals = c(30, 30, 30,
+                                        30,
+                                        88, 1, 1),
+                        individuals_prop = c(1/3, 1/3, 1/3,
+                                             1,
+                                             88/90, 1/90, 1/90))
   
   res <- get_diversity_indices(countdf, 
                                spp_col = "species", cam_col = "camera")

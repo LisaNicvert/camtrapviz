@@ -56,6 +56,8 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
 #' in `dfcam` (optional)
 #' @param retrieval_col name of the column containing retrieval date or datetime 
 #' in `dfcam` (optional)
+#' @param spp_col name of the species column (optional). If present, 
+#' the summarry will include the number of species seen on each camera.
 #' 
 #' @details In the final dataframe, the start and the end of the sampling are
 #' computed as follows for each camera:
@@ -114,7 +116,8 @@ summarize_cameras <- function(df, cam_col,
                               timestamp_col,
                               date_col = NULL, time_col = NULL,
                               dfcam = NULL, cam_col_dfcam = NULL,
-                              setup_col = NULL, retrieval_col = NULL) {
+                              setup_col = NULL, retrieval_col = NULL,
+                              spp_col = NULL) {
   
   # --- Check inputs
   # Display message to say that date_col and time_col will
@@ -152,12 +155,27 @@ summarize_cameras <- function(df, cam_col,
   }
   
   # Summarize with timestamp
-  camsum <- camsum |>
-    group_by(.data[[cam_col]]) |>
-    summarise(setup = min(.data[[timestamp_col]]),
-              retrieval = max(.data[[timestamp_col]]),
-              setup_origin = "picture",
-              retrieval_origin = "picture")
+  if (!is.null(spp_col)) {
+    # We want to add species count to the summary
+    camsum <- camsum |>
+      group_by(.data[[cam_col]]) |>
+      summarise(pictures = n(),
+                species = length(unique(.data[[spp_col]])),
+                setup = min(.data[[timestamp_col]]),
+                retrieval = max(.data[[timestamp_col]]),
+                setup_origin = "picture",
+                retrieval_origin = "picture")
+  } else {
+    # No species count
+    camsum <- camsum |>
+      group_by(.data[[cam_col]]) |>
+      summarise(pictures = n(),
+                setup = min(.data[[timestamp_col]]),
+                retrieval = max(.data[[timestamp_col]]),
+                setup_origin = "picture",
+                retrieval_origin = "picture")
+  }
+  
   
   # --- Use dfcam for setup and retrieval
   # If we have additional info from dfcam
@@ -167,8 +185,13 @@ summarize_cameras <- function(df, cam_col,
     not_in_camsum <- dfcam[[cam_col_dfcam]][!(dfcam[[cam_col_dfcam]] %in% camsum[[cam_col]])]
     
     if (length(not_in_camsum) != 0) {
-      dfbind <- data.frame(not_in_camsum, NA, NA, NA, NA)
-      names(dfbind) <- c(cam_col, "setup", "retrieval", "setup_origin", "retrieval_origin")
+      if (is.null(spp_col)) {
+        dfbind <- data.frame(not_in_camsum, 0, NA, NA, NA, NA)
+        names(dfbind) <- c(cam_col, "pictures", "setup", "retrieval", "setup_origin", "retrieval_origin")
+      } else {
+        dfbind <- data.frame(not_in_camsum, 0, NA, NA, NA, NA, NA)
+        names(dfbind) <- c(cam_col, "pictures", "species", "setup", "retrieval", "setup_origin", "retrieval_origin")
+      }
       camsum <- rbind(camsum, dfbind)
     }
     
@@ -236,6 +259,8 @@ summarize_cameras <- function(df, cam_col,
                                          format = date_format)
     camsum_sampling_time$retrieval <- format(camsum_sampling_time$retrieval, 
                                              format = date_format)
+    # tibble to df
+    camsum_sampling_time <- as.data.frame(camsum_sampling_time)
     
     mat <- camtrapR::cameraOperation(camsum_sampling_time,
                                      stationCol = cam_col,
@@ -254,9 +279,15 @@ summarize_cameras <- function(df, cam_col,
     # to NA which is what we want)
     
     # Modify result
-    camsum$sampling_length <- unname(sampling_length)
+    camsum <- camsum |> 
+      mutate(sampling_length = unname(sampling_length), 
+             .before = setup)
+    # camsum$sampling_length <- unname(sampling_length)
   } else {
-    camsum$sampling_length <- NA
+    camsum <- camsum |> 
+      mutate(sampling_length = NA, 
+             .before = setup)
+    # camsum$sampling_length <- NA
   }
   
   # Set sampling length to zero where setup = retrieval
@@ -378,16 +409,16 @@ get_all_species <- function(df,
 #' If `return_df` is `TRUE`, returns a dataframe containing 
 #' unique species and observation type.
 #' This dataframe has the following columns (type character):
+#' + a column `ID` to uniquely identify each species/observation
+#' combination. If `obs_col` is not `NULL`, the IDs are of the form 
+#' `spp_type` where `spp` is the species value and 
+#' `type` is the observation type value. Else, IDs are of the form `spp`.
 #' + a column named like `spp_col` containing species names
 #' (where `NA` values in `spp_col` are replaced as described above).
 #' + a column named like `obs_col` containing unique corresponding
 #' observations types (if `obs_col` is provided).
-#' + if `obs_col` is not `NULL`, the rows of the dataframe are named 
-#' as `spp_type` where `spp` is the species value and 
-#' `type` is the observation type value. Else, rows are named as `spp`.
-#' Else, returns only the unique values of 
+#' If `return_df` is `FALSE`, returns only the unique values of 
 #' `spp_col`.
-#' 
 #' @export
 #'
 #' @examples
@@ -449,9 +480,13 @@ get_unique_species <- function(df,
     res <- as.data.frame(spp_df) # Convert tibble to df
     
     if (!is.null(obs_col)) {
-      rownames(res) <- paste(res[[spp_col]], res[[obs_col]], sep = "_")
+      res <- res |> 
+        mutate(ID = paste(.data[[spp_col]], .data[[obs_col]], sep = "_"),
+               .before = 1)
     } else {
-      rownames(res) <- res[[spp_col]]
+      res <- res |> 
+        mutate(ID = .data[[spp_col]],
+               .before = 1)
     }
     
   } else {
