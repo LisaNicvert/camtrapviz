@@ -780,6 +780,27 @@ test_that("Filter data", {
   expect_equal(unique(res$data$observations$Station), cams)
   expect_equal(res$data$deployments$Station, cams)
   
+  # Filter custom ---
+  colname <- "delta.time.days"
+  val <- c(0, 1.8)
+  
+  expect_warning(filter_data(dat, 
+                             col_custom = colname),
+                 "If col_custom is provided, col_custom must be provided as well.",
+                 fixed = TRUE)
+  
+  res <- filter_data(dat, 
+                     val_custom = val)
+  expect_equal(res, dat)
+  
+  res <- filter_data(dat, 
+                     col_custom = colname, 
+                     val_custom = val)
+  
+  val_expected <- unique(res$data$observations[[colname]])
+  expect_equal(val_expected, val)
+  
+  
 })
 
 test_that("Filter data (dates)", {

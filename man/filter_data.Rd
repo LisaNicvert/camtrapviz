@@ -14,6 +14,8 @@ filter_data(
   cam_col_rec = NULL,
   cam_col_cam = cam_col_rec,
   daterange = NULL,
+  col_custom = NULL,
+  val_custom = NULL,
   timestamp_col = NULL,
   time_col = NULL,
   date_col = NULL,
@@ -48,6 +50,10 @@ Defaults to the same value as \code{cam_col_rec}.}
 \item{daterange}{Date range to filter on for the data (will filter
 observations' times so that \code{times >= daterange[1]} and
 \code{times <= daterange[2]}). Can be either a Date or a POSIX.}
+
+\item{col_custom}{name of a custom column in to filter values in \code{dat$data$observations}.}
+
+\item{val_custom}{values to keep in the custom column \code{col_custom}.}
 
 \item{timestamp_col}{Name of the datetime column (must be coercible to POSIX).
 It is not needed if \code{date_col} and \code{time_col} are provided.}

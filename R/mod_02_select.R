@@ -172,25 +172,30 @@ selectServer <- function(id,
 
       selected_spp_id <- reactive({
         if (input$spp_manually == "manually") {
+          # If manual selection, just use the input$spp_select values
           res <- input$spp_select
           validate(need(!is.null(res), 
                         "You need to keep at least one species"))
         } else {
+          # Filter species corresponding to specified values in
+          # another column
           df <- camtrap_data()$data$observations
           
           validate(need(!all(is.null(input$spp_col_val)), 
                         "You need to keep at least one species"))
           
-          filtered_df <- df[df[[input$spp_col]] %in% input$spp_col_val]
+          filtered_df <- df[df[[input$spp_col]] %in% input$spp_col_val, ]
           
           res_df <- get_unique_species(filtered_df,
                                        spp_col =  spp_col(),
                                        obs_col = obs_col(),
-                                       reorder = TRUE)
+                                       reorder = TRUE,
+                                       return_df = TRUE)
           res <- rownames(res_df)
         }
         res
       })
+      
       
       selected_cam <- reactive({
         if (input$cam_manually == "manually") {
@@ -313,14 +318,19 @@ selectServer <- function(id,
         
         # Get date range
         if (input$daterange_manually == "manually") {
+          # A date range is provided
           if (is.null(input$daterange_select)) {
             daterange <- default_daterange()
           } else {
             daterange <- input$daterange_select
           }
+          col_custom <- NULL
+          val_custom <- NULL
         } else {
-          # daterange <- NULL
-          daterange <- input$daterange_select
+          # Custom column and values are provided
+          daterange <- NULL
+          col_custom <- input$daterange_col
+          val_custom <- input$daterange_col_val
         }
       
         metaExpr({
@@ -328,13 +338,14 @@ selectServer <- function(id,
           spp_filter <- ..(spp_filter)
           cam_filter <- ..(cam_filter)
           obs_filter <- ..(obs_filter)
-          date_filter <- as.Date(..(as.character(daterange)))
+          date_filter <- ..(daterange)
+          val_custom_filter <- ..(val_custom)
           
           "# Filter ---"
           # Filter obs_col
           # Check has type and length != 0, 
           # in case there were only animals selected
-          d <- filter_data(..(camtrap_data()), 
+          filter_data(..(camtrap_data()), 
                       spp_col = ..(spp_col()),
                       spp_filter = spp_filter,
                       obs_col = ..(mapping_records()$obs_col),
@@ -346,15 +357,10 @@ selectServer <- function(id,
                       timestamp_col = ..(mapping_records()$timestamp_col),
                       date_col = ..(mapping_records()$date_col),
                       time_col = ..(mapping_records()$time_col),
+                      col_custom = ..(col_custom),
+                      val_custom = val_custom_filter,
                       cameras_as_factor = TRUE)
-          
-          if (input$daterange_manually == "manually") {
-            d$data$observations <- d$data$observations |>
-              dplyr::filter(.data[[input$daterange_col]] %in% input$daterange_col_val)
 
-          }
-          
-          d
         }, bindToReturn = TRUE, localize = FALSE)
         
       }, varname = "dat_filtered")
@@ -398,10 +404,15 @@ selectServer <- function(id,
                                                    tz = tz()), 
                           cols = cols,
                           tz = tz(),
-                          interactive = TRUE) +
-          ggplot2::geom_vline(xintercept = as.POSIXct(input$daterange_select,
-                                                      tz = tz()), 
-                              linetype = "dashed")
+                          interactive = TRUE)
+          
+        # Add vertical lines
+        if (input$daterange_manually == "manually") {
+          gg <- gg + 
+            ggplot2::geom_vline(xintercept = as.POSIXct(input$daterange_select,
+                                                        tz = tz()), 
+                                linetype = "dashed")
+        }
         
         gi <- ggiraph::girafe(ggobj = gg, 
                               width_svg = width,

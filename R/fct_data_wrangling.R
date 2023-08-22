@@ -767,6 +767,8 @@ summarize_species <- function(df,
 #' present it will default to UTC (Etc/GMT).
 #' For the filtering step, if needed datetimes in `timestamp_col` can be 
 #' converted to `tz` but the output data will not be affected.
+#' @param col_custom name of a custom column in to filter values in `dat$data$observations`.
+#' @param val_custom values to keep in the custom column `col_custom`.
 #' 
 #' @details
 #' For the `spp_filter`, `cam_filter` and `daterange` values: 
@@ -803,6 +805,8 @@ filter_data <- function(dat,
                         cam_col_rec = NULL,
                         cam_col_cam = cam_col_rec,
                         daterange = NULL,
+                        col_custom = NULL,
+                        val_custom = NULL,
                         timestamp_col = NULL,
                         time_col = NULL,
                         date_col = NULL,
@@ -830,6 +834,11 @@ filter_data <- function(dat,
     }
   }
   
+  if (!is.null(col_custom)) {
+    if (is.null(val_custom)) {
+      stop("If col_custom is provided, col_custom must be provided as well.")
+    }
+  }
   
   res <- dat
   
@@ -895,6 +904,12 @@ filter_data <- function(dat,
                           daterange_filter[2])
     res$data$observations <- res$data$observations[sel, ]
     
+  }
+  
+  # Custom filter ---
+  if (!is.null(col_custom)) {
+    res$data$observations <- res$data$observations |>
+      dplyr::filter(.data[[col_custom]] %in% val_custom)
   }
   
   # Cameras to factor ---
