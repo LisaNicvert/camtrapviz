@@ -330,7 +330,8 @@ selectServer <- function(id,
           # Custom column and values are provided
           daterange <- NULL
           col_custom <- input$daterange_col
-          val_custom <- input$daterange_col_val
+          df <- camtrap_data()$data$observations
+          val_custom <- unique(df[[col_custom]][!(df[[col_custom]] %in% input$daterange_col_val)])
         }
       
         metaExpr({

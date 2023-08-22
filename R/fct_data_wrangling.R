@@ -767,11 +767,12 @@ summarize_species <- function(df,
 #' present it will default to UTC (Etc/GMT).
 #' For the filtering step, if needed datetimes in `timestamp_col` can be 
 #' converted to `tz` but the output data will not be affected.
-#' @param col_custom name of a custom column in to filter values in `dat$data$observations`.
-#' @param val_custom values to keep in the custom column `col_custom`.
+#' @param custom_col name of a custom column in to filter values in 
+#' `dat$data$observations`.
+#' @param custom_filter values to filter out in the custom column `custom_col`.
 #' 
 #' @details
-#' For the `spp_filter`, `cam_filter` and `daterange` values: 
+#' For the `spp_filter`, `cam_filter`, `daterange` and `custom_col` values: 
 #' if they are `NULL`, data are not filtered on that condition.
 #' Also note that e.g. if all species are in `spp_filter`, then
 #' all species will be filtered out.
@@ -805,8 +806,8 @@ filter_data <- function(dat,
                         cam_col_rec = NULL,
                         cam_col_cam = cam_col_rec,
                         daterange = NULL,
-                        col_custom = NULL,
-                        val_custom = NULL,
+                        custom_col = NULL,
+                        custom_filter = NULL,
                         timestamp_col = NULL,
                         time_col = NULL,
                         date_col = NULL,
@@ -834,9 +835,9 @@ filter_data <- function(dat,
     }
   }
   
-  if (!is.null(col_custom)) {
-    if (is.null(val_custom)) {
-      stop("If col_custom is provided, col_custom must be provided as well.")
+  if (!is.null(custom_filter)) {
+    if (is.null(custom_col)) {
+      stop("If custom_filter is provided, custom_col cannot be NULL.")
     }
   }
   
@@ -907,9 +908,9 @@ filter_data <- function(dat,
   }
   
   # Custom filter ---
-  if (!is.null(col_custom)) {
+  if (!is.null(custom_col)) {
     res$data$observations <- res$data$observations |>
-      dplyr::filter(.data[[col_custom]] %in% val_custom)
+      dplyr::filter(!(.data[[custom_col]] %in% custom_filter))
   }
   
   # Cameras to factor ---

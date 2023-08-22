@@ -784,23 +784,18 @@ test_that("Filter data", {
   colname <- "delta.time.days"
   val <- c(0, 1.8)
   
-  expect_warning(filter_data(dat, 
-                             col_custom = colname),
-                 "If col_custom is provided, col_custom must be provided as well.",
-                 fixed = TRUE)
+  expect_error(filter_data(dat, 
+                           custom_filter  = val),
+               "If custom_filter is provided, custom_col cannot be NULL.",
+               fixed = TRUE)
   
   res <- filter_data(dat, 
-                     val_custom = val)
-  expect_equal(res, dat)
+                     custom_col = colname, 
+                     custom_filter = val)
   
-  res <- filter_data(dat, 
-                     col_custom = colname, 
-                     val_custom = val)
-  
-  val_expected <- unique(res$data$observations[[colname]])
-  expect_equal(val_expected, val)
-  
-  
+  val_res <- unique(res$data$observations[[colname]])
+  val_expected <- unique(dat$data$observations[[colname]][!(dat$data$observations[[colname]] %in% val)])
+  expect_equal(val_res, val_expected)
 })
 
 test_that("Filter data (dates)", {

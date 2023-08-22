@@ -14,8 +14,8 @@ filter_data(
   cam_col_rec = NULL,
   cam_col_cam = cam_col_rec,
   daterange = NULL,
-  col_custom = NULL,
-  val_custom = NULL,
+  custom_col = NULL,
+  custom_filter = NULL,
   timestamp_col = NULL,
   time_col = NULL,
   date_col = NULL,
@@ -51,9 +51,10 @@ Defaults to the same value as \code{cam_col_rec}.}
 observations' times so that \code{times >= daterange[1]} and
 \code{times <= daterange[2]}). Can be either a Date or a POSIX.}
 
-\item{col_custom}{name of a custom column in to filter values in \code{dat$data$observations}.}
+\item{custom_col}{name of a custom column in to filter values in
+\code{dat$data$observations}.}
 
-\item{val_custom}{values to keep in the custom column \code{col_custom}.}
+\item{custom_filter}{values to filter out in the custom column \code{custom_col}.}
 
 \item{timestamp_col}{Name of the datetime column (must be coercible to POSIX).
 It is not needed if \code{date_col} and \code{time_col} are provided.}
@@ -82,7 +83,7 @@ Allows to filter camera trap data observations and
 cameras metadata based on species, cameras and dates.
 }
 \details{
-For the \code{spp_filter}, \code{cam_filter} and \code{daterange} values:
+For the \code{spp_filter}, \code{cam_filter}, \code{daterange} and \code{custom_col} values:
 if they are \code{NULL}, data are not filtered on that condition.
 Also note that e.g. if all species are in \code{spp_filter}, then
 all species will be filtered out.
