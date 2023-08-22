@@ -14,7 +14,8 @@ summarize_cameras(
   cam_col_dfcam = NULL,
   setup_col = NULL,
   retrieval_col = NULL,
-  spp_col = NULL
+  spp_col = NULL,
+  obs_col = NULL
 )
 }
 \arguments{
@@ -43,22 +44,31 @@ in \code{dfcam} (optional)}
 
 \item{spp_col}{name of the species column (optional). If present,
 the summarry will include the number of species seen on each camera.}
+
+\item{obs_col}{name of the observation type column}
 }
 \value{
 The summary is returned as a dataframe with the following columns:
 \itemize{
 \item a column named as \code{cam_col} containing the camera ID.
+\item \code{sampling_length} length of the sampling period in days (computed
+with the \code{cameraOperation} function from the \code{camtrapR} package).
+If \code{setup} or \code{retrieval} are \code{NA}, then \code{sampling_length} is \code{NA}
+and if \code{setup} and \code{retrieval} are the same (e.g. unique picture),
+\code{sampling_length} is zero.
+\item \code{pictures}: the number of pictures taken with this camera (it
+is zero if the camera is only in \code{dfcam} but not in \code{df}).
+\item \code{species}: number of species caught on camera. This column is present only
+if \code{spp_col} is provided. If \code{obs_col} is provided, species
+marked as \code{NA} in \code{spp_col} but which have different values
+in \code{obs_type} are counted as different species.
+(if \code{obs_col} is not \code{animal_code}).
 \item \code{setup} containing the start of the sampling for each camera.
 \item \code{retrieval} containing the end of the sampling for each camera.
 \item \code{setup_origin} containing the method used to determine the
 start of the sampling (\code{picture} or \code{setup})
 \item \code{retrieval_origin} containing the method used to determine the
 end of the sampling (\code{picture} or \code{retrieval})
-\item \code{sampling_length} length of the sampling period in days (computed
-with the \code{cameraOperation} function from the \code{camtrapR} package).
-If \code{setup} or \code{retrieval} are \code{NA}, then \code{sampling_length} is \code{NA}
-and if \code{setup} and \code{retrieval} are the same (e.g. unique picture),
-\code{sampling_length} is zero.
 }
 }
 \description{

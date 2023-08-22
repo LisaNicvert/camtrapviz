@@ -336,6 +336,120 @@ test_that("Summarize cameras (dfcam with no setup or retrieval)", {
   expect_equal(res, expected)
 })
 
+
+test_that("Summarize cameras with species col", {
+  # Create dfs
+  df <- data.frame(species = c("cat", "cow", "dog", "dog"),
+                   stamp = as.POSIXct(c("2020-04-01 12:00:00",
+                                        "2020-04-02 12:00:00",
+                                        "2020-04-11 12:00:00",
+                                        "2020-04-12 12:00:00")),
+                   camera = c("A01", "A01", "A02", "A02"))
+  dfcam <- data.frame(camera = c("A01", "A02", "A03"))
+  
+  # Expected
+  expected <- data.frame(camera = c("A01", "A02", "A03"),
+                         pictures = c(2, 2, 0),
+                         species = c(2, 1, NA),
+                         sampling_length = c(1, 1, NA),
+                         setup = as.POSIXct(c("2020-04-01 12:00:00",
+                                              "2020-04-11 12:00:00",
+                                              NA)),
+                         retrieval = as.POSIXct(c("2020-04-02 12:00:00",
+                                                  "2020-04-12 12:00:00",
+                                                  NA)),
+                         setup_origin = c("picture", "picture", NA),
+                         retrieval_origin = c("picture", "picture", NA))
+  expected_nodfcam <- expected |> 
+    filter(camera != "A03")
+  
+  # Test without dfcam
+  res <- summarize_cameras(df,
+                           cam_col = "camera",
+                           timestamp_col = "stamp",
+                           spp_col = "species")
+  
+  expect_equal(res, expected_nodfcam)
+  
+  # Test with dfcam (one more camera)
+  res <- summarize_cameras(df,
+                           cam_col = "camera",
+                           timestamp_col = "stamp",
+                           spp_col = "species",
+                           dfcam = dfcam)
+  
+  expect_equal(res, expected)
+  
+  # Test with dfcam (one more camera in records)
+  dfcam2 <- data.frame(camera = "A01")
+  
+  res <- summarize_cameras(df,
+                           cam_col = "camera",
+                           timestamp_col = "stamp",
+                           spp_col = "species",
+                           dfcam = dfcam2)
+  
+  expect_equal(res, expected_nodfcam)
+})
+
+test_that("Summarize cameras with spp_col and obs_type", {
+  # Create dfs
+  df <- data.frame(species = c("cat", "cow", NA, NA),
+                   type = c("animal", "animal", "human", "blank"),
+                   stamp = as.POSIXct(c("2020-04-01 12:00:00",
+                                        "2020-04-02 12:00:00",
+                                        "2020-04-11 12:00:00",
+                                        "2020-04-12 12:00:00")),
+                   camera = c("A01", "A01", "A02", "A02"))
+  dfcam <- data.frame(camera = c("A01", "A02", "A03"))
+  
+  # Expected
+  expected <- data.frame(camera = c("A01", "A02", "A03"),
+                         pictures = c(2, 2, 0),
+                         species = c(2, 2, NA),
+                         sampling_length = c(1, 1, NA),
+                         setup = as.POSIXct(c("2020-04-01 12:00:00",
+                                              "2020-04-11 12:00:00",
+                                              NA)),
+                         retrieval = as.POSIXct(c("2020-04-02 12:00:00",
+                                                  "2020-04-12 12:00:00",
+                                                  NA)),
+                         setup_origin = c("picture", "picture", NA),
+                         retrieval_origin = c("picture", "picture", NA))
+  expected_nodfcam <- expected |> 
+    filter(camera != "A03")
+  
+  # Test without dfcam
+  res <- summarize_cameras(df,
+                           cam_col = "camera",
+                           timestamp_col = "stamp",
+                           spp_col = "species",
+                           obs_col = "type")
+  
+  expect_equal(res, expected_nodfcam)
+  
+  # Test with dfcam
+  res <- summarize_cameras(df,
+                           cam_col = "camera",
+                           timestamp_col = "stamp",
+                           spp_col = "species",
+                           obs_col = "type",
+                           dfcam = dfcam)
+  
+  expect_equal(res, expected)
+  
+  # Test without obstype
+  res <- summarize_cameras(df,
+                           cam_col = "camera",
+                           timestamp_col = "stamp",
+                           spp_col = "species",
+                           dfcam = dfcam)
+  expected_notype <- expected |> 
+    mutate(species = c(2, 1, NA))
+  expect_equal(res, expected_notype)
+  
+})
+
 # Summarize species -------------------------------------------------------
 
 test_that("Get all species", {

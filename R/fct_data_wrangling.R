@@ -58,6 +58,7 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
 #' in `dfcam` (optional)
 #' @param spp_col name of the species column (optional). If present, 
 #' the summarry will include the number of species seen on each camera.
+#' @param obs_col name of the observation type column
 #' 
 #' @details In the final dataframe, the start and the end of the sampling are
 #' computed as follows for each camera:
@@ -79,17 +80,23 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
 #' 
 #' @return The summary is returned as a dataframe with the following columns:
 #' + a column named as `cam_col` containing the camera ID.
+#' + `sampling_length` length of the sampling period in days (computed
+#' with the `cameraOperation` function from the `camtrapR` package).
+#' If `setup` or `retrieval` are `NA`, then `sampling_length` is `NA`
+#' and if `setup` and `retrieval` are the same (e.g. unique picture),
+#' `sampling_length` is zero.
+#' + `pictures`: the number of pictures taken with this camera (it
+#' is zero if the camera is only in `dfcam` but not in `df`).
+#' + `species` (present only if `spp_col` is provided): number of species 
+#' caught on camera. If `obs_col` is provided, species
+#' marked as `NA` in `spp_col` but which have different values
+#' in `obs_type` are counted as different species.
 #' + `setup` containing the start of the sampling for each camera.
 #' + `retrieval` containing the end of the sampling for each camera.
 #' + `setup_origin` containing the method used to determine the
 #' start of the sampling (`picture` or `setup`)
 #' + `retrieval_origin` containing the method used to determine the
 #' end of the sampling (`picture` or `retrieval`)
-#' + `sampling_length` length of the sampling period in days (computed
-#' with the `cameraOperation` function from the `camtrapR` package).
-#' If `setup` or `retrieval` are `NA`, then `sampling_length` is `NA`
-#' and if `setup` and `retrieval` are the same (e.g. unique picture),
-#' `sampling_length` is zero.
 #' 
 #' @export
 #' 
@@ -107,7 +114,8 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
 #' summarize_cameras(records, 
 #'                   cam_col = "camera", timestamp_col = "stamp", 
 #'                   dfcam = cameras, 
-#'                   setup_col = "setup", retrieval_col = "retrieval")
+#'                   setup_col = "setup", retrieval_col = "retrieval",
+#'                   spp_col = "species")
 #' # Since camera A had no setup date, the first picture is used.
 #' # For camera B, setup and retrieval are taken from dfcam.
 #' # For camera C, as it is present only on dfcam and has no retrieval date,
@@ -117,7 +125,7 @@ summarize_cameras <- function(df, cam_col,
                               date_col = NULL, time_col = NULL,
                               dfcam = NULL, cam_col_dfcam = NULL,
                               setup_col = NULL, retrieval_col = NULL,
-                              spp_col = NULL) {
+                              spp_col = NULL, obs_col = NULL) {
   
   # --- Check inputs
   # Display message to say that date_col and time_col will
@@ -157,6 +165,16 @@ summarize_cameras <- function(df, cam_col,
   # Summarize with timestamp
   if (!is.null(spp_col)) {
     # We want to add species count to the summary
+    
+    # Handle NA species
+    if (!is.null(obs_col)) {
+      # Replace species with species or type
+      camsum[[spp_col]] = get_all_species(camsum, 
+                                          spp_col = spp_col,
+                                          obs_col = obs_col,
+                                          return_df = FALSE)
+    }
+    
     camsum <- camsum |>
       group_by(.data[[cam_col]]) |>
       summarise(pictures = n(),

@@ -150,7 +150,9 @@ summaryServer <- function(id,
                             cam_col = ..(mapping_records$cam_col),
                             timestamp_col = ..(mapping_records$timestamp_col),
                             date_col = ..(mapping_records$date_col),
-                            time_col = ..(mapping_records$time_col))
+                            time_col = ..(mapping_records$time_col),
+                            spp_col = ..(mapping_records$spp_col),
+                            obs_col = ..(mapping_records$obs_col))
         })
       } else {
         metaExpr({
@@ -162,7 +164,9 @@ summaryServer <- function(id,
                             dfcam = ..(camtrap_data())$data$deployments, 
                             cam_col_dfcam = ..(mapping_cameras$cam_col),
                             setup_col = ..(mapping_cameras$setup_col),
-                            retrieval_col = ..(mapping_cameras$retrieval_col))
+                            retrieval_col = ..(mapping_cameras$retrieval_col),
+                            spp_col = ..(mapping_records$spp_col),
+                            obs_col = ..(mapping_records$obs_col))
         })
       }
     }, varname = "camvalues")
@@ -262,53 +266,55 @@ summaryServer <- function(id,
                color = "black")
     })
     
+    ## Commented out because as of now they dont work :( -----------
+    
     # Modify leaflet map
-    observe({
-      validate(need(selected_camera(), "Waiting to select a camera"))
-      validate(need(output$plot_map, "Wait for the plot"))
-      
-      df_cam <- camtrap_data()$data$deployments
-      
-      color <- rep("black", nrow(df_cam))
-
-      if(!is.null(selected_camera())) {
-        color[df_cam[[mapping_cameras()$cam_col]] == selected_camera()] <- "red"
-      }
-      
-      update_map(map_id = "plot_map",
-                 session = session,
-                 df_cam, 
-                 lat_col = mapping_cameras()$lat_col,
-                 lon_col = mapping_cameras()$lon_col,
-                 crs = crs(),
-                 cam_col = cam_col_cam(),
-                 display_camnames = input$display_camnames,
-                 color = color)
-      
-    })
+    # observe({
+    #   validate(need(selected_camera(), "Waiting to select a camera"))
+    #   validate(need(output$plot_map, "Wait for the plot"))
+    #   
+    #   df_cam <- camtrap_data()$data$deployments
+    #   
+    #   color <- rep("black", nrow(df_cam))
+    # 
+    #   if(!is.null(selected_camera())) {
+    #     color[df_cam[[mapping_cameras()$cam_col]] == selected_camera()] <- "red"
+    #   }
+    #   
+    #   update_map(map_id = "plot_map",
+    #              session = session,
+    #              df_cam, 
+    #              lat_col = mapping_cameras()$lat_col,
+    #              lon_col = mapping_cameras()$lon_col,
+    #              crs = crs(),
+    #              cam_col = cam_col_cam(),
+    #              display_camnames = input$display_camnames,
+    #              color = color)
+    #   
+    # })
     
     # Modify ggiraph selection
-    observe({
-      # cat("Modify ggiraph -------------- \n")
-      modif <- ifelse(selected_camera() %in% unique(camtrap_data()$data$observations[[mapping_records()$cam_col]]),
-                      selected_camera(), character(0))
-      # cat(modif)
-      # cat("\n")
-      session$sendCustomMessage(type = NS(id, 'plot_occurences_set'), 
-                                message = modif)
-    })
+    # observe({
+    #   # cat("Modify ggiraph -------------- \n")
+    #   modif <- ifelse(selected_camera() %in% unique(camtrap_data()$data$observations[[mapping_records()$cam_col]]),
+    #                   selected_camera(), character(0))
+    #   # cat(modif)
+    #   # cat("\n")
+    #   session$sendCustomMessage(type = NS(id, 'plot_occurences_set'), 
+    #                             message = modif)
+    # })
     
-    selected_camera <- shiny::reactiveVal()
+    # selected_camera <- shiny::reactiveVal()
     
-    observeEvent(input$plot_occurrences_selected, {
-      selected_camera(input$plot_occurrences_selected)
-    })
-    observeEvent(input$plot_map_marker_click, {
-      selected_camera(input$plot_map_marker_click$id)
-    })
-    observeEvent(input$plot_map_click, {
-      selected_camera(NULL)
-    })
+    # observeEvent(input$plot_occurrences_selected, {
+    #   selected_camera(input$plot_occurrences_selected)
+    # })
+    # observeEvent(input$plot_map_marker_click, {
+    #   selected_camera(input$plot_map_marker_click$id)
+    # })
+    # observeEvent(input$plot_map_click, {
+    #   selected_camera(NULL)
+    # })
     
     
     # For debugging

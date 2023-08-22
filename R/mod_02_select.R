@@ -63,12 +63,13 @@ selectServer <- function(id,
       
 
       # Helper function ---------------------------------------------------------
-      #' Update colums
+      
+      #' Update columns
       #' 
-      #' Function to update values to choose in the columns
+      #' Function to update column names to choose from
       #'
       #' @param session session
-      #' @param prefix prefix to use to fing the widgets
+      #' @param prefix prefix to use to find the widgets
       #' @param df dataframe to pick columns in
       #'
       #' @return Nothing but modifies the existing selectizeInput
@@ -76,27 +77,31 @@ selectServer <- function(id,
       update_columns <- function(session,
                                  prefix, 
                                  df) {
-        
-        # Which column?
-        observe({
           updateSelectizeInput(session = session,
                                paste(prefix, "col", 
                                      sep = "_"),
                                choices = colnames(df))
-        }) |> shiny::bindEvent(df)
-        
-        # Which values?
-        observe({
-          col <- input[[paste(prefix, "col", sep = "_")]]
-          choices_col <- sort(unique(df[[col]]), 
-                              na.last = TRUE)
-          
-          updateSelectizeInput(session = session,
-                               paste(prefix, "col_val", sep = "_"),
-                               choices = choices_col)
-        }) |> shiny::bindEvent(input[[paste(prefix, "col", sep = "_")]])
       }
       
+      #' Update column values
+      #' 
+      #' Function to update values to choose from
+      #'
+      #' @param session session
+      #' @param prefix prefix to use to find the widgets
+      #' @param df dataframe to pick columns in
+      #'
+      #' @return Nothing but modifies the existing selectizeInput
+      #' @noRd
+      update_column_choices <- function(session, prefix, df) {
+        col <- input[[paste(prefix, "col", sep = "_")]]
+        choices_col <- sort(unique(df[[col]]), 
+                            na.last = TRUE)
+        
+        updateSelectizeInput(session = session,
+                             paste(prefix, "col_val", sep = "_"),
+                             choices = choices_col)
+      }
 
       # Test reactive input -----------------------------------------------------
       
@@ -155,18 +160,45 @@ selectServer <- function(id,
 
 
       # Update columns ----------------------------------------------------------
-      update_columns(session = session, 
-                     prefix = "spp", 
-                     df = camtrap_data()$data$observations)
       
-      update_columns(session = session, 
-                     prefix = "cam", 
-                     df = camtrap_data()$data$deployments)
+      # Species ---
+      observe({
+        update_columns(session = session, 
+                       prefix = "spp", 
+                       df = camtrap_data()$data$observations)
+      }) |> shiny::bindEvent(camtrap_data()$data$observations)
       
-      update_columns(session = session, 
-                     prefix = "daterange", 
-                     df = camtrap_data()$data$observations)
+      observe({
+        update_column_choices(session = session, 
+                              prefix = "spp", 
+                              df = camtrap_data()$data$observations)
+      }) |> shiny::bindEvent(input$spp_col)
       
+      # Cam ---
+      observe({
+        update_columns(session = session, 
+                       prefix = "cam", 
+                       df = camtrap_data()$data$deployments)
+      }) |> shiny::bindEvent(camtrap_data()$data$deployments)
+      
+      observe({
+        update_column_choices(session = session, 
+                              prefix = "cam", 
+                              df = camtrap_data()$data$deployments)
+      }) |> shiny::bindEvent(input$cam_col)
+      
+      # Daterange ---
+      observe({
+        update_columns(session = session, 
+                       prefix = "daterange", 
+                       df = camtrap_data()$data$observations)
+      }) |> shiny::bindEvent(camtrap_data()$data$observations)
+      
+      observe({
+        update_column_choices(session = session, 
+                              prefix = "daterange", 
+                              df = camtrap_data()$data$observations)
+      }) |> shiny::bindEvent(input$daterange_col)
 
       # Get selected species and cameras ----------------------------------------------------
 
@@ -296,7 +328,7 @@ selectServer <- function(id,
         
         if (has_type) {
           # Get species/observations to filter out
-          all_filter <- species_df()[!species_df()$ID %in% selected_spp_id(), ]
+          all_filter <- species_df()[!(species_df()$ID %in% selected_spp_id()), ]
           
           # Get species values
           spp_filter <- all_filter[all_filter[[obs_col()]] == "animal", ]
@@ -309,7 +341,8 @@ selectServer <- function(id,
           # Obs filter is NULL
           obs_filter <- NULL
           # Get species to filter out
-          spp_filter <- species_df()[!species_df()$ID %in% selected_spp_id(), ]
+          spp_filter <- species_df()[!(species_df()$ID %in% selected_spp_id()), ]
+          spp_filter <- spp_filter[[spp_col()]]
         }
         
         # Get cameras to filter out
