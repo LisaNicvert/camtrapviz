@@ -63,7 +63,7 @@
 <span>  <span class="va">df</span>,</span>
 <span>  <span class="va">spp_col</span>,</span>
 <span>  cam_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  obs_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  obstype_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  count_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ncam <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  by_cam <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -87,7 +87,7 @@
 <code>by_cam</code> is <code>FALSE</code>)</p></dd>
 
 
-<dt>obs_col</dt>
+<dt>obstype_col</dt>
 <dd><p>Name of the observation type column (optional)</p></dd>
 
 
@@ -125,8 +125,8 @@ replaced).</p></dd>
 
 <p>A table summarizing species information with the following columns:</p><ul><li><p>Species (named like <code>spp_col</code>): species identity
 (same as the <code>spp_col</code> input column)</p></li>
-<li><p>Observation type (present only if <code>obs_col</code> is not <code>NULL</code> and named like
-<code>obs_col</code>): observation type (same as the <code>obs_col</code> input column)</p></li>
+<li><p>Observation type (present only if <code>obstype_col</code> is not <code>NULL</code> and named like
+<code>obstype_col</code>): observation type (same as the <code>obstype_col</code> input column)</p></li>
 <li><p><code>sightings</code>: number of rows where the species was photographed.</p></li>
 <li><p><code>individuals</code>: count of individuals observed on all
 pictures (using the input <code>count_col</code> column).
@@ -156,7 +156,7 @@ If <code>ncam</code> is provided, then it uses <code>ncam</code> as the total nu
 <span class="r-in"><span><span class="co"># Summarize species across all cameras</span></span></span>
 <span class="r-in"><span><span class="fu">summarize_species</span><span class="op">(</span><span class="va">df</span>, </span></span>
 <span class="r-in"><span>                  spp_col <span class="op">=</span> <span class="st">"species"</span>, cam_col <span class="op">=</span> <span class="st">"camera"</span>,</span></span>
-<span class="r-in"><span>                  obs_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
+<span class="r-in"><span>                  obstype_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
 <span class="r-in"><span>                  count_col <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>                  NA_count_placeholder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   species   type sightings individuals n_cameras prop_cam</span>
@@ -168,7 +168,7 @@ If <code>ncam</code> is provided, then it uses <code>ncam</code> as the total nu
 <span class="r-in"><span><span class="co"># Summarize per species and cameras</span></span></span>
 <span class="r-in"><span><span class="fu">summarize_species</span><span class="op">(</span><span class="va">df</span>, </span></span>
 <span class="r-in"><span>                  spp_col <span class="op">=</span> <span class="st">"species"</span>, cam_col <span class="op">=</span> <span class="st">"camera"</span>,</span></span>
-<span class="r-in"><span>                  obs_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
+<span class="r-in"><span>                  obstype_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
 <span class="r-in"><span>                  count_col <span class="op">=</span> <span class="st">"count"</span>,</span></span>
 <span class="r-in"><span>                  by_cam <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>                  NA_count_placeholder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>

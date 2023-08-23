@@ -67,18 +67,18 @@ cameras metadata based on species, cameras and dates.</p>
 <span>  spp_filter <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  spp_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  obs_filter <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  obs_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  obstype_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cam_filter <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cam_col_rec <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cam_col_cam <span class="op">=</span> <span class="va">cam_col_rec</span>,</span>
 <span>  daterange <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  custom_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  custom_filter <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  timestamp_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  datetime_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  date_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  tz <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cameras_as_factor <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  cam_as_factor <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -104,7 +104,7 @@ are in the <code>$data</code> slot with two components:</p><ul><li><p><code>$dep
 <dd><p>Observation types to filter from the data</p></dd>
 
 
-<dt>obs_col</dt>
+<dt>obstype_col</dt>
 <dd><p>Name of the observation column</p></dd>
 
 
@@ -136,31 +136,31 @@ observations' times so that <code>times &gt;= daterange[1]</code> and
 <dd><p>values to filter out in the custom column <code>custom_col</code>.</p></dd>
 
 
-<dt>timestamp_col</dt>
+<dt>datetime_col</dt>
 <dd><p>Name of the datetime column (must be coercible to POSIX).
 It is not needed if <code>date_col</code> and <code>time_col</code> are provided.</p></dd>
 
 
 <dt>time_col</dt>
-<dd><p>Name of the time column. It is not needed if <code>timestamp_col</code>
+<dd><p>Name of the time column. It is not needed if <code>datetime_col</code>
 is provided.</p></dd>
 
 
 <dt>date_col</dt>
-<dd><p>Name of the date column. It is not needed if <code>timestamp_col</code>
+<dd><p>Name of the date column. It is not needed if <code>datetime_col</code>
 is provided.</p></dd>
 
 
 <dt>tz</dt>
 <dd><p>Timezone for the data bounds. If not provided, will try to
 find the timezone in <code>daterange</code> (if it is a POSIX), then in
-<code>timestamp_col</code> (if provided), and finally if no timezone is
+<code>datetime_col</code> (if provided), and finally if no timezone is
 present it will default to UTC (Etc/GMT).
-For the filtering step, if needed datetimes in <code>timestamp_col</code> can be
+For the filtering step, if needed datetimes in <code>datetime_col</code> can be
 converted to <code>tz</code> but the output data will not be affected.</p></dd>
 
 
-<dt>cameras_as_factor</dt>
+<dt>cam_as_factor</dt>
 <dd><p>Transform cameras as factors?</p></dd>
 
 </dl></div>
@@ -199,7 +199,7 @@ all species will be filtered out.</p>
 <span class="r-in"><span>            cam_col_rec <span class="op">=</span> <span class="st">"Station"</span>, </span></span>
 <span class="r-in"><span>            cam_filter <span class="op">=</span> <span class="st">"StationA"</span>,</span></span>
 <span class="r-in"><span>            daterange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2009-05-01"</span>, <span class="st">"2009-05-15"</span><span class="op">)</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>            timestamp_col <span class="op">=</span> <span class="st">"DateTimeOriginal"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>            datetime_col <span class="op">=</span> <span class="st">"DateTimeOriginal"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $data</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $data$observations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     Station Species    DateTimeOriginal       Date     Time delta.time.secs</span>

@@ -620,9 +620,9 @@ provide a value to replace it:</p>
 </tr>
 </tbody>
 </table>
-<p>If <code>obs_col</code> is included, the final table will have one
-more column describing type and the values will be summarized by
-<code>species_col</code> and <code>obs_col</code>.</p>
+<p>If <code>obstype_col</code> is included, the final table will have
+one more column describing type and the values will be summarized by
+<code>species_col</code> and <code>obstype_col</code>.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">with_obstype</span> <span class="op">&lt;-</span> <span class="va">recordTableSample</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"animal"</span><span class="op">)</span></span>
@@ -634,7 +634,7 @@ more column describing type and the values will be summarized by
 <span><span class="va">sppsum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_species.html">summarize_species</a></span><span class="op">(</span><span class="va">with_obstype</span>,</span>
 <span>                            spp_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
 <span>                            cam_col <span class="op">=</span> <span class="st">"Station"</span>, </span>
-<span>                            obs_col <span class="op">=</span> <span class="st">"type"</span><span class="op">)</span></span>
+<span>                            obstype_col <span class="op">=</span> <span class="st">"type"</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">sppsum</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">

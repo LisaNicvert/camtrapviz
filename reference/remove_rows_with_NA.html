@@ -72,8 +72,8 @@
 <dd><p>The mapping list for columns in the dataframe.
 Names are the column types. They are free, except the
 species column and the observation type column, which
-must be coded with respectively <code>obs_col</code> and <code>spp_col</code>
-(if they exist). If <code>obs_col</code> is present in the names,
+must be coded with respectively <code>obstype_col</code> and <code>spp_col</code>
+(if they exist). If <code>obstype_col</code> is present in the names,
 then <code>spp_col</code> is assumed to be present too.
 Values are the corresponding column names in the dataframe.</p></dd>
 
@@ -83,7 +83,7 @@ Values are the corresponding column names in the dataframe.</p></dd>
     
 
 <p>The filtered dataframe, so that rows in <code>mapping</code> contain no
-<code>NA</code> values. <code>NA</code> are allowed only in <code>spp_col</code> if <code>obs_col</code></p>
+<code>NA</code> values. <code>NA</code> are allowed only in <code>spp_col</code> if <code>obstype_col</code></p>
 
 
 <p>is in mapping is not <code>animal</code>.</p>
@@ -96,14 +96,14 @@ Values are the corresponding column names in the dataframe.</p></dd>
 <span class="r-in"><span>                 stamp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">60</span>, length.out <span class="op">=</span> <span class="fl">4</span>, by <span class="op">=</span> <span class="fl">60</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>                 camera <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">mapping</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>spp_col <span class="op">=</span> <span class="st">"species"</span>,</span></span>
-<span class="r-in"><span>                obs_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
-<span class="r-in"><span>                timestamp_col <span class="op">=</span> <span class="st">"stamp"</span>,</span></span>
+<span class="r-in"><span>                obstype_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
+<span class="r-in"><span>                datetime_col <span class="op">=</span> <span class="st">"stamp"</span>,</span></span>
 <span class="r-in"><span>                cam_col <span class="op">=</span> <span class="st">"camera"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">remove_rows_with_NA</span><span class="op">(</span><span class="va">df</span>, <span class="va">mapping</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   species   type               stamp camera</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  pigeon animal 2023-08-22 14:39:10      A</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2   mouse animal 2023-08-22 14:40:10      B</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3    &lt;NA&gt;  blank 2023-08-22 14:41:10      C</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  pigeon animal 2023-08-23 13:24:45      A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   mouse animal 2023-08-23 13:25:45      B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3    &lt;NA&gt;  blank 2023-08-23 13:26:45      C</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

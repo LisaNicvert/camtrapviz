@@ -60,30 +60,30 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">filter_cameras_in_both_tables</span><span class="op">(</span></span>
-<span>  <span class="va">records</span>,</span>
-<span>  <span class="va">cameras</span>,</span>
-<span>  <span class="va">cam_col_records</span>,</span>
-<span>  cam_col_cameras <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  <span class="va">dfrec</span>,</span>
+<span>  <span class="va">dfcam</span>,</span>
+<span>  <span class="va">cam_col_dfrec</span>,</span>
+<span>  cam_col_dfcam <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>records</dt>
+    <dl><dt>dfrec</dt>
 <dd><p>Records dataframe</p></dd>
 
 
-<dt>cameras</dt>
+<dt>dfcam</dt>
 <dd><p>Cameras dataframe</p></dd>
 
 
-<dt>cam_col_records</dt>
-<dd><p>Name of the column with cameras names in records</p></dd>
+<dt>cam_col_dfrec</dt>
+<dd><p>Name of the column with cameras names in <code>dfrec</code></p></dd>
 
 
-<dt>cam_col_cameras</dt>
-<dd><p>Name of the column with cameras names in cameras.
-If <code>NULL</code> will be assumed to be the same as <code>cam_col_records</code>.</p></dd>
+<dt>cam_col_dfcam</dt>
+<dd><p>Name of the column with cameras names in <code>dfcam</code>
+If <code>NULL</code> will be assumed to be the same as <code>cam_col_dfrec</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -96,19 +96,19 @@ If <code>NULL</code> will be assumed to be the same as <code>cam_col_records</co
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>species <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pigeon"</span>, <span class="st">"mouse"</span>, <span class="st">"pigeon"</span>, <span class="st">"mouse"</span><span class="op">)</span>,</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">dfrec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>species <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pigeon"</span>, <span class="st">"mouse"</span>, <span class="st">"pigeon"</span>, <span class="st">"mouse"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                      stamp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">60</span>, length.out <span class="op">=</span> <span class="fl">4</span>, by <span class="op">=</span> <span class="fl">60</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                      camera <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"E"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">cameras</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>camera <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"D"</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span><span class="va">dfcam</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>camera <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"D"</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>                      lat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20.12</span>, <span class="fl">20.22</span>, <span class="fl">22.34</span>, <span class="fl">21.35</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                      lon <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">33.44</span>, <span class="fl">33.45</span>, <span class="fl">33.42</span>, <span class="fl">33.53</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">filter_cameras_in_both_tables</span><span class="op">(</span><span class="va">records</span>, <span class="va">cameras</span>, </span></span>
-<span class="r-in"><span>                              cam_col_records <span class="op">=</span> <span class="st">"camera"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">filter_cameras_in_both_tables</span><span class="op">(</span><span class="va">dfrec</span>, <span class="va">dfcam</span>, </span></span>
+<span class="r-in"><span>                              cam_col_dfrec <span class="op">=</span> <span class="st">"camera"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $records</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   species               stamp camera</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  pigeon 2023-08-22 14:39:03      A</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2   mouse 2023-08-22 14:40:03      B</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  pigeon 2023-08-22 14:41:03      C</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  pigeon 2023-08-23 13:24:39      A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   mouse 2023-08-23 13:25:39      B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  pigeon 2023-08-23 13:26:39      C</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $cameras</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   camera   lat   lon</span>

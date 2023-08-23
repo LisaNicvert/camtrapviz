@@ -59,7 +59,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_nspecies</span><span class="op">(</span><span class="va">df</span>, <span class="va">species_col</span>, obs_col <span class="op">=</span> <span class="cn">NULL</span>, keep_NA <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_nspecies</span><span class="op">(</span><span class="va">df</span>, <span class="va">species_col</span>, obstype_col <span class="op">=</span> <span class="cn">NULL</span>, keep_NA <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -72,7 +72,7 @@
 <dd><p>name of the species column from the dataframe</p></dd>
 
 
-<dt>obs_col</dt>
+<dt>obstype_col</dt>
 <dd><p>name of the observation type column from the dataframe</p></dd>
 
 
@@ -84,8 +84,8 @@
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>The number of species. If <code>obs_col</code> is provided, will
-ignore all species with <code>obs_col</code> value different from <code>animal</code>.
+<p>The number of species. If <code>obstype_col</code> is provided, will
+ignore all species with <code>obstype_col</code> value different from <code>animal</code>.
 If <code>keep_NA</code>, will count NA in the total species count.</p>
     </div>
 
@@ -93,7 +93,7 @@ If <code>keep_NA</code>, will count NA in the total species count.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>obstype <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"animal"</span>, <span class="st">"animal"</span>, <span class="st">"animal"</span>, <span class="st">"animal"</span>, <span class="st">"blank"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                 species <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cat"</span>, <span class="st">"cat"</span>, <span class="st">"cow"</span>, <span class="st">"dog"</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">get_nspecies</span><span class="op">(</span><span class="va">df</span>, species_col <span class="op">=</span> <span class="st">"species"</span>, obs_col <span class="op">=</span> <span class="st">"obstype"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">get_nspecies</span><span class="op">(</span><span class="va">df</span>, species_col <span class="op">=</span> <span class="st">"species"</span>, obstype_col <span class="op">=</span> <span class="st">"obstype"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 3</span>
 </code></pre></div>
     </div>

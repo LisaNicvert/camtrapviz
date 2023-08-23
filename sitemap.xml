@@ -49,9 +49,6 @@
     <loc>https://lisanicvert.github.io/camtrapviz/reference/filter_data.html</loc>
   </url>
   <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/fit_vonMises.html</loc>
-  </url>
-  <url>
     <loc>https://lisanicvert.github.io/camtrapviz/reference/get_all_species.html</loc>
   </url>
   <url>
@@ -101,11 +98,5 @@
   </url>
   <url>
     <loc>https://lisanicvert.github.io/camtrapviz/reference/summarize_species.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/time_to_circular.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/vonMises_density.html</loc>
   </url>
 </urlset>

@@ -74,9 +74,9 @@ general type is provided (as with the camtrapDP standard).</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_unique_species</span><span class="op">(</span></span>
 <span>  <span class="va">df</span>,</span>
 <span>  <span class="va">spp_col</span>,</span>
-<span>  obs_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  obstype_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  animal_code <span class="op">=</span> <span class="st">"animal"</span>,</span>
-<span>  return_df <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">obs_col</span><span class="op">)</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  return_df <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">obstype_col</span><span class="op">)</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>  reorder <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -91,12 +91,12 @@ general type is provided (as with the camtrapDP standard).</p>
 <dd><p>name of the species column from the dataframe</p></dd>
 
 
-<dt>obs_col</dt>
+<dt>obstype_col</dt>
 <dd><p>name of the observation type column from the dataframe</p></dd>
 
 
 <dt>animal_code</dt>
-<dd><p>value of <code>obs_col</code> coding for animal observations.</p></dd>
+<dd><p>value of <code>obstype_col</code> coding for animal observations.</p></dd>
 
 
 <dt>return_df</dt>
@@ -107,7 +107,7 @@ species names.</p></dd>
 
 <dt>reorder</dt>
 <dd><p>Reorder the results? This will arrange values by
-alphabetical order. If <code>obs_col</code> is provided, non-animal species will
+alphabetical order. If <code>obstype_col</code> is provided, non-animal species will
 be arranged last.</p></dd>
 
 </dl></div>
@@ -116,21 +116,21 @@ be arranged last.</p></dd>
     
 
 <p>unique species names.
-If <code>obs_col</code> is provided,  <code>NA</code> values in <code>spp_col</code> are
-replaced with the corresponding value in <code>obs_col</code></p>
+If <code>obstype_col</code> is provided,  <code>NA</code> values in <code>spp_col</code> are
+replaced with the corresponding value in <code>obstype_col</code></p>
 
 
-<p>(if <code>obs_col</code> is not <code>animal_code</code>).
+<p>(if <code>obstype_col</code> is not <code>animal_code</code>).
 If <code>return_df</code> is <code>TRUE</code>, returns a dataframe containing
 unique species and observation type.
 This dataframe has the following columns (type character):</p><ul><li><p>a column <code>ID</code> to uniquely identify each species/observation
-combination. If <code>obs_col</code> is not <code>NULL</code>, the IDs are of the form
+combination. If <code>obstype_col</code> is not <code>NULL</code>, the IDs are of the form
 <code>spp_type</code> where <code>spp</code> is the species value and
 <code>type</code> is the observation type value. Else, IDs are of the form <code>spp</code>.</p></li>
 <li><p>a column named like <code>spp_col</code> containing species names
 (where <code>NA</code> values in <code>spp_col</code> are replaced as described above).</p></li>
-<li><p>a column named like <code>obs_col</code> containing unique corresponding
-observations types (if <code>obs_col</code> is provided).
+<li><p>a column named like <code>obstype_col</code> containing unique corresponding
+observations types (if <code>obstype_col</code> is provided).
 If <code>return_df</code> is <code>FALSE</code>, returns only the unique values of
 <code>spp_col</code>.</p></li>
 </ul></div>
@@ -146,7 +146,7 @@ If <code>return_df</code> is <code>FALSE</code>, returns only the unique values 
 <span class="r-in"><span>                 type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"animal"</span>, <span class="st">"animal"</span>, <span class="st">"animal"</span>, <span class="st">"fire"</span>, <span class="st">"blank"</span>, </span></span>
 <span class="r-in"><span>                          <span class="st">"human"</span>, <span class="st">"human"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Use the type column</span></span></span>
-<span class="r-in"><span><span class="fu">get_unique_species</span><span class="op">(</span><span class="va">df</span>, spp_col <span class="op">=</span> <span class="st">"species"</span>, obs_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
+<span class="r-in"><span><span class="fu">get_unique_species</span><span class="op">(</span><span class="va">df</span>, spp_col <span class="op">=</span> <span class="st">"species"</span>, obstype_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
 <span class="r-in"><span>                   reorder <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                    ID       species   type</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1          cat_animal           cat animal</span>
