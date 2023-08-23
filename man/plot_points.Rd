@@ -6,17 +6,17 @@
 \usage{
 plot_points(
   df,
-  camera_col,
-  timestamp_col = NULL,
+  cam_col,
+  datetime_col = NULL,
   tz = NULL,
   date_col = NULL,
   time_col = NULL,
-  cameras_list = NULL,
+  cam_vec = NULL,
   points_col = NULL,
-  caminfo = NULL,
-  caminfo_camera_col = camera_col,
-  caminfo_setup = "setup",
-  caminfo_retrieval = "retrieval",
+  dfcam = NULL,
+  cam_col_dfcam = cam_col,
+  setup_dfcam = "setup",
+  retrieval_dfcam = "retrieval",
   interactive = FALSE,
   textsize = 10,
   text_x_angle = 0,
@@ -37,45 +37,45 @@ plot_points(
 \arguments{
 \item{df}{The dataframe}
 
-\item{camera_col}{Name of the camera column}
+\item{cam_col}{Name of the camera column}
 
-\item{timestamp_col}{Name of the timestamp column. If it
+\item{datetime_col}{Name of the timestamp column. If it
 is a datetime, it must be of class POSIXct. It can be \code{NULL}
 if \code{date_col} and \code{time_col} are provided.}
 
 \item{tz}{Timezone code to use for the data. If provided, the
 data will be converted to this timezone. If missing, will search
-a timezone in \code{timestamp_col} (if provided), else will default to
+a timezone in \code{datetime_col} (if provided), else will default to
 UTC (Etc/GMT for the R code).
 The data timezone (or the default timezone) will also override
-any timezone present in \code{caminfo_setup} or \code{caminfo_retrieval}.}
+any timezone present in \code{setup_dfcam} or \code{retrieval_dfcam}.}
 
 \item{date_col}{Name of the date column. It is assumed
 to be of class \code{Date} (else, results are not guaranteed).
-It can be \code{NULL} if \code{timestamp_col} is provided.}
+It can be \code{NULL} if \code{datetime_col} is provided.}
 
 \item{time_col}{Name of the time column. It is assumed
 to be of class \code{times} (else, results are not guaranteed).
-It can be \code{NULL} if \code{timestamp_col} is provided.}
+It can be \code{NULL} if \code{datetime_col} is provided.}
 
-\item{cameras_list}{A character vector of all cameras that should appeat
+\item{cam_vec}{A character vector of all cameras that should appeat
 on the plot (optional)}
 
 \item{points_col}{Name of the column to use for the color of data points
 (defaults to species column). If the graph is interactive,
 this will also be displayed in the labels. It is interpred as a discrete color scale.}
 
-\item{caminfo}{Dataframe containing camera information. Must have at least one column
+\item{dfcam}{Dataframe containing camera information. Must have at least one column
 with the camera ID, the setup and the retrieval date.}
 
-\item{caminfo_camera_col}{Name of the camera column in caminfo file.}
+\item{cam_col_dfcam}{Name of the camera column in dfcam file.}
 
-\item{caminfo_setup}{Name of the setup column in caminfo file. The column
+\item{setup_dfcam}{Name of the setup column in dfcam file. The column
 must be coercible to POSIX (eg a Date). If it is not a POSIX, it will be
 converted to a POSIX attempting to use the timezone defined in \code{tz} (or its
 default). If it is a POSIX, the timezone will be converted to \code{tz}.}
 
-\item{caminfo_retrieval}{Name of the retrieval column in caminfo file. The column
+\item{retrieval_dfcam}{Name of the retrieval column in dfcam file. The column
 must be coercible to POSIX (eg a Date). If it is not a POSIX, it will be
 converted to a POSIX attempting to use the timezone defined in \code{tz} (or its
 default). If it is a POSIX, the timezone will be converted to \code{tz}.}
@@ -101,17 +101,17 @@ POSIX). The timezone should be the same as the timezone defined in the \code{tim
 argument.}
 
 \item{alpha_rect}{transparency of the rectangle plotted for the sampling period
-(when \code{caminfo} is given)}
+(when \code{dfcam} is given)}
 
 \item{col_rect}{stroke color of the rectangle plotted for the sampling period
-(when \code{caminfo} is given)}
+(when \code{dfcam} is given)}
 
 \item{height_rect}{height of the rectangle plotted for the sampling period
-(when \code{caminfo} is given). The height is centered on the middle. 2 corresponds
+(when \code{dfcam} is given). The height is centered on the middle. 2 corresponds
 th the space between the y-axis ticks entirely filled.}
 
 \item{fill_rect}{fill color of the rectangle plotted for the sampling period
-(when \code{caminfo} is given)}
+(when \code{dfcam} is given)}
 
 \item{tooltip_info}{Name of the column to display in the tooltip
 when hovering points (if interactive is \code{TRUE}).
@@ -144,15 +144,15 @@ Plot species occurrences at cameras as points in time.
 }
 \details{
 If \code{date_col} and \code{time_col} are provided along with
-\code{timestamp_col}, they will be ignored.
+\code{datetime_col}, they will be ignored.
 }
 \examples{
 data("recordTableSample", package = "camtrapR")
 recordTableSample$DateTimeOriginal <- as.POSIXct(recordTableSample$DateTimeOriginal)
 # Without camera sampling information
 plot_points(recordTableSample, 
-            camera_col = "Station", 
-            timestamp_col = "DateTimeOriginal")
+            cam_col = "Station", 
+            datetime_col = "DateTimeOriginal")
 # With camera sampling information
 data("camtraps", package = "camtrapR")
 camtraps$Setup_date <- as.Date(camtraps$Setup_date, 
@@ -160,11 +160,11 @@ camtraps$Setup_date <- as.Date(camtraps$Setup_date,
 camtraps$Retrieval_date <- as.Date(camtraps$Retrieval_date, 
                                    format = "\%d/\%m/\%Y")
 plot_points(recordTableSample, 
-            camera_col = "Station", 
-            timestamp_col = "DateTimeOriginal",
-            caminfo = camtraps,
-            caminfo_setup = "Setup_date",
-            caminfo_retrieval = "Retrieval_date")
+            cam_col = "Station", 
+            datetime_col = "DateTimeOriginal",
+            dfcam = camtraps,
+            setup_dfcam = "Setup_date",
+            retrieval_dfcam = "Retrieval_date")
 }
 \seealso{
 \href{https://lisanicvert.github.io/camtrapviz/articles/plots.html}{\code{vignette("plots", package = "camtrapviz")}}

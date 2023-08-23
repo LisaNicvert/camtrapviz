@@ -19,7 +19,7 @@ test_that("Read data with NAs", {
   tfile <- paste0(tempfile(), ".csv")
   write.csv(df, file = tfile, row.names = FALSE)
   
-  dat <- read_data(tfile, sep_records = ",", NA_strings = c("", "NA"))
+  dat <- read_data(tfile, sep_rec = ",", NA_strings = c("", "NA"))
   
   expect_true(is.na(dat$data$observations$letters[1]))
   expect_false(is.na(dat$data$observations$num[2]))

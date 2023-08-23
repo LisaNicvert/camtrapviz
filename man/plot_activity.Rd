@@ -5,14 +5,14 @@
 \title{Plot activity data}
 \usage{
 plot_activity(
-  true_data = NULL,
-  times_true = NULL,
-  fitted_data = NULL,
-  times_fit = NULL,
+  dfrec = NULL,
+  time_dfrec = NULL,
+  dffit = NULL,
+  time_dffit = NULL,
   y_fit = NULL,
-  n = ifelse(!is.null(true_data), nrow(true_data), NULL),
-  plot_hist = ifelse(is.null(true_data), FALSE, TRUE),
-  plot_density = ifelse(is.null(fitted_data), FALSE, TRUE),
+  n = ifelse(!is.null(dfrec), nrow(dfrec), NULL),
+  plot_hist = ifelse(is.null(dfrec), FALSE, TRUE),
+  plot_density = ifelse(is.null(dffit), FALSE, TRUE),
   hist_breaks = ifelse(unit == "clock", 1, (2 * pi)/24),
   x_breaks = ifelse(unit == "clock", 4, ((2 * pi)/24) * 4),
   unit = c("clock", "radians"),
@@ -23,17 +23,20 @@ plot_activity(
 )
 }
 \arguments{
-\item{true_data}{dataframe containing species records}
+\item{dfrec}{dataframe containing species records}
 
-\item{times_true}{Name of the column containing times in \code{true_data}}
+\item{time_dfrec}{Name of the column containing times in \code{dfrec}.
+If it is a \code{chron::times} object, it will be converted to
+radians (0 -- 2pi) or clock times (0 -- 24) (depending on \code{unit}). Else, it is expected to be in
+the same unit as \code{unit}.}
 
-\item{fitted_data}{Dataframe of fitted distribution}
+\item{dffit}{Dataframe of fitted distribution}
 
-\item{times_fit}{Name of the column containing times in \code{fitted_data}.
+\item{time_dffit}{Name of the column containing times in \code{dffit}.
 This column must contain numeric values in radians and will be
 converted if unit is \code{hours}.}
 
-\item{y_fit}{Name of the column containing density in \code{fitted_data}.
+\item{y_fit}{Name of the column containing density in \code{dffit}.
 This column must contain numeric values corresponding to the
 radians density and will be converted if unit is \code{hours}.}
 
@@ -64,13 +67,13 @@ density on the y scale and the labels and limits of the x-axis.}
 }
 \value{
 A ggplot representing a histogram of observed activity times
-from \code{true_data}.
+from \code{dfrec}.
 }
 \description{
 Plot activity data
 }
 \details{
-If the column \code{times_true} if of type \code{times}, automatic conversion to
+If the column \code{time_dfrec} if of type \code{times}, automatic conversion to
 clock times or radians will be performed. Else, the script trusts
 the user for the provided unit.
 \itemize{
@@ -96,13 +99,13 @@ recordTableSample$Time <- chron::times(recordTableSample$Time)
 PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
 
 # Plot only data
-plot_activity(true_data = PBE_records,
-              times_true = "Time",
+plot_activity(dfrec = PBE_records,
+              time_dfrec = "Time",
               unit = "clock")
 
 # Plot only data (density)
-plot_activity(true_data = PBE_records,
-              times_true = "Time",
+plot_activity(dfrec = PBE_records,
+              time_dfrec = "Time",
               unit = "clock",
               freq = FALSE)
 
@@ -113,16 +116,16 @@ vm <- activity::fitact(PBE_records$time_radians)
 pdf_vm <- as.data.frame(vm@pdf)
 
 # Plot data and fitted model in radians
-plot_activity(fitted_data = pdf_vm,
-              times_fit = "x",
+plot_activity(dffit = pdf_vm,
+              time_dffit = "x",
               y_fit = "y",
               unit = "radians",
               freq = FALSE,
               n = nrow(PBE_records))
 
 # Plot data and fitted model in hours
-plot_activity(fitted_data = pdf_vm,
-              times_fit = "x",
+plot_activity(dffit = pdf_vm,
+              time_dffit = "x",
               y_fit = "y",
               unit = "clock",
               freq = FALSE,

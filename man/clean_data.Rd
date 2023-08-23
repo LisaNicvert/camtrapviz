@@ -8,10 +8,11 @@ clean_data(
   dat,
   cam_type = NULL,
   rec_type = NULL,
-  only_shared_cameras = FALSE,
-  cam_col_records = NULL,
-  cam_col_cameras = NULL,
+  only_shared_cam = FALSE,
+  cam_col_dfrec = NULL,
+  cam_col_dfcam = NULL,
   split = FALSE,
+  cam_cols = ifelse(split, cam_col_dfrec, NULL),
   add_rowid = FALSE
 )
 }
@@ -25,7 +26,8 @@ are in the \verb{$data} slot with two components:
 }}
 
 \item{cam_type}{A named list containing the name of the
-function to cast between types for the cameras table.
+function to cast between types for the cameras table. It is used
+only if \code{split = FALSE}.
 If \code{NULL}, the cameras table will not be modified or its columns
 reordered.
 The list's names are the names of the columns to cast
@@ -35,6 +37,8 @@ the \code{cast_columns} function.}
 
 \item{rec_type}{A named list containing the name of the
 function to cast between types for the records table.
+In case \code{split = TRUE} and some columns that will be moved
+to the cameras table must be converted, they should be in this list.
 If \code{NULL}, the records table will not be modified or its columns
 reordered.
 The list's names are the names of the columns to cast
@@ -42,18 +46,21 @@ in \code{dat$data$observations}.
 For details on the content of this list, see the documentation of
 the \code{cast_columns} function.}
 
-\item{only_shared_cameras}{Logical; restrict final data to shared cameras
+\item{only_shared_cam}{Logical; restrict final data to shared cameras
 that are in \code{dat$data$deployments} and in \code{dat$data$observations}?}
 
-\item{cam_col_records}{Name of the column with cameras names in
-records (needed only of \code{only_shared_cameras} is \code{TRUE})}
+\item{cam_col_dfrec}{Name of the column with cameras names in
+records (needed only if \code{split} or \code{only_shared_cam} is \code{TRUE})}
 
-\item{cam_col_cameras}{Name of the column with cameras names in
-cameras (needed only of \code{only_shared_cameras} is \code{TRUE}).
-If \code{NULL} will be assumed to be the same as \code{cam_col_records}.}
+\item{cam_col_dfcam}{Name of the column with cameras names in
+cameras (needed only if \code{only_shared_cam} is \code{TRUE}).
+If \code{NULL} will be assumed to be the same as \code{cam_col_dfrec}.}
 
 \item{split}{Logical; should the camera data be extracted from the
 records table by splitting the data?}
+
+\item{cam_cols}{A character vector of the columns in \code{dfrec} that should
+be moved to the \code{dat$data$deployments} dataframe if \code{split = TRUE}.}
 
 \item{add_rowid}{Should row IDs be added to the observations df?
 If yes, row names in the form of "ID_xx" are added to the the dataframe.}
@@ -69,7 +76,7 @@ Cleans data by:
 \item splitting records data in records and cameras (if needed)
 \item formatting cameras and records tables: casting specified columns
 and moving them to the beginning
-\item if \code{only_shared_cameras} is \code{TRUE}: selecting the subset of
+\item if \code{only_shared_cam} is \code{TRUE}: selecting the subset of
 cameras present in both records and cameras tables
 }
 }
@@ -89,14 +96,14 @@ cameras <- data.frame(camera = c("A", "B", "C"),
                       lon = c("33.44", "33.45", "33.42"))
 dat <- list(data = list(observations = records,
                         deployments = cameras))
-rec_type <- list(species = "as.character",
-                 date = list("as.Date",
+                        
+# Clean data
+rec_type <- list(date = list("as.Date",
                                  format = "\%Y-\%m-\%d"),
-                 time = "times",
-                 camera = "as.character")
-cam_type <- list(camera = "as.character",
-                 lat = "as.numeric",
+                 time = "times")
+cam_type <- list(lat = "as.numeric",
                  lon = "as.numeric")
+
 # Clean data converts columns to the appropriate types 
 # and reorders columns
 clean_data(dat,

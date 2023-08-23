@@ -18,7 +18,7 @@ selectUI <- function(id) {
              class = "nomarginright",
              select_values(prefix = NS(id, "cam"),
                            item = "cameras"),
-             textOutput(NS(id, "cameras_list"))
+             textOutput(NS(id, "cam_vec"))
       )
     ),
     br(),
@@ -64,16 +64,16 @@ selectServer <- function(id,
 
       # Helper function ---------------------------------------------------------
       
-      #' Update columns
-      #' 
-      #' Function to update column names to choose from
-      #'
-      #' @param session session
-      #' @param prefix prefix to use to find the widgets
-      #' @param df dataframe to pick columns in
-      #'
-      #' @return Nothing but modifies the existing selectizeInput
-      #' @noRd
+      # Update columns
+      # 
+      # Function to update column names to choose from
+      #
+      # @param session session
+      # @param prefix prefix to use to find the widgets
+      # @param df dataframe to pick columns in
+      #
+      # @return Nothing but modifies the existing selectizeInput
+      # @noRd
       update_columns <- function(session,
                                  prefix, 
                                  df) {
@@ -83,16 +83,16 @@ selectServer <- function(id,
                                choices = colnames(df))
       }
       
-      #' Update column values
-      #' 
-      #' Function to update values to choose from
-      #'
-      #' @param session session
-      #' @param prefix prefix to use to find the widgets
-      #' @param df dataframe to pick columns in
-      #'
-      #' @return Nothing but modifies the existing selectizeInput
-      #' @noRd
+      # Update column values
+      # 
+      # Function to update values to choose from
+      #
+      # @param session session
+      # @param prefix prefix to use to find the widgets
+      # @param df dataframe to pick columns in
+      #
+      # @return Nothing but modifies the existing selectizeInput
+      # @noRd
       update_column_choices <- function(session, prefix, df) {
         col <- input[[paste(prefix, "col", sep = "_")]]
         choices_col <- sort(unique(df[[col]]), 
@@ -112,8 +112,8 @@ selectServer <- function(id,
 
       # Create column names reactives -------------------------------------------
     
-      obs_col <- reactive({
-        unname(mapping_records()$obs_col)
+      obstype_col <- reactive({
+        unname(mapping_records()$obstype_col)
       })
           
       spp_col <- reactive({
@@ -132,8 +132,8 @@ selectServer <- function(id,
       
       default_daterange <- reactive({
         # Define default range from records
-        if (!is.null(mapping_records()$timestamp_col)) {
-          data_dates <- camtrap_data()$data$observations[[mapping_records()$timestamp_col]]
+        if (!is.null(mapping_records()$datetime_col)) {
+          data_dates <- camtrap_data()$data$observations[[mapping_records()$datetime_col]]
           data_dates <- as.Date(data_dates)
         } else {
           data_dates <- camtrap_data()$data$observations[[mapping_records()$date_col]]
@@ -220,7 +220,7 @@ selectServer <- function(id,
           
           res_df <- get_unique_species(filtered_df,
                                        spp_col =  spp_col(),
-                                       obs_col = obs_col(),
+                                       obstype_col = obstype_col(),
                                        reorder = TRUE,
                                        return_df = TRUE)
           res <- res_df$ID
@@ -248,7 +248,7 @@ selectServer <- function(id,
       
       species_df <- reactive({
         get_unique_species(camtrap_data()$data$observations,
-                           spp_col =  spp_col(), obs_col = obs_col(),
+                           spp_col =  spp_col(), obstype_col = obstype_col(),
                            reorder = TRUE,
                            return_df = TRUE)
       })
@@ -276,19 +276,19 @@ selectServer <- function(id,
         paste("Selected species:", paste(species, collapse = ", "))
       })
         
-      output$cameras_list <- renderText({
+      output$cam_vec <- renderText({
         paste("Selected cameras:", paste(selected_cam(), collapse = ", "))
       })
       
       # Update selectInput ------------------------------------------------------
       
       default_species <- reactive({
-        if (is.null(obs_col())) {
+        if (is.null(obstype_col())) {
           # All species selected
           default <- species_df()$ID
         } else {
           # Get animal species only
-          is_animal <- species_df()[[obs_col()]] == "animal"
+          is_animal <- species_df()[[obstype_col()]] == "animal"
           default <- species_df()$ID[is_animal]
         }
         default
@@ -323,20 +323,20 @@ selectServer <- function(id,
         }
         
         # Get values to filter on ---
-        # Get rows corresponding to selected obs_col
-        has_type <- !is.null(obs_col())
+        # Get rows corresponding to selected obstype_col
+        has_type <- !is.null(obstype_col())
         
         if (has_type) {
           # Get species/observations to filter out
           all_filter <- species_df()[!(species_df()$ID %in% selected_spp_id()), ]
           
           # Get species values
-          spp_filter <- all_filter[all_filter[[obs_col()]] == "animal", ]
+          spp_filter <- all_filter[all_filter[[obstype_col()]] == "animal", ]
           spp_filter <- spp_filter[[spp_col()]]
           
           # Get obs type values
-          obs_filter <- all_filter[all_filter[[obs_col()]] != "animal", ]
-          obs_filter <- obs_filter[[obs_col()]]
+          obs_filter <- all_filter[all_filter[[obstype_col()]] != "animal", ]
+          obs_filter <- obs_filter[[obstype_col()]]
         } else {
           # Obs filter is NULL
           obs_filter <- NULL
@@ -375,24 +375,24 @@ selectServer <- function(id,
           custom_filter <- ..(custom_filter)
           
           "# Filter ---"
-          # Filter obs_col
+          # Filter obstype_col
           # Check has type and length != 0, 
           # in case there were only animals selected
           filter_data(..(camtrap_data()), 
                       spp_col = ..(spp_col()),
                       spp_filter = spp_filter,
-                      obs_col = ..(mapping_records()$obs_col),
+                      obstype_col = ..(mapping_records()$obstype_col),
                       obs_filter = obs_filter,
                       cam_col_rec = ..(cam_col_rec()),
                       cam_col_cam = ..(cam_col_cam()),
                       cam_filter = cam_filter,
                       daterange = date_filter,
-                      timestamp_col = ..(mapping_records()$timestamp_col),
+                      datetime_col = ..(mapping_records()$datetime_col),
                       date_col = ..(mapping_records()$date_col),
                       time_col = ..(mapping_records()$time_col),
                       custom_col = ..(custom_col),
                       custom_filter = custom_filter,
-                      cameras_as_factor = TRUE)
+                      cam_as_factor = TRUE)
 
         }, bindToReturn = TRUE, localize = FALSE)
         
@@ -419,16 +419,16 @@ selectServer <- function(id,
         dfplot <- dfplot |> 
           mutate(spp_col = get_all_species(dfplot,
                                            spp_col = spp_col(),
-                                           obs_col =  mapping_records()$obs_col,
+                                           obstype_col =  mapping_records()$obstype_col,
                                            return_df = FALSE))
         
         cols <- c("black", "grey")
         names(cols) <- c("TRUE", "FALSE")
         
         gg <- plot_points(dfplot,
-                          camera_col = cam_col_rec(),
+                          cam_col = cam_col_rec(),
                           points_col = "kept",
-                          timestamp_col = mapping_records()$timestamp_col,
+                          datetime_col = mapping_records()$datetime_col,
                           time_col = mapping_records()$time_col,
                           date_col = mapping_records()$date_col, 
                           tooltip_info = "spp_col",

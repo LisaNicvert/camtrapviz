@@ -4,20 +4,20 @@
 \alias{get_nspecies}
 \title{Get species count from a dataframe}
 \usage{
-get_nspecies(df, species_col, obs_col = NULL, keep_NA = FALSE)
+get_nspecies(df, species_col, obstype_col = NULL, keep_NA = FALSE)
 }
 \arguments{
 \item{df}{a dataframe}
 
 \item{species_col}{name of the species column from the dataframe}
 
-\item{obs_col}{name of the observation type column from the dataframe}
+\item{obstype_col}{name of the observation type column from the dataframe}
 
 \item{keep_NA}{count NAs in the species length?}
 }
 \value{
-The number of species. If \code{obs_col} is provided, will
-ignore all species with \code{obs_col} value different from \code{animal}.
+The number of species. If \code{obstype_col} is provided, will
+ignore all species with \code{obstype_col} value different from \code{animal}.
 If \code{keep_NA}, will count NA in the total species count.
 }
 \description{
@@ -26,5 +26,5 @@ Get species count from a dataframe
 \examples{
 df <- data.frame(obstype = c("animal", "animal", "animal", "animal", "blank"),
                  species = c("cat", "cat", "cow", "dog", NA))
-get_nspecies(df, species_col = "species", obs_col = "obstype")
+get_nspecies(df, species_col = "species", obstype_col = "obstype")
 }

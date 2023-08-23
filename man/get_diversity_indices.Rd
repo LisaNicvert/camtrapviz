@@ -5,7 +5,7 @@
 \title{Get diversity indices}
 \usage{
 get_diversity_indices(
-  count_df,
+  dfcount,
   spp_col,
   cam_col,
   count_col = "individuals",
@@ -13,7 +13,7 @@ get_diversity_indices(
 )
 }
 \arguments{
-\item{count_df}{Dataframe summarizing counts per species. Can be
+\item{dfcount}{Dataframe summarizing counts per species. Can be
 computed using the records dataframe with the \code{summarize_species}
 function.}
 

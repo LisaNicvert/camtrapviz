@@ -92,16 +92,16 @@ First, let's plot the observed data.
 By default `freq` is `TRUE` and the histogram bar height represents the observed number of individuals in this category.
 
 ```{r}
-plot_activity(true_data = PBE_records,
-              times_true = "Time",
+plot_activity(dfrec = PBE_records,
+              time_dfrec = "Time",
               unit = "clock")
 ```
 
 Using `interactive = TRUE`, the graph can also be made interactive with `ggiraph`.
 
 ```{r}
-p <- plot_activity(true_data = PBE_records,
-                   times_true = "Time",
+p <- plot_activity(dfrec = PBE_records,
+                   time_dfrec = "Time",
                    unit = "clock",
                    interactive = TRUE)
 girafe(ggobj = p)
@@ -110,8 +110,8 @@ girafe(ggobj = p)
 It is also possible to plot the density by setting `freq` to `FALSE`. In that case, the bar area represents the frequency of individuals in the category. Hence, the total area under the histogram is 1.
 
 ```{r}
-p <- plot_activity(true_data = PBE_records,
-                   times_true = "Time",
+p <- plot_activity(dfrec = PBE_records,
+                   time_dfrec = "Time",
                    unit = "clock",
                    freq = FALSE,
                    interactive = TRUE)
@@ -121,8 +121,8 @@ girafe(ggobj = p)
 The scale can also be set to radians.
 
 ```{r}
-p <- plot_activity(true_data = PBE_records,
-                   times_true = "Time",
+p <- plot_activity(dfrec = PBE_records,
+                   time_dfrec = "Time",
                    unit = "radians",
                    freq = FALSE,
                    interactive = TRUE)
@@ -162,8 +162,8 @@ pdf_vm <- as.data.frame(vm@pdf)
 ```
 
 ```{r}
-plot_activity(fitted_data = pdf_vm,
-              times_fit = "x",
+plot_activity(dffit = pdf_vm,
+              time_dffit = "x",
               y_fit = "y",
               unit = "radians",
               freq = FALSE)
@@ -172,8 +172,8 @@ plot_activity(fitted_data = pdf_vm,
 Plotting the predicted counts is also possible. In that case, the integral under the curve **scaled to hours** (even if the scale is in radians) represents the number of observations.
 
 ```{r}
-plot_activity(fitted_data = pdf_vm,
-              times_fit = "x",
+plot_activity(dffit = pdf_vm,
+              time_dffit = "x",
               y_fit = "y",
               unit = "radians",
               freq = TRUE,
@@ -183,8 +183,8 @@ plot_activity(fitted_data = pdf_vm,
 It is also possible to plot the scale in hours:
 
 ```{r}
-plot_activity(fitted_data = pdf_vm,
-              times_fit = "x",
+plot_activity(dffit = pdf_vm,
+              time_dffit = "x",
               y_fit = "y",
               unit = "clock",
               freq = TRUE,
@@ -197,11 +197,11 @@ plot_activity(fitted_data = pdf_vm,
 It is also possible to plot the data and the density, combining various parameters illustrated before (radians or hours, frequency or count...) Below is an example:
 
 ```{r}
-p <- plot_activity(fitted_data = pdf_vm,
-                   times_fit = "x",
+p <- plot_activity(dffit = pdf_vm,
+                   time_dffit = "x",
                    y_fit = "y",
-                   true_data = PBE_records,
-                   times_true = "Time",
+                   dfrec = PBE_records,
+                   time_dfrec = "Time",
                    unit = "clock",
                    freq = TRUE,
                    interactive = TRUE)
@@ -221,11 +221,11 @@ pdf_vm_sum <- as.data.frame(vm_sun@pdf)
 ```
 
 ```{r}
-p <- plot_activity(fitted_data = pdf_vm_sum,
-                   times_fit = "x",
+p <- plot_activity(dffit = pdf_vm_sum,
+                   time_dffit = "x",
                    y_fit = "y",
-                   true_data = PBE_records,
-                   times_true = "Time",
+                   dfrec = PBE_records,
+                   time_dfrec = "Time",
                    unit = "clock",
                    freq = TRUE,
                    interactive = TRUE)

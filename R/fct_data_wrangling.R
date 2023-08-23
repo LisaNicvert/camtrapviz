@@ -42,13 +42,13 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
 #' 
 #' Summarize information about cameras activity from camera trap data.
 #' 
-#' @param df the records dataframe: must contain the camera names and some
+#' @param dfrec the records dataframe: must contain the camera names and some
 #' infortmation on the pictures sampling time (date and time or datetime).
 #' @param cam_col name of the column containing the camera ID
-#' @param timestamp_col name of the column containing timestamps for the pictures
+#' @param datetime_col name of the column containing timestamps for the pictures
 #' (optional if `date_col` and `time_col` are provided)
-#' @param date_col name of the column containing date (optional if `timestamp_col` is provided)
-#' @param time_col name of the column containing time (optional if `timestamp_col` is provided)
+#' @param date_col name of the column containing date (optional if `datetime_col` is provided)
+#' @param time_col name of the column containing time (optional if `datetime_col` is provided)
 #' @param dfcam the dataframe of cameras deployments (optional).
 #' @param cam_col_dfcam name of the column containing camera ID in `dfcam` 
 #' If `dfcam` is provided but `cam_col_dfcam` is `NULL`, it will be set to `cam_col`.
@@ -58,7 +58,7 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
 #' in `dfcam` (optional)
 #' @param spp_col name of the species column (optional). If present, 
 #' the summarry will include the number of species seen on each camera.
-#' @param obs_col name of the observation type column
+#' @param obstype_col name of the observation type column
 #' 
 #' @details In the final dataframe, the start and the end of the sampling are
 #' computed as follows for each camera:
@@ -86,9 +86,9 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
 #' and if `setup` and `retrieval` are the same (e.g. unique picture),
 #' `sampling_length` is zero.
 #' + `pictures`: the number of pictures taken with this camera (it
-#' is zero if the camera is only in `dfcam` but not in `df`).
+#' is zero if the camera is only in `dfcam` but not in `dfrec`).
 #' + `species` (present only if `spp_col` is provided): number of species 
-#' caught on camera. If `obs_col` is provided, species
+#' caught on camera. If `obstype_col` is provided, species
 #' marked as `NA` in `spp_col` but which have different values
 #' in `obs_type` are counted as different species.
 #' + `setup` containing the start of the sampling for each camera.
@@ -115,7 +115,7 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
 #'                       retrieval = as.Date(c("2022-03-01", "2022-03-01", NA)))
 #' # Summarize cameras
 #' summarize_cameras(records, 
-#'                   cam_col = "camera", timestamp_col = "stamp", 
+#'                   cam_col = "camera", datetime_col = "stamp", 
 #'                   dfcam = cameras, 
 #'                   setup_col = "setup", retrieval_col = "retrieval",
 #'                   spp_col = "species")
@@ -123,26 +123,26 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
 #' # For camera B, setup and retrieval are taken from dfcam.
 #' # For camera C, as it is present only on dfcam and has no retrieval date,
 #' # only a setup date is indicated.
-summarize_cameras <- function(df, cam_col, 
-                              timestamp_col,
+summarize_cameras <- function(dfrec, cam_col, 
+                              datetime_col,
                               date_col = NULL, time_col = NULL,
                               dfcam = NULL, cam_col_dfcam = NULL,
                               setup_col = NULL, retrieval_col = NULL,
-                              spp_col = NULL, obs_col = NULL) {
+                              spp_col = NULL, obstype_col = NULL) {
   
   # --- Check inputs
   # Display message to say that date_col and time_col will
   # not be used
-  if (!missing(timestamp_col) && !is.null(timestamp_col)) {
+  if (!missing(datetime_col) && !is.null(datetime_col)) {
     if (!is.null(date_col) || !is.null(time_col)) {
-      message("timestamp_col is provided, so date_col and time_col will be ignored.")
+      message("datetime_col is provided, so date_col and time_col will be ignored.")
     }
   }
   
   # Stop if not date AND time are specified
-  if (missing(timestamp_col) || is.null(timestamp_col)) {
+  if (missing(datetime_col) || is.null(datetime_col)) {
     if (is.null(date_col) || is.null(time_col)) {
-      stop("If timestamp_col is not specified or NULL, both date_col and time_col must be provided.")
+      stop("If datetime_col is not specified or NULL, both date_col and time_col must be provided.")
     }
   }
   
@@ -153,16 +153,16 @@ summarize_cameras <- function(df, cam_col,
   }
   
   # --- Compute first and last picture
-  camsum <- df
+  camsum <- dfrec
   
-  if (missing(timestamp_col) || is.null(timestamp_col)) {
+  if (missing(datetime_col) || is.null(datetime_col)) {
     # Create timestamp column
     camsum$timestamp <- paste(camsum[[date_col]],
                               camsum[[time_col]])
     camsum$timestamp <- as.POSIXct(camsum$timestamp,
                                    tz = "UTC")
-    # Set timestamp_col to 'timestamp'
-    timestamp_col <- "timestamp"
+    # Set datetime_col to 'timestamp'
+    datetime_col <- "timestamp"
   }
   
   # Summarize with timestamp
@@ -170,11 +170,11 @@ summarize_cameras <- function(df, cam_col,
     # We want to add species count to the summary
     
     # Handle NA species
-    if (!is.null(obs_col)) {
+    if (!is.null(obstype_col)) {
       # Replace species with species or type
       camsum[[spp_col]] = get_all_species(camsum, 
                                           spp_col = spp_col,
-                                          obs_col = obs_col,
+                                          obstype_col = obstype_col,
                                           return_df = FALSE)
     }
     
@@ -182,8 +182,8 @@ summarize_cameras <- function(df, cam_col,
       group_by(.data[[cam_col]]) |>
       summarise(pictures = n(),
                 species = length(unique(.data[[spp_col]])),
-                setup = min(.data[[timestamp_col]]),
-                retrieval = max(.data[[timestamp_col]]),
+                setup = min(.data[[datetime_col]]),
+                retrieval = max(.data[[datetime_col]]),
                 setup_origin = "picture",
                 retrieval_origin = "picture")
   } else {
@@ -191,8 +191,8 @@ summarize_cameras <- function(df, cam_col,
     camsum <- camsum |>
       group_by(.data[[cam_col]]) |>
       summarise(pictures = n(),
-                setup = min(.data[[timestamp_col]]),
-                retrieval = max(.data[[timestamp_col]]),
+                setup = min(.data[[datetime_col]]),
+                retrieval = max(.data[[datetime_col]]),
                 setup_origin = "picture",
                 retrieval_origin = "picture")
   }
@@ -202,7 +202,7 @@ summarize_cameras <- function(df, cam_col,
   # If we have additional info from dfcam
   if (!is.null(dfcam)) {
     
-    # Add cameras present in dfcam but not in df
+    # Add cameras present in dfcam but not in dfrec
     not_in_camsum <- dfcam[[cam_col_dfcam]][!(dfcam[[cam_col_dfcam]] %in% camsum[[cam_col]])]
     
     if (length(not_in_camsum) != 0) {
@@ -280,7 +280,7 @@ summarize_cameras <- function(df, cam_col,
                                          format = date_format)
     camsum_sampling_time$retrieval <- format(camsum_sampling_time$retrieval, 
                                              format = date_format)
-    # tibble to df
+    # tibble to dfrec
     camsum_sampling_time <- as.data.frame(camsum_sampling_time)
     
     mat <- camtrapR::cameraOperation(camsum_sampling_time,
@@ -315,7 +315,7 @@ summarize_cameras <- function(df, cam_col,
   camsum <- camsum |> 
     mutate(sampling_length = ifelse(setup == retrieval, 0, sampling_length))
   
-  # Tibble to df
+  # Tibble to dfrec
   camsum <- as.data.frame(camsum)
   return(camsum)
 }
@@ -333,23 +333,23 @@ summarize_cameras <- function(df, cam_col,
 #' 
 #' @param df The dataframe
 #' @param spp_col name of the species column from the dataframe
-#' @param obs_col name of the observation type column from the dataframe
-#' @param animal_code value of `obs_col` coding for animal observations.
+#' @param obstype_col name of the observation type column from the dataframe
+#' @param animal_code value of `obstype_col` coding for animal observations.
 #' @param return_df return a dataframe? If `TRUE`, will return a dataframe 
 #' (see below); else will return a character vector of species names.
 #'
 #' @return 
 #' species names in the same order as `df`. 
-#' If `obs_col` is provided,  `NA` values in `spp_col` are 
-#' replaced with the corresponding value in `obs_col` 
-#' (if `obs_col` is not `animal_code`). 
+#' If `obstype_col` is provided,  `NA` values in `spp_col` are 
+#' replaced with the corresponding value in `obstype_col` 
+#' (if `obstype_col` is not `animal_code`). 
 #' If `return_df` is `TRUE`, returns a dataframe containing 
 #' species and observation type in the same order as `df`.
 #' This dataframe has the following columns (type character):
 #' + a column named like `spp_col` containing species names
 #' (where `NA` values in `spp_col` are replaced as described above).
-#' + a column named like `obs_col` containing unique corresponding
-#' observations types (if `obs_col` is provided).
+#' + a column named like `obstype_col` containing unique corresponding
+#' observations types (if `obstype_col` is provided).
 #' Else, returns only the character vector containing the values of 
 #' `spp_col`.
 #' 
@@ -363,32 +363,32 @@ summarize_cameras <- function(df, cam_col,
 #'                  type = c("animal", "animal", "animal", "fire", "blank", 
 #'                           "human", "human"))
 #' # Use the type column
-#' get_all_species(df, spp_col = "species", obs_col = "type")
+#' get_all_species(df, spp_col = "species", obstype_col = "type")
 #' # Use the type column but return a vector
 #' get_all_species(df, spp_col = "species", return_df = FALSE)
 #' 
 #' # Don't use the type column
 #' get_all_species(df, spp_col = "species")
 get_all_species <- function(df,
-                            spp_col, obs_col = NULL,
+                            spp_col, obstype_col = NULL,
                             animal_code = "animal",
-                            return_df = ifelse(is.null(obs_col), FALSE, TRUE)) {
+                            return_df = ifelse(is.null(obstype_col), FALSE, TRUE)) {
   
   # Convert factor to character
   df[[spp_col]] <- as.character(df[[spp_col]])
   
-  if (!is.null(obs_col)) {
-    df[[obs_col]] <- as.character(df[[obs_col]])
+  if (!is.null(obstype_col)) {
+    df[[obstype_col]] <- as.character(df[[obstype_col]])
   }
   
-  if (!is.null(obs_col)) {
+  if (!is.null(obstype_col)) {
     # Get columns
-    spp_df <- df[, c(spp_col, obs_col)]
+    spp_df <- df[, c(spp_col, obstype_col)]
     
     # Replace values with not animal ---
-    is_non_animal <- spp_df[[obs_col]] != animal_code # Get non-animals
+    is_non_animal <- spp_df[[obstype_col]] != animal_code # Get non-animals
     is_non_animal[is.na(is_non_animal)] <- TRUE # Consider NAs as non-animals
-    spp_df[[spp_col]][is_non_animal & is.na(spp_df[[spp_col]])] <- spp_df[[obs_col]][is_non_animal & is.na(spp_df[[spp_col]])]
+    spp_df[[spp_col]][is_non_animal & is.na(spp_df[[spp_col]])] <- spp_df[[obstype_col]][is_non_animal & is.na(spp_df[[spp_col]])]
   } else {
     # Df with a unique column
     spp_df <- data.frame(col = df[[spp_col]])
@@ -414,31 +414,31 @@ get_all_species <- function(df,
 #' 
 #' @param df The dataframe
 #' @param spp_col name of the species column from the dataframe
-#' @param obs_col name of the observation type column from the dataframe
-#' @param animal_code value of `obs_col` coding for animal observations.
+#' @param obstype_col name of the observation type column from the dataframe
+#' @param animal_code value of `obstype_col` coding for animal observations.
 #' @param return_df return a dataframe? If `TRUE`, will return a dataframe 
 #' (see below); else will return a character vector of unique 
 #' species names.
 #' @param reorder Reorder the results? This will arrange values by 
-#' alphabetical order. If `obs_col` is provided, non-animal species will
+#' alphabetical order. If `obstype_col` is provided, non-animal species will
 #' be arranged last.
 #'
 #' @return 
 #' unique species names. 
-#' If `obs_col` is provided,  `NA` values in `spp_col` are 
-#' replaced with the corresponding value in `obs_col` 
-#' (if `obs_col` is not `animal_code`). 
+#' If `obstype_col` is provided,  `NA` values in `spp_col` are 
+#' replaced with the corresponding value in `obstype_col` 
+#' (if `obstype_col` is not `animal_code`). 
 #' If `return_df` is `TRUE`, returns a dataframe containing 
 #' unique species and observation type.
 #' This dataframe has the following columns (type character):
 #' + a column `ID` to uniquely identify each species/observation
-#' combination. If `obs_col` is not `NULL`, the IDs are of the form 
+#' combination. If `obstype_col` is not `NULL`, the IDs are of the form 
 #' `spp_type` where `spp` is the species value and 
 #' `type` is the observation type value. Else, IDs are of the form `spp`.
 #' + a column named like `spp_col` containing species names
 #' (where `NA` values in `spp_col` are replaced as described above).
-#' + a column named like `obs_col` containing unique corresponding
-#' observations types (if `obs_col` is provided).
+#' + a column named like `obstype_col` containing unique corresponding
+#' observations types (if `obstype_col` is provided).
 #' If `return_df` is `FALSE`, returns only the unique values of 
 #' `spp_col`.
 #' @export
@@ -451,7 +451,7 @@ get_all_species <- function(df,
 #'                  type = c("animal", "animal", "animal", "fire", "blank", 
 #'                           "human", "human"))
 #' # Use the type column
-#' get_unique_species(df, spp_col = "species", obs_col = "type",
+#' get_unique_species(df, spp_col = "species", obstype_col = "type",
 #'                    reorder = TRUE)
 #' # Use the type column but return a vector
 #' get_unique_species(df, spp_col = "species", return_df = FALSE,
@@ -461,19 +461,19 @@ get_all_species <- function(df,
 #' get_unique_species(df, spp_col = "species",
 #'                    reorder = TRUE)
 get_unique_species <- function(df,
-                        spp_col, obs_col = NULL,
+                        spp_col, obstype_col = NULL,
                         animal_code = "animal",
-                        return_df = ifelse(is.null(obs_col), FALSE, TRUE),
+                        return_df = ifelse(is.null(obstype_col), FALSE, TRUE),
                         reorder = FALSE) {
   
   # Get a dataframe of non-unique species names
   spp_df_all <- get_all_species(df = df,
                                 spp_col = spp_col, 
-                                obs_col = obs_col,
+                                obstype_col = obstype_col,
                                 animal_code = animal_code,
                                 return_df = TRUE)
   
-  if (!is.null(obs_col)) {
+  if (!is.null(obstype_col)) {
     # Get (unique) species ---
     spp_df <- spp_df_all |>
       distinct(.keep_all = TRUE)
@@ -481,17 +481,17 @@ get_unique_species <- function(df,
     # Arrange with non-animal last ---
     if (reorder) {
       # Get factor levels
-      levels <- sort(unique(spp_df[[obs_col]], na.last = TRUE), na.last = TRUE)
+      levels <- sort(unique(spp_df[[obstype_col]], na.last = TRUE), na.last = TRUE)
       levels <- c(animal_code, levels[levels != animal_code])
       
-      spp_df[[obs_col]] <- factor(spp_df[[obs_col]], 
+      spp_df[[obstype_col]] <- factor(spp_df[[obstype_col]], 
                                   levels = levels)
-      spp_df <- spp_df |> dplyr::arrange(.data[[obs_col]],
+      spp_df <- spp_df |> dplyr::arrange(.data[[obstype_col]],
                                          .data[[spp_col]])
       # Convert back to character
-      spp_df[[obs_col]] <- as.character(spp_df[[obs_col]])
+      spp_df[[obstype_col]] <- as.character(spp_df[[obstype_col]])
     }
-  } else { # obs_col not provided
+  } else { # obstype_col not provided
     spp_df <- spp_df_all[spp_col] |>
       distinct(.keep_all = TRUE)
     if (reorder) {
@@ -503,9 +503,9 @@ get_unique_species <- function(df,
     # Add ID
     res <- as.data.frame(spp_df) # Convert tibble to df
     
-    if (!is.null(obs_col)) {
+    if (!is.null(obstype_col)) {
       res <- res |> 
-        mutate(ID = paste(.data[[spp_col]], .data[[obs_col]], sep = "_"),
+        mutate(ID = paste(.data[[spp_col]], .data[[obstype_col]], sep = "_"),
                .before = 1)
     } else {
       res <- res |> 
@@ -525,11 +525,11 @@ get_unique_species <- function(df,
 #'
 #' @param df a dataframe
 #' @param species_col name of the species column from the dataframe
-#' @param obs_col name of the observation type column from the dataframe
+#' @param obstype_col name of the observation type column from the dataframe
 #' @param keep_NA count NAs in the species length?
 #'
-#' @return The number of species. If `obs_col` is provided, will
-#' ignore all species with `obs_col` value different from `animal`.
+#' @return The number of species. If `obstype_col` is provided, will
+#' ignore all species with `obstype_col` value different from `animal`.
 #' If `keep_NA`, will count NA in the total species count.
 #' 
 #' @export
@@ -537,13 +537,13 @@ get_unique_species <- function(df,
 #' @examples
 #' df <- data.frame(obstype = c("animal", "animal", "animal", "animal", "blank"),
 #'                  species = c("cat", "cat", "cow", "dog", NA))
-#' get_nspecies(df, species_col = "species", obs_col = "obstype")
-get_nspecies <- function(df, species_col, obs_col = NULL,
+#' get_nspecies(df, species_col = "species", obstype_col = "obstype")
+get_nspecies <- function(df, species_col, obstype_col = NULL,
                          keep_NA = FALSE) {
   
-  if (!is.null(obs_col)) {
+  if (!is.null(obstype_col)) {
     # Filter to get only animal species
-    species <- df[[species_col]][df[[obs_col]] == "animal"]
+    species <- df[[species_col]][df[[obstype_col]] == "animal"]
   } else {
     species <- df[[species_col]]
   }
@@ -564,7 +564,7 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #'
 #' @param df the observation dataframe to summarize
 #' @param spp_col Name of the species column
-#' @param obs_col Name of the observation type column (optional)
+#' @param obstype_col Name of the observation type column (optional)
 #' @param count_col Name of the column containing species count (optional)
 #' @param cam_col Name of the column containing camera codes (optional if
 #' `by_cam` is `FALSE`)
@@ -584,8 +584,8 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #' @return A table summarizing species information with the following columns:
 #' + Species (named like `spp_col`): species identity 
 #' (same as the `spp_col` input column)
-#' + Observation type (present only if `obs_col` is not `NULL` and named like 
-#' `obs_col`): observation type (same as the `obs_col` input column)
+#' + Observation type (present only if `obstype_col` is not `NULL` and named like 
+#' `obstype_col`): observation type (same as the `obstype_col` input column)
 #' + `sightings`: number of rows where the species was photographed.
 #' + `individuals`: count of individuals observed on all
 #' pictures (using the input `count_col` column).
@@ -618,20 +618,20 @@ get_nspecies <- function(df, species_col, obs_col = NULL,
 #' # Summarize species across all cameras
 #' summarize_species(df, 
 #'                   spp_col = "species", cam_col = "camera",
-#'                   obs_col = "type",
+#'                   obstype_col = "type",
 #'                   count_col = "count",
 #'                   NA_count_placeholder = 1)
 #' # Summarize per species and cameras
 #' summarize_species(df, 
 #'                   spp_col = "species", cam_col = "camera",
-#'                   obs_col = "type",
+#'                   obstype_col = "type",
 #'                   count_col = "count",
 #'                   by_cam = TRUE,
 #'                   NA_count_placeholder = 1)
 summarize_species <- function(df, 
                               spp_col, 
                               cam_col = NULL,
-                              obs_col = NULL,
+                              obstype_col = NULL,
                               count_col = NULL,
                               ncam = NULL,
                               by_cam = FALSE,
@@ -674,16 +674,16 @@ summarize_species <- function(df,
   }
   
   # Group data ---
-  if (!is.null(obs_col)) { # obs_col provided
+  if (!is.null(obstype_col)) { # obstype_col provided
     if (by_cam) {
       # Group by camera
       res <- df |> 
-        group_by(.data[[spp_col]], .data[[obs_col]],
+        group_by(.data[[spp_col]], .data[[obstype_col]],
                  .data[[cam_col]])
     } else {
       # Don't group by camera
       res <- df |> 
-        group_by(.data[[spp_col]], .data[[obs_col]])
+        group_by(.data[[spp_col]], .data[[obstype_col]])
     }
     
   } else {
@@ -760,18 +760,18 @@ summarize_species <- function(df,
   
   # Arrange table
   if (!by_cam) {
-    if (is.null(obs_col)) {
+    if (is.null(obstype_col)) {
       res <- res |> 
         dplyr::arrange(.data[[spp_col]],
                        na.last = TRUE)
     } else {
       res <- res |> 
         dplyr::arrange(.data[[spp_col]],
-                       .data[[obs_col]],
+                       .data[[obstype_col]],
                        na.last = TRUE)
     }
   } else {
-    if (is.null(obs_col)) {
+    if (is.null(obstype_col)) {
       res <- res |> 
         dplyr::arrange(.data[[spp_col]],
                        .data[[cam_col]],
@@ -779,7 +779,7 @@ summarize_species <- function(df,
     } else {
       res <- res |> 
         dplyr::arrange(.data[[spp_col]],
-                       .data[[obs_col]],
+                       .data[[obstype_col]],
                        .data[[cam_col]],
                        na.last = TRUE)
     }
@@ -808,7 +808,7 @@ summarize_species <- function(df,
 #' @param spp_filter Species to filter from the data
 #' @param spp_col Name of the species column
 #' @param obs_filter Observation types to filter from the data
-#' @param obs_col Name of the observation column
+#' @param obstype_col Name of the observation column
 #' @param cam_filter Cameras to filter from the data
 #' @param cam_col_rec Name of the cameras column in records table (`dat$data$observations`).
 #' @param cam_col_cam Name of the cameras column in cameras table (`dat$data$deployments`).
@@ -816,18 +816,18 @@ summarize_species <- function(df,
 #' @param daterange Date range to filter on for the data (will filter 
 #' observations' times so that `times >= daterange[1]` and 
 #' `times <= daterange[2]`). Can be either a Date or a POSIX.
-#' @param timestamp_col Name of the datetime column (must be coercible to POSIX).
+#' @param datetime_col Name of the datetime column (must be coercible to POSIX).
 #' It is not needed if `date_col` and `time_col` are provided.
-#' @param date_col Name of the date column. It is not needed if `timestamp_col` 
+#' @param date_col Name of the date column. It is not needed if `datetime_col` 
 #' is provided.
-#' @param time_col Name of the time column. It is not needed if `timestamp_col` 
+#' @param time_col Name of the time column. It is not needed if `datetime_col` 
 #' is provided.
-#' @param cameras_as_factor Transform cameras as factors?
+#' @param cam_as_factor Transform cameras as factors?
 #' @param tz Timezone for the data bounds. If not provided, will try to 
 #' find the timezone in `daterange` (if it is a POSIX), then in
-#' `timestamp_col` (if provided), and finally if no timezone is 
+#' `datetime_col` (if provided), and finally if no timezone is 
 #' present it will default to UTC (Etc/GMT).
-#' For the filtering step, if needed datetimes in `timestamp_col` can be 
+#' For the filtering step, if needed datetimes in `datetime_col` can be 
 #' converted to `tz` but the output data will not be affected.
 #' @param custom_col name of a custom column in to filter values in 
 #' `dat$data$observations`.
@@ -861,31 +861,31 @@ summarize_species <- function(df,
 #'             cam_col_rec = "Station", 
 #'             cam_filter = "StationA",
 #'             daterange = as.Date(c("2009-05-01", "2009-05-15")),
-#'             timestamp_col = "DateTimeOriginal")
+#'             datetime_col = "DateTimeOriginal")
 filter_data <- function(dat,
                         spp_filter = NULL,
                         spp_col = NULL,
                         obs_filter = NULL,
-                        obs_col = NULL,
+                        obstype_col = NULL,
                         cam_filter = NULL,
                         cam_col_rec = NULL,
                         cam_col_cam = cam_col_rec,
                         daterange = NULL,
                         custom_col = NULL,
                         custom_filter = NULL,
-                        timestamp_col = NULL,
+                        datetime_col = NULL,
                         time_col = NULL,
                         date_col = NULL,
                         tz = NULL,
-                        cameras_as_factor = FALSE
+                        cam_as_factor = FALSE
                         ) {
   
   rec <- dat$data$observations
   
   if (!is.null(daterange)) {
-    if (is.null(timestamp_col)) { # no timestamp
+    if (is.null(datetime_col)) { # no timestamp
       if (is.null(date_col) | is.null(time_col)) {
-        stop("If timestamp_col is not provided, date_col and time_col must be provided.")
+        stop("If datetime_col is not provided, date_col and time_col must be provided.")
       }
       if( !(date_col %in% colnames(rec))) {
         stop("date_col must be a column of dat$data$observations.")
@@ -894,8 +894,8 @@ filter_data <- function(dat,
         stop("time_col must be a column of dat$data$observations.")
       }
     } else { # If provided, timestamp must be in df
-      if( !(timestamp_col %in% colnames(rec))) {
-        stop("timestamp_col must be a column of dat$data$observations.")
+      if( !(datetime_col %in% colnames(rec))) {
+        stop("datetime_col must be a column of dat$data$observations.")
       }
     }
   }
@@ -919,7 +919,7 @@ filter_data <- function(dat,
   if (!is.null(obs_filter)) {
     # User wants to filter out observations
     res$data$observations <- res$data$observations |>
-      dplyr::filter(!(.data[[obs_col]] %in% obs_filter))
+      dplyr::filter(!(.data[[obstype_col]] %in% obs_filter))
   } 
   
   
@@ -937,8 +937,8 @@ filter_data <- function(dat,
     
     # Set the timezone ---
     default_tz <- "Etc/GMT"
-    if (!is.null(timestamp_col)) {
-      data_tz <- attr(res$data$observations[[timestamp_col]], "tzone")
+    if (!is.null(datetime_col)) {
+      data_tz <- attr(res$data$observations[[datetime_col]], "tzone")
     } else {
       data_tz <- NULL
     }
@@ -946,15 +946,15 @@ filter_data <- function(dat,
                  data_tz = data_tz, 
                  default_tz = "Etc/GMT")
     
-    if (is.null(timestamp_col)) { # no timestamp_col column
+    if (is.null(datetime_col)) { # no datetime_col column
       # Create a composite timestamp with custom timezone
       timestamp_vec <- paste(as.character(res$data$observations[[date_col]]), 
                              as.character(res$data$observations[[time_col]]))
       
       timestamp_vec <- as.POSIXct(timestamp_vec,
                                   tz = tz)
-    } else { # timestamp_col not NULL
-      timestamp_vec <- add_tz(res$data$observations[[timestamp_col]],
+    } else { # datetime_col not NULL
+      timestamp_vec <- add_tz(res$data$observations[[datetime_col]],
                               tz = tz,
                               force_tz = TRUE)
     }
@@ -979,14 +979,14 @@ filter_data <- function(dat,
   }
   
   # Cameras to factor ---
-  if (cameras_as_factor) {
-    cameras_list <- get_cameras(res$data$observations[[cam_col_rec]],
+  if (cam_as_factor) {
+    cam_vec <- get_cameras(res$data$observations[[cam_col_rec]],
                                 res$data$deployments[[cam_col_cam]])
     
     res$data$observations[[cam_col_rec]] <- factor(res$data$observations[[cam_col_rec]],
-                                                   levels = cameras_list)
+                                                   levels = cam_vec)
     res$data$deployments[[cam_col_cam]] <- factor(res$data$deployments[[cam_col_cam]],
-                                                  levels = cameras_list)
+                                                  levels = cam_vec)
   }
   
   return(res)
@@ -1000,7 +1000,7 @@ filter_data <- function(dat,
 #' From a summary table of camera/species, return richness, Shannon
 #' and Simpson diversity indices.
 #'
-#' @param count_df Dataframe summarizing counts per species. Can be 
+#' @param dfcount Dataframe summarizing counts per species. Can be 
 #' computed using the records dataframe with the `summarize_species`
 #' function.
 #' @param spp_col Name of the column containing species names
@@ -1027,12 +1027,12 @@ filter_data <- function(dat,
 #'                       individuals_prop = c(1/3, 1/3, 1/3, 1, 88/90, 1/90, 1/90))
 #' get_diversity_indices(countdf, 
 #'                       spp_col = "species", cam_col = "camera")
-get_diversity_indices <- function(count_df, spp_col, cam_col,
+get_diversity_indices <- function(dfcount, spp_col, cam_col,
                                   count_col = "individuals",
                                   prop_col = "individuals_prop") {
   
-  if ("empty" %in% colnames(count_df)) {
-    diversity_df <- count_df |>
+  if ("empty" %in% colnames(dfcount)) {
+    diversity_df <- dfcount |>
       group_by(.data[[cam_col]]) |>
       summarise(richness = ifelse(all(empty),
                                   NA, n()),
@@ -1042,7 +1042,7 @@ get_diversity_indices <- function(count_df, spp_col, cam_col,
                                  NA, sum(.data[[count_col]]*(.data[[count_col]]-1))/(sum(.data[[count_col]])*(sum(.data[[count_col]])-1))),
                 .groups = "drop")
   } else {
-  diversity_df <- count_df |>
+  diversity_df <- dfcount |>
     group_by(.data[[cam_col]]) |>
     summarise(richness = n(),
               shannon = -sum((.data[[prop_col]]*log(.data[[prop_col]]))),
@@ -1055,7 +1055,7 @@ get_diversity_indices <- function(count_df, spp_col, cam_col,
 }
 
 
-# Circular density distribution -------------------------------------------
+# Circular density distribution (not used anymore) -------------------------------------------
 
 #' Time to radians
 #'
@@ -1069,7 +1069,7 @@ get_diversity_indices <- function(count_df, spp_col, cam_col,
 #' @return the times converted to the desired unit. 
 #' If `circular` is `TRUE`, returns an object of class `circular`.
 #'
-#' @export
+#' @noRd
 #'
 #' @examples
 #' time_to_circular(chron::times(c("00:00:00", "12:00:00", "08:33:44")))
@@ -1111,7 +1111,7 @@ time_to_circular <- function(time,
 #' @return A mixture model of von Mises distributions of class
 #' `movMF`.
 #' 
-#' @export
+#' @noRd
 #' 
 #' @seealso [\code{vignette("activity-patterns", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html)
 #' 
@@ -1152,7 +1152,7 @@ fit_vonMises <- function(time, k) {
 #' + `x`: corresponding value of the variable 
 #' (using the unit specified in `unit`).
 #'
-#' @export
+#' @noRd
 #'
 #' @seealso [\code{vignette("activity-patterns", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html)
 #' @examples

@@ -105,7 +105,7 @@ records <- records |>
   mutate(date = as.Date(timestamp)) |>
   mutate(time = as.character(format(timestamp, "%T")))
 
-caminfo <- records |> 
+dfcam <- records |> 
   group_by(camera) |> 
   summarise(setup = min(timestamp),
             retrieval = max(timestamp))

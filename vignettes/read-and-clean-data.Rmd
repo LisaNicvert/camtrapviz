@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(camtrapviz)
+library(dplyr)
 ```
 
 ## Write data in tempfile
@@ -62,9 +63,9 @@ write.csv(recordcam, recordcamfile,
 ### Read data
 
 ```{r}
-dat <- read_data(records_path = recordfile,
-                 cameras_path = camtrapfile,
-                 sep_records = ",", sep_cameras = ",")
+dat <- read_data(path_rec = recordfile,
+                 path_cam = camtrapfile,
+                 sep_rec = ",", sep_cam = ",")
 ```
 
 ```{r}
@@ -115,13 +116,53 @@ head(dat_clean$data$observations)
 head(dat_clean$data$deployments)
 ```
 
+In case cameras in records and in the cameras file do not match, `clean_data` has an option allowing to keep only shared cameras.
+
+
+```{r}
+# Initialize new data
+dat_test <- dat
+
+# Remove a camera from the records
+dat_test$data$observations <- dat_test$data$observations |> 
+  filter(Station != "StationC")
+
+# Add a camera in deployments
+newcam <- dat_test$data$deployments[1, ]
+newcam$Station <- "StationD"
+
+dat_test$data$deployments <- dat_test$data$deployments |> 
+  bind_rows(newcam)
+
+# Observations has Stations A and B
+unique(dat_test$data$observations$Station)
+# Deployments has stations A, B, C and D
+unique(dat_test$data$deployments$Station)
+```
+
+
+```{r}
+dat_clean <- clean_data(dat_test, 
+                        rec_type = rec_type,
+                        cam_type = cam_type,
+                        cam_col_dfrec = "Station",
+                        cam_col_dfcam = "Station", 
+                        only_shared_cam = TRUE)
+
+# Observations and deployments have the same stations (A and B)
+unique(dat_clean$data$observations$Station)
+unique(dat_clean$data$deployments$Station)
+```
+
+
+
 ## Records and cameras in the same csv (1 csv file)
 
 ### Read data
 
 ```{r}
-dat <- read_data(records_path = recordcamfile,
-                 sep_records = ",")
+dat <- read_data(path_rec = recordcamfile,
+                 sep_rec = ",")
 ```
 
 ```{r}
@@ -136,25 +177,36 @@ Again the imported file is a list with one component `$data`:
 
 ### Clean data
 
-This step will split the information between cameras and records. To do this, it will move all columns listed in `cam_type` in the cameras file.
+This step will split the information between cameras and records. To do this, it will move all columns listed in `cam_cols` in the cameras file. The column containing cameras IDs must be specified in the `cam_col_dfrec` argument (so that it is kept in the records).
+
+Since at the beginning all columns are in the records file, the casting specifications should be in the `rec_type` argument.
 
 ```{r}
-cam_type2 <- list(Station = "as.character",
+cam_cols <- c("Station", "Setup_date", "Retrieval_date", 
+              "utm_y", "utm_x", "Problem1_from", "Problem1_to")
+
+rec_type2 <- list(Station = "as.character",
+                  Date = list("as_date",
+                             format = "%Y-%m-%d"),
+                  Time = "times",
+                  DateTimeOriginal = list("as.POSIXct",
+                                         tz = "Etc/GMT-8"),
                   Setup_date = list("as.Date",
                                     format = "%d/%m/%Y"), 
                   Retrieval_date = list("as.Date",
                                         format = "%d/%m/%Y"),
-                  utm_y = "as.numeric",
-                  utm_x = "as.numeric",
                   Problem1_from = list("as.Date",
                                        format = "%d/%m/%Y"),
                   Problem1_to = list("as.Date",
                                      format = "%d/%m/%Y"))
+```
 
+
+```{r}
 dat_clean <- clean_data(dat, 
-                        rec_type = rec_type,
-                        cam_type = cam_type2,
-                        cam_col_records = "Station",
+                        rec_type = rec_type2,
+                        cam_col_dfrec = "Station",
+                        cam_cols = cam_cols,
                         split = TRUE)
 ```
 
@@ -170,7 +222,7 @@ head(dat_clean$data$deployments)
 The `read_data` function can also read json files corresponding to camtrapDP datapackage.
 
 ```{r}
-dat <- read_data(records_path = "https://raw.githubusercontent.com/tdwg/camtrap-dp/main/example/datapackage.json")
+dat <- read_data(path_rec = "https://raw.githubusercontent.com/tdwg/camtrap-dp/main/example/datapackage.json")
 ```
 
 Internally, we use the function `read_camtrap_dp` from the `camtraptor` package (here, it would give the same result to use use directly this function). 

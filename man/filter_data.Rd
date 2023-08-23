@@ -9,18 +9,18 @@ filter_data(
   spp_filter = NULL,
   spp_col = NULL,
   obs_filter = NULL,
-  obs_col = NULL,
+  obstype_col = NULL,
   cam_filter = NULL,
   cam_col_rec = NULL,
   cam_col_cam = cam_col_rec,
   daterange = NULL,
   custom_col = NULL,
   custom_filter = NULL,
-  timestamp_col = NULL,
+  datetime_col = NULL,
   time_col = NULL,
   date_col = NULL,
   tz = NULL,
-  cameras_as_factor = FALSE
+  cam_as_factor = FALSE
 )
 }
 \arguments{
@@ -38,7 +38,7 @@ are in the \verb{$data} slot with two components:
 
 \item{obs_filter}{Observation types to filter from the data}
 
-\item{obs_col}{Name of the observation column}
+\item{obstype_col}{Name of the observation column}
 
 \item{cam_filter}{Cameras to filter from the data}
 
@@ -56,23 +56,23 @@ observations' times so that \code{times >= daterange[1]} and
 
 \item{custom_filter}{values to filter out in the custom column \code{custom_col}.}
 
-\item{timestamp_col}{Name of the datetime column (must be coercible to POSIX).
+\item{datetime_col}{Name of the datetime column (must be coercible to POSIX).
 It is not needed if \code{date_col} and \code{time_col} are provided.}
 
-\item{time_col}{Name of the time column. It is not needed if \code{timestamp_col}
+\item{time_col}{Name of the time column. It is not needed if \code{datetime_col}
 is provided.}
 
-\item{date_col}{Name of the date column. It is not needed if \code{timestamp_col}
+\item{date_col}{Name of the date column. It is not needed if \code{datetime_col}
 is provided.}
 
 \item{tz}{Timezone for the data bounds. If not provided, will try to
 find the timezone in \code{daterange} (if it is a POSIX), then in
-\code{timestamp_col} (if provided), and finally if no timezone is
+\code{datetime_col} (if provided), and finally if no timezone is
 present it will default to UTC (Etc/GMT).
-For the filtering step, if needed datetimes in \code{timestamp_col} can be
+For the filtering step, if needed datetimes in \code{datetime_col} can be
 converted to \code{tz} but the output data will not be affected.}
 
-\item{cameras_as_factor}{Transform cameras as factors?}
+\item{cam_as_factor}{Transform cameras as factors?}
 }
 \value{
 The filtered data. Species and dates remove data only in \code{dat$data$observations},
@@ -102,7 +102,7 @@ filter_data(dat,
             cam_col_rec = "Station", 
             cam_filter = "StationA",
             daterange = as.Date(c("2009-05-01", "2009-05-15")),
-            timestamp_col = "DateTimeOriginal")
+            datetime_col = "DateTimeOriginal")
 }
 \seealso{
 \href{https://lisanicvert.github.io/camtrapviz/articles/filter-data.html}{\code{vignette("filter-data", package = "camtrapviz")}},

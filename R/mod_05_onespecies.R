@@ -73,8 +73,8 @@ onespeciesServer <- function(id,
     stopifnot(is.reactive(crs))
     
     # Create column names reactives -------------------------------------------
-    obs_col <- reactive({
-      unname(mapping_records()$obs_col)
+    obstype_col <- reactive({
+      unname(mapping_records()$obstype_col)
     })
     
     spp_col <- reactive({
@@ -93,8 +93,8 @@ onespeciesServer <- function(id,
     time_col <- reactive({
       unname(mapping_records()$time_col)
     })
-    timestamp_col <- reactive({
-      unname(mapping_records()$timestamp_col)
+    datetime_col <- reactive({
+      unname(mapping_records()$datetime_col)
     })
     
     # Create lonlat reactive --------------------------------------------------
@@ -115,7 +115,7 @@ onespeciesServer <- function(id,
                     "Cannot analyze an empty table: plese check data filtering"))
       
       camtrapviz::get_unique_species(camtrap_data()$data$observations,
-                                     spp_col = spp_col(), obs_col = obs_col(),
+                                     spp_col = spp_col(), obstype_col = obstype_col(),
                                      return_df = TRUE)
     })
     
@@ -136,20 +136,20 @@ onespeciesServer <- function(id,
 
     filtered_records <- metaReactive2({
       # Get values to filter on ---
-      # Get rows corresponding to selected obs_col
-      has_type <- !is.null(obs_col())
+      # Get rows corresponding to selected obstype_col
+      has_type <- !is.null(obstype_col())
       
       if (has_type) {
         # Get all selected values
         all_filter <- species_df()[input$species, ]
         
         # Get species values
-        spp_filter <- all_filter[all_filter[[obs_col()]] == "animal", ]
+        spp_filter <- all_filter[all_filter[[obstype_col()]] == "animal", ]
         spp_filter <- spp_filter[[spp_col()]]
         
         # Get obs type values
-        obs_filter <- all_filter[all_filter[[obs_col()]] != "animal", ]
-        obs_filter <- obs_filter[[obs_col()]]
+        obs_filter <- all_filter[all_filter[[obstype_col()]] != "animal", ]
+        obs_filter <- obs_filter[[obstype_col()]]
       } else {
         # Obs filter is NULL
         obs_filter <- NULL
@@ -171,7 +171,7 @@ onespeciesServer <- function(id,
         "# Filter ---"
         if (has_type) {
           filtered_records <- filtered_records |>
-            dplyr::filter(.data[[..(obs_col())]] %in% obs_filter | .data[[..(spp_col())]] %in% spp_filter)
+            dplyr::filter(.data[[..(obstype_col())]] %in% obs_filter | .data[[..(spp_col())]] %in% spp_filter)
         } else {
           # Filter spp_col
           filtered_records <- filtered_records |>
@@ -199,10 +199,10 @@ onespeciesServer <- function(id,
                     "Waiting for records data..."))
 
       # Get time
-      if (!is.null(timestamp_col())) {
+      if (!is.null(datetime_col())) {
         metaExpr({
           "# Get von Mises density ---"
-          datetime <- ..(filtered_records())[[..(timestamp_col())]]
+          datetime <- ..(filtered_records())[[..(datetime_col())]]
           time <- format(datetime, format = "%H:%M:%S")
           time <- chron::times(time)
           
@@ -230,8 +230,8 @@ onespeciesServer <- function(id,
       dfplot <- ..(filtered_records())
       
       # Add times column
-      if (!is.null(..(timestamp_col()))) {
-        datetime <- dfplot[[..(timestamp_col())]]
+      if (!is.null(..(datetime_col()))) {
+        datetime <- dfplot[[..(datetime_col())]]
         time <- format(datetime, format = "%H:%M:%S")
         time <- chron::times(time)
         dfplot$time <- time
@@ -242,11 +242,11 @@ onespeciesServer <- function(id,
       
       pdf_df <- as.data.frame(..(density())@pdf)
       
-      gg <- plot_activity(fitted_data = pdf_df,
-                          times_fit = "x",
+      gg <- plot_activity(dffit = pdf_df,
+                          time_dffit = "x",
                           y_fit = "y",
-                          true_data = dfplot,
-                          times_true = time_col,
+                          dfrec = dfplot,
+                          time_dfrec = time_col,
                           unit = "clock",
                           freq = TRUE,
                           interactive = TRUE)

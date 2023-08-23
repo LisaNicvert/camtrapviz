@@ -120,51 +120,39 @@ test_that("add_date_options", {
 })
 
 
-# Prepare cameras ---------------------------------------------------------
-test_that("Prepare cameras", {
-  # Split is TRUE
+# Split records cameras ---------------------------------------------------------
+test_that("split_records_cameras", {
+  # Prepare data
+  dat <- list(data = list(deployments = NULL,
+                          observations = kga_all))
+  
+  # Test with list
   cam_cols <- list(cam_col = "cameraID",
                    loc_col = "locationID",
                    elev_col = "elevation")
   
-  dat <- list(data = list(deployments = NULL,
-                          observations = kga_all))
-  dat_clean <- prepare_cameras(dat = dat, 
-                               split = TRUE,
-                               cam_columns = cam_cols,
-                               cam_col = "cameraID")
+  dat_clean <- split_records_cameras(dat = dat, 
+                                     cam_cols = cam_cols,
+                                     cam_col = "cameraID")
   expect_equal(ncol(dat_clean$data$observations), ncol(dat$data$observations) - length(cam_cols) + 1)
   expect_equal(ncol(dat_clean$data$deployments), length(cam_cols))
-  
   expect_equal(colnames(dat_clean$data$deployments), unname(unlist(cam_cols)))
+  expect_equal(nrow(dat_clean$data$deployments), length(unique(kga_all$cameraID)))
+  
+  # Test with vector
+  cam_cols <- c("cameraID", loc_col = "locationID", elev_col = "elevation")
+  
+  dat_clean <- split_records_cameras(dat = dat, 
+                                     cam_cols = cam_cols,
+                                     cam_col = "cameraID")
+  expect_equal(ncol(dat_clean$data$observations), ncol(dat$data$observations) - length(cam_cols) + 1)
+  expect_equal(ncol(dat_clean$data$deployments), length(cam_cols))
+  expect_equal(colnames(dat_clean$data$deployments), unname(unlist(cam_cols)))
+  expect_equal(nrow(dat_clean$data$deployments), length(unique(kga_all$cameraID)))
+  
 })
 
-test_that("Prepare cameras (no split)", {
-  # Fake obs
-  obs <- data.frame(letters = letters[1:10])
-  # Duplicated camera
-  dep <- data.frame(cam = paste0("cam", c(LETTERS[1:5], LETTERS[5])),
-                    lat = c(1:5, 5),
-                    lon = c(11:15, 15))
-  
-  dat <- list(data = list(deployments = dep,
-                          observations = obs))
-  
-  dat_clean <- prepare_cameras(dat = dat, 
-                               split = FALSE)
-  
-  # obs should stay the same
-  expect_equal(dat_clean$data$observations, dat$data$observations)
-  
-  # A camera should be removed from dep
-  expect_equal(dat_clean$data$deployments$cam, paste0("cam", LETTERS[1:5]))
-  expect_equal(dat_clean$data$deployments$lat, 1:5)
-  expect_equal(dat_clean$data$deployments$lon, 11:15)
-})
-
-
-
-test_that("Prepare cameras (error)", {
+test_that("split_records_cameras (error)", {
   obs <- data.frame(cam = paste0("cam", LETTERS[1:5]),
                     date = rep(Sys.time(), 5),
                     lat = 1:5,
@@ -175,26 +163,12 @@ test_that("Prepare cameras (error)", {
   
   cam_cols <- c("cam", "lat", "lon")
   
-  # Threr should be an error
-  expect_error(prepare_cameras(dat = dat, 
-                               cam_columns = cam_cols,
-                               split = TRUE, cam_col = "CAM"), 
-               "cam_col should be in cam_columns.", fixed = TRUE)
-  
-  # No error expected because no split
-  obs <- data.frame(cam = paste0("cam", LETTERS[1:5]),
-                    date = rep(Sys.time(), 5))
-  dep <- data.frame(cam = paste0("cam", LETTERS[1:5]),
-                    lat = 1:5,
-                    lon = 11:15)
-  dat <- list(data = list(deployments = dep,
-                          observations = obs))
-  
-  expect_no_error(prepare_cameras(dat = dat, 
-                               cam_columns = cam_cols,
-                               split = FALSE, cam_col = "CAM"))
+  # There should be an error
+  expect_error(split_records_cameras(dat = dat, 
+                                     cam_cols = cam_cols,
+                                     cam_col = "CAM"), 
+               "cam_col should be in cam_cols.", fixed = TRUE)
 })
-
 
 # Final function ----------------------------------------------------------
 
@@ -207,9 +181,18 @@ test_that("Clean data", {
   cast_cam <- list(Station = "as.character",
                    utm_y = "as.numeric",
                    utm_x = "as.numeric")
+  
   cast_rec <- list(Species = "as.character",
                    Station = "as.character",
                    DateTimeOriginal = "as.POSIXct")
+  
+  # Change some classes to check the cast works
+  dat$data$deployments$Station <- factor(dat$data$deployments$Station)
+  dat$data$deployments$utm_y <- factor(dat$data$deployments$utm_y)
+  
+  dat$data$observations$Species <- factor(dat$data$observations$Species)
+  dat$data$observations$Station <- factor(dat$data$observations$Station)
+  
   dat_clean <- clean_data(dat = dat, 
                           cam_type =  cast_cam,
                           rec_type = cast_rec,
@@ -223,32 +206,55 @@ test_that("Clean data", {
   expect_equal(class(dat_clean$data$deployments$utm_y), "numeric")
   expect_equal(class(dat_clean$data$deployments$utm_x), "numeric")
   
-  # Split is TRUE
+  # Split is TRUE and don't cast cameras
   dat <- list(data = list(deployments = NULL,
                           observations = kga_all))
-  cast_cam <- list(cameraID = "as.character",
-                   Lat_Y = "as.numeric",
-                   Long_X = "as.numeric")
+  
   cast_rec <- list(snapshotName = "as.character",
                    locationID = "as.character",
                    eventDate = "as.Date",
                    eventTime = "times")
+  cam_cols <- c("cameraID", "Lat_Y", "Long_X")
+  
   dat_clean <- clean_data(dat = dat, 
-                          cam_type =  cast_cam,
                           rec_type = cast_rec,
                           split = TRUE,
-                          cam_col_records = "cameraID")
+                          cam_col_dfrec = "cameraID",
+                          cam_cols = cam_cols)
   # Test split
   expect_equal(ncol(dat_clean$data$deployments), 3)
   expect_equal(ncol(dat_clean$data$observations), ncol(dat$data$observations) - 2)
+  expect_equal(colnames(dat_clean$data$deployments), unname(unlist(cam_cols)))
+  expect_equal(nrow(dat_clean$data$deployments), length(unique(kga_all$cameraID)))
   
   # Test classes for records
   expect_equal(class(dat_clean$data$observations$snapshotName), "character")
   expect_equal(class(dat_clean$data$observations$cameraID), "character")
   expect_equal(class(dat_clean$data$observations$eventDate), "Date")
   expect_equal(class(dat_clean$data$observations$eventTime), "times")
+  
+  
+  # Split is TRUE and cast cameras
+  dat <- list(data = list(deployments = NULL,
+                          observations = kga_all))
+  
+  # Change Lat to factor to check cast
+  dat$data$observations$Lat_Y <- factor(dat$data$observations$Lat_Y)
+  cast_rec <- list(Lat_Y = "as.numeric")
+  cam_cols <- c("cameraID", "Lat_Y", "Long_X")
+  
+  dat_clean <- clean_data(dat = dat, 
+                          rec_type = cast_rec,
+                          split = TRUE,
+                          cam_col_dfrec = "cameraID",
+                          cam_cols = cam_cols)
+  
+  # Test split
+  expect_equal(ncol(dat_clean$data$deployments), 3)
+  expect_equal(ncol(dat_clean$data$observations), ncol(dat$data$observations) - 2)
+  expect_equal(colnames(dat_clean$data$deployments), unname(unlist(cam_cols)))
+  expect_equal(nrow(dat_clean$data$deployments), length(unique(kga_all$cameraID)))
+  
   # Test classes for cameras
-  expect_equal(class(dat_clean$data$deployments$cameraID), "character")
   expect_equal(class(dat_clean$data$deployments$Lat_Y), "numeric")
-  expect_equal(class(dat_clean$data$deployments$Long_X), "numeric")
 })

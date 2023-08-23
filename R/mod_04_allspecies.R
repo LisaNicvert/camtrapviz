@@ -79,8 +79,8 @@ allspeciesServer <- function(id,
       unname(mapping_records()$spp_col)
     })    
     
-    obs_col <- reactive({
-      unname(mapping_records()$obs_col)
+    obstype_col <- reactive({
+      unname(mapping_records()$obstype_col)
     })    
     
     cam_col_cam <- reactive({
@@ -129,15 +129,15 @@ allspeciesServer <- function(id,
 # Compute diversity indices -----------------------------------------------
   diversity_df <- metaReactive({
     "# Summarize species and cameras ---"
-    count_df <- summarize_species(..(camtrap_data())$data$observations,
-                                  cam_col = ..(cam_col_rec()),
-                                  spp_col = ..(spp_col()),
-                                  count_col = ..(mapping_cameras()$count_col), 
-                                  by_cam = TRUE,
-                                  keep_all_camera_levels = TRUE)
+    dfcount <- summarize_species(..(camtrap_data())$data$observations,
+                                 cam_col = ..(cam_col_rec()),
+                                 spp_col = ..(spp_col()),
+                                 count_col = ..(mapping_cameras()$count_col), 
+                                 by_cam = TRUE,
+                                 keep_all_camera_levels = TRUE)
     
     "# Compute diversity indices ---"
-    get_diversity_indices(count_df, 
+    get_diversity_indices(dfcount, 
                           spp_col =  ..(spp_col()),
                           cam_col = ..(cam_col_rec()))
   }, bindToReturn = TRUE, varname = "diversity_df")
@@ -157,7 +157,7 @@ allspeciesServer <- function(id,
     # Set height
     nspecies <- nrow(summarize_species(camtrap_data()$data$observations,
                                        spp_col = spp_col(), 
-                                       obs_col = obs_col()))
+                                       obstype_col = obstype_col()))
     unit <- nspecies/6
     height <- max(5, 
                   unit/(1 + exp(-12*unit)))
@@ -175,7 +175,7 @@ allspeciesServer <- function(id,
       "# ggplot plot"
       gg <- plot_species_bars(..(camtrap_data())$data$observations, 
                               spp_col = ..(spp_col()),
-                              obs_col = ..(obs_col()),
+                              obstype_col = ..(obstype_col()),
                               count_col = ..(count_col),
                               interactive = TRUE)
       

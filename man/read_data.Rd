@@ -5,22 +5,22 @@
 \title{Read data}
 \usage{
 read_data(
-  records_path,
-  sep_records,
-  cameras_path = NULL,
-  sep_cameras = NULL,
+  path_rec,
+  sep_rec,
+  path_cam = NULL,
+  sep_cam = NULL,
   NA_strings = c("NA", ""),
   add_rowid = FALSE
 )
 }
 \arguments{
-\item{records_path}{A valid file path for records.}
+\item{path_rec}{A valid file path for records.}
 
-\item{sep_records}{separator used for the records.}
+\item{sep_rec}{separator used for the records.}
 
-\item{cameras_path}{A valid file path for cameras (defaults to \code{NULL}).}
+\item{path_cam}{A valid file path for cameras (defaults to \code{NULL}).}
 
-\item{sep_cameras}{separator used for the cameras (defaults to \code{NULL}).}
+\item{sep_cam}{separator used for the cameras (defaults to \code{NULL}).}
 
 \item{NA_strings}{Vector of characters that should be considered \code{NA}
 after import}
@@ -31,17 +31,17 @@ If yes, row names in the form of "ID_xx" are added to the the dataframe.}
 \value{
 A list with one component or a \code{datapackage} object.
 \itemize{
-\item if \code{records_path} is a json file, returns a \code{datapackage} object
+\item if \code{path_rec} is a json file, returns a \code{datapackage} object
 (inheriting list). The data is in the \verb{$data} slot,
 which is a list with 2 components:
 \itemize{
 \item \verb{$deployments} (cameras)
 \item \verb{$observations} (records)
 }
-\item if \code{records_path} is a csv file, returns a list with one component
+\item if \code{path_rec} is a csv file, returns a list with one component
 named \verb{$data}, which is a list with 2 components:
 \itemize{
-\item \verb{$deployments} (cameras: if no camera file was provided in \code{cameras_path},
+\item \verb{$deployments} (cameras: if no camera file was provided in \code{path_cam},
 it is \code{NULL})
 \item \verb{$observations} (records)
 }
@@ -54,12 +54,12 @@ optionally from another csv file (with camera data).
 \examples{
 \dontrun{
 # Read only records
-read_data(records_path = "records.csv", sep_records = ",")
+read_data(path_rec = "records.csv", sep_rec = ",")
 # Read records and cameras
-read_data(records_path = "records.csv", sep_records = ",",
-          cameras_path = "cameras.csv", sep_cameras = ",")
+read_data(path_rec = "records.csv", sep_rec = ",",
+          path_cam = "cameras.csv", sep_cam = ",")
 # Read a json file
-read_data(records_path = "datapackage.json")
+read_data(path_rec = "datapackage.json")
 }
 }
 \seealso{

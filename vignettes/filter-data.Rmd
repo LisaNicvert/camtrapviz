@@ -38,8 +38,8 @@ Here is the initial data:
 
 ```{r}
 p <- plot_points(mica$data$observations,
-                 camera_col = "deploymentID",
-                 timestamp_col = "timestamp",
+                 cam_col = "deploymentID",
+                 datetime_col = "timestamp",
                  tooltip_info = "vernacularNames.en",
                  interactive = TRUE)
 girafe(ggobj = p)
@@ -75,8 +75,8 @@ unique(cam_filter$data$deployments$deploymentID)
 
 ```{r}
 plot_points(cam_filter$data$observations,
-            camera_col = "deploymentID",
-            timestamp_col = "timestamp")
+            cam_col = "deploymentID",
+            datetime_col = "timestamp")
 ```
 
 ## Filter species
@@ -120,7 +120,7 @@ obs_out <- unique(obstype[obstype != "animal"])
 obs_out
 
 obs_filter <- filter_data(mica, 
-                          obs_col = "observationType", 
+                          obstype_col = "observationType", 
                           obs_filter = obs_out)
 ```
 
@@ -153,8 +153,8 @@ We visualize this filter on a plot: solid lines are the old data bounds and dash
 
 ```{r}
 plot_points(mica$data$observations, 
-            camera_col = "deploymentID",
-            timestamp_col = "timestamp") +
+            cam_col = "deploymentID",
+            datetime_col = "timestamp") +
   ggplot2::geom_vline(xintercept = as.POSIXct(new_range, 
                                               tz = "UTC"),
                       linetype = "dashed") +
@@ -166,7 +166,7 @@ Let's filter the data.
 
 ```{r}
 date_filter <- filter_data(mica, 
-                           timestamp_col = "timestamp", 
+                           datetime_col = "timestamp", 
                            daterange = new_range)
 ```
 
@@ -175,12 +175,12 @@ The `daterange` argument can also be a `Date` or `POSIX`:
 ```{r}
 (new_range_date <- as.Date(new_range))
 date_filter <- filter_data(mica, 
-                           timestamp_col = "timestamp", 
+                           datetime_col = "timestamp", 
                            daterange = new_range_date)
 
 (new_range_posix <- as.POSIXct(new_range))
 date_filter <- filter_data(mica, 
-                           timestamp_col = "timestamp", 
+                           datetime_col = "timestamp", 
                            daterange = new_range_posix)
 ```
 
@@ -234,7 +234,7 @@ custom_filter <- filter_data(mica,
                              cam_col_rec = "deploymentID",
                              spp_filter = c("great herons", "grey heron"),
                              spp_col = "vernacularNames.en",
-                             timestamp_col = "timestamp",
+                             datetime_col = "timestamp",
                              daterange = c("2020-01-01", "2021-04-18"))
 ```
 

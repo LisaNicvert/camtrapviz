@@ -84,7 +84,7 @@ find_default_colname <- function(pattern, colnames,
 #' colnames <- c("speciesName", "CameraID", "Datetime")
 #' regex <- c("species", "station|deployment|camera",
 #'            "timestamp|datetime")
-#' names(regex) <-  c("spp_col", "cam_col", "timestamp_col")
+#' names(regex) <-  c("spp_col", "cam_col", "datetime_col")
 #' find_default_colnames(regex_list = regex,
 #'                       colnames = colnames)
 find_default_colnames <- function(regex_list,
@@ -136,8 +136,8 @@ find_default_colnames <- function(regex_list,
 #'
 #' @param dfrecords records dataframe
 #' @param dfcameras cameras dataframe
-#' @param cam_col_records name of the cameras column in the records dataframe
-#' @param cam_col_cameras name of the cameras column in the cameras dataframe
+#' @param cam_col_dfrec name of the cameras column in the records dataframe
+#' @param cam_col_dfcam name of the cameras column in the cameras dataframe
 #'
 #' @return A named list with two components
 #' + `$not_in_records`: cameras from `dfcameras` that are not in `dfrecords`.
@@ -154,16 +154,16 @@ find_default_colnames <- function(regex_list,
 #' dfcam <- data.frame(cameras = letters[1:5])
 #' get_cameras_not_in(dfrecords = dfrecords, 
 #'                    dfcameras = dfcam,
-#'                    cam_col_records = "camID",
-#'                    cam_col_cameras = "cameras")
+#'                    cam_col_dfrec = "camID",
+#'                    cam_col_dfcam = "cameras")
 get_cameras_not_in <- function(dfrecords, 
                                dfcameras,
-                               cam_col_records,
-                               cam_col_cameras) {
+                               cam_col_dfrec,
+                               cam_col_dfcam) {
   
   # Get cameras from records and camera file
-  records_cameras <- unique(dfrecords[[cam_col_records]])
-  deployments_cameras <- dfcameras[[cam_col_cameras]]
+  records_cameras <- unique(dfrecords[[cam_col_dfrec]])
+  deployments_cameras <- dfcameras[[cam_col_dfcam]]
   
   # Get not matching list
   not_in_cameras <- records_cameras[!(records_cameras %in% deployments_cameras)]

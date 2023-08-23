@@ -45,15 +45,15 @@ The package provides a function to plot the observations for each camera.
 
 ```{r}
 plot_points(recordTableSample,
-            camera_col = "Station",
-            timestamp_col = "DateTimeOriginal")
+            cam_col = "Station",
+            datetime_col = "DateTimeOriginal")
 ```
 
-`date_col` and `time_col` can also be used instead of `timestamp_col`.
+`date_col` and `time_col` can also be used instead of `datetime_col`.
 
 ```{r}
 plot_points(recordTableSample,
-            camera_col = "Station",
+            cam_col = "Station",
             date_col = "Date", 
             time_col = "Time")
 ```
@@ -62,21 +62,21 @@ It is also possible to provide a column for points colors:
 
 ```{r}
 plot_points(recordTableSample,
-            camera_col = "Station",
+            cam_col = "Station",
             points_col = "Species",
-            timestamp_col = "DateTimeOriginal")
+            datetime_col = "DateTimeOriginal")
 ```
 
 By providing additional info, it is also possible to visualize the sampling period on the same graph.
 
 ```{r}
 plot_points(recordTableSample, 
-            camera_col = "Station", 
+            cam_col = "Station", 
             points_col = "Species",
-            timestamp_col = "DateTimeOriginal",
-            caminfo = camtraps,
-            caminfo_setup = "Setup_date",
-            caminfo_retrieval = "Retrieval_date")
+            datetime_col = "DateTimeOriginal",
+            dfcam = camtraps,
+            setup_dfcam = "Setup_date",
+            retrieval_dfcam = "Retrieval_date")
 ```
 
 Various options are available to customize this graph:
@@ -86,12 +86,12 @@ spp <- unique(recordTableSample$Species)
 pal <- RColorBrewer::brewer.pal(length(spp), "Purples")
 
 plot_points(recordTableSample, 
-            camera_col = "Station", 
+            cam_col = "Station", 
             points_col = "Species",
-            timestamp_col = "DateTimeOriginal",
-            caminfo = camtraps,
-            caminfo_setup = "Setup_date",
-            caminfo_retrieval = "Retrieval_date",
+            datetime_col = "DateTimeOriginal",
+            dfcam = camtraps,
+            setup_dfcam = "Setup_date",
+            retrieval_dfcam = "Retrieval_date",
             fill_rect = "darkgoldenrod1",
             alpha_rect = 0.6,
             col_rect = NA, 
@@ -110,12 +110,12 @@ Using `ggiraph`, the plot can also be made interactive:
 
 ```{r}
 p <- plot_points(recordTableSample, 
-                 camera_col = "Station", 
+                 cam_col = "Station", 
                  points_col = "Species",
-                 timestamp_col = "DateTimeOriginal",
-                 caminfo = camtraps,
-                 caminfo_setup = "Setup_date",
-                 caminfo_retrieval = "Retrieval_date",
+                 datetime_col = "DateTimeOriginal",
+                 dfcam = camtraps,
+                 setup_dfcam = "Setup_date",
+                 retrieval_dfcam = "Retrieval_date",
                  interactive = TRUE)
 ggiraph::girafe(ggobj = p)
 ```
@@ -203,7 +203,7 @@ with_obstype |>
 ```{r}
 plot_species_bars(with_obstype, 
                   spp_col = "Species", 
-                  obs_col = "type")
+                  obstype_col = "type")
 ```
 
 
@@ -226,8 +226,8 @@ It is also possible to explore the activity times of a given species:
 PBE_records <- recordTableSample |> 
   filter(Species == "PBE")
 
-p <- plot_activity(true_data = PBE_records,
-                   times_true = "Time",
+p <- plot_activity(dfrec = PBE_records,
+                   time_dfrec = "Time",
                    unit = "clock",
                    interactive = TRUE)
 girafe(ggobj = p)

@@ -140,72 +140,54 @@ add_date_options <- function(castlist,
 # Prepare data ------------------------------------------------------------
 
 
-#' Prepare cameras
+#' Split records data
 #' 
-#' Prepare the camera data for cleaning
+#' Splits the records data to create a cameras dataframe.
 #'
 #' @param dat The data. It can be either a list with one component `$data`
 #' or a `datapackage` object (inheriting list). Either way, the data 
 #' are in the `$data` slot with two components: 
 #' + `$deployments` (cameras table)
 #' + `$observations` (records table)
-#' @param cam_columns A list of columns names that indicate 
-#' relevant columns to consider for the deployments data. 
-#' If missing, and `split = FALSE`,
-#' will default to all columns in `dat$data$deployments`. Else,
-#' it is required.
-#' These columns are moved to the beginning of the cameras table
-#' (`dat$data$deployments`).
-#' If `split` is `TRUE`, these names are also extracted from
-#' `dat$data$observations` to create the cameras table. 
-#' @param split should camera data be extracted from the records?
-#' If yes, a cameras table will be created and replace the value
-#' of `dat$data$deployments`.
-#' @param cam_col name of the camera column (to know which 
-#' column to keep in `dat$data$observations` if `split = TRUE`).
-#' Must be in `cam_columns`.
+#' @param cam_cols A list or vector of columns names that indicate 
+#' columns that should be moved to `dat$data$deployments`.
+#' Defaults to a unique column (`deploymentID`).
+#' @param cam_col name of the camera column. This column must
+#' be in `cam_cols` and will be kept in 
+#' `dat$data$observations` after the split.
+#' Defaults to `deploymentID`.
 #'
 #' @noRd
-#' @return The dataset with "pre-cleaned" cameras data:
-#' + the cameras table is filtered to keep unique rows across 
-#' the columns indicated in `cam_columns`. This allows to filter 
-#' for instance between duplicated cameras names.
-#' + if `split` is `TRUE`, `dat$data$deployments` is replaced with 
-#' data extracted from `dat$data$observations` 
-#' (only the columns indicated in `cam_columns`) and removes the
-#' these columns from `dat$data$observations` (except `cam_name`)
-prepare_cameras <- function(dat, cam_columns = colnames(dat$data$deployments), 
-                            split = FALSE,
-                            cam_col = "deploymentID") {
+#' 
+#' @return The data with camera columns moved to `dat$data$deployments`.
+#' `dat$data$deployments` is replaced with data extracted from 
+#' columns indicated in `cam_cols` from `dat$data$observations` 
+#' (keeping only unique rows across columns in `cam_cols`).
+#' These columns are then removed from `dat$data$observations`.
+#' (except `cam_name`)
+split_records_cameras <- function(dat, 
+                                  cam_cols = "deploymentID", 
+                                  cam_col = "deploymentID") {
   
   # Initialize results
   res <- dat
   
-  # Check cam_col is in cam_columns
-  if (split) {
-    if(!(cam_col %in% cam_columns)) {
-      stop("cam_col should be in cam_columns.")
-    }
+  # Check cam_col is in cam_cols
+  if(!(cam_col %in% cam_cols)) {
+    stop("cam_col should be in cam_cols.")
   }
   
-  if (split) { # Manual file input
-    # Split data
-    cameras <- dat$data$observations |>
-      dplyr::select(all_of(unname(unlist(cam_columns))))
-    res$data$deployments <- cameras
+  # Split data
+  cameras <- dat$data$observations |>
+    dplyr::select(all_of(unname(unlist(cam_cols)))) |> 
+    distinct()
+  
+  res$data$deployments <- cameras
     
-    # Remove camera columns
-    to_remove <- cam_columns[cam_columns != cam_col]
-    res$data$observations <- dat$data$observations |>
-      dplyr::select(-all_of(unname(unlist(to_remove))))
-  }
-  
-  # Select unique rows for camera table
-  # We want rows to be unique across the used camera columns 
-  # defined in cam_columns
-  res$data$deployments <- res$data$deployments |>
-    distinct(across(all_of(unname(unlist(cam_columns)))),
-             .keep_all = TRUE)
+  # Remove camera columns
+  to_remove <- cam_cols[cam_cols != cam_col]
+  res$data$observations <- dat$data$observations |>
+    dplyr::select(-all_of(unname(unlist(to_remove))))
   
   return(res)
 }
@@ -215,11 +197,11 @@ prepare_cameras <- function(dat, cam_columns = colnames(dat$data$deployments),
 #'
 #' Filter data to keep only rows where cameras are in both tables
 #' 
-#' @param records Records dataframe
-#' @param cameras Cameras dataframe
-#' @param cam_col_records Name of the column with cameras names in records
-#' @param cam_col_cameras Name of the column with cameras names in cameras.
-#' If `NULL` will be assumed to be the same as `cam_col_records`. 
+#' @param dfrec Records dataframe
+#' @param dfcam Cameras dataframe
+#' @param cam_col_dfrec Name of the column with cameras names in `dfrec`
+#' @param cam_col_dfcam Name of the column with cameras names in `dfcam`
+#' If `NULL` will be assumed to be the same as `cam_col_dfrec`. 
 #'
 #' @return A list of two dataframes with filtered values:
 #' + `$records` is the records dataframe
@@ -228,40 +210,40 @@ prepare_cameras <- function(dat, cam_columns = colnames(dat$data$deployments),
 #' @export
 #' 
 #' @examples
-#' records <- data.frame(species = c("pigeon", "mouse", "pigeon", "mouse"),
+#' dfrec <- data.frame(species = c("pigeon", "mouse", "pigeon", "mouse"),
 #'                       stamp = Sys.time() + seq(60, length.out = 4, by = 60),
 #'                       camera = c("A", "B", "C", "E"))
-#' cameras <- data.frame(camera = c("A", "B", "C", "D"), 
+#' dfcam <- data.frame(camera = c("A", "B", "C", "D"), 
 #'                       lat = c(20.12, 20.22, 22.34, 21.35),
 #'                       lon = c(33.44, 33.45, 33.42, 33.53))
-#' filter_cameras_in_both_tables(records, cameras, 
-#'                               cam_col_records = "camera")
-filter_cameras_in_both_tables <- function(records, cameras, 
-                                          cam_col_records, 
-                                          cam_col_cameras = NULL) {
+#' filter_cameras_in_both_tables(dfrec, dfcam, 
+#'                               cam_col_dfrec = "camera")
+filter_cameras_in_both_tables <- function(dfrec, dfcam, 
+                                          cam_col_dfrec, 
+                                          cam_col_dfcam = NULL) {
   
-  # Set cam_col_cameras
-  if (is.null(cam_col_cameras)) {
-    cam_col_cameras <- cam_col_records
+  # Set cam_col_dfcam
+  if (is.null(cam_col_dfcam)) {
+    cam_col_dfcam <- cam_col_dfrec
   }
   
   # Get unique camera names
-  ucam_records <- unique(records[[cam_col_records]])
-  ucam_cameras <- unique(cameras[[cam_col_cameras]])
+  ucam_records <- unique(dfrec[[cam_col_dfrec]])
+  ucam_cameras <- unique(dfcam[[cam_col_dfcam]])
   
   # Get intersection
   cam_both <- intersect(ucam_records, 
                         ucam_cameras)
   
   # Restrict data to shared cameras
-  records <- records |>
-    filter(.data[[cam_col_records]] %in% cam_both)
+  dfrec <- dfrec |>
+    filter(.data[[cam_col_dfrec]] %in% cam_both)
   
-  cameras <- cameras |>
-    filter(.data[[cam_col_cameras]] %in% cam_both)
+  dfcam <- dfcam |>
+    filter(.data[[cam_col_dfcam]] %in% cam_both)
   
-  res <- list(records = records,
-              cameras = cameras)
+  res <- list(records = dfrec,
+              cameras = dfcam)
   
   return(res)
 }
@@ -275,7 +257,7 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #' + splitting records data in records and cameras (if needed)
 #' + formatting cameras and records tables: casting specified columns 
 #' and moving them to the beginning
-#' + if `only_shared_cameras` is `TRUE`: selecting the subset of 
+#' + if `only_shared_cam` is `TRUE`: selecting the subset of 
 #' cameras present in both records and cameras tables
 #'  
 #' @param dat The data to clean. It can be either a list with one component `$data`
@@ -283,33 +265,38 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #' are in the `$data` slot with two components: 
 #' + `$deployments` (cameras table)
 #' + `$observations` (records table)
-#' @param cam_type A named list containing the name of the 
-#' function to cast between types for the cameras table.
-#' If `NULL`, the cameras table will not be modified or its columns 
-#' reordered.
-#' The list's names are the names of the columns to cast 
-#' in `dat$data$deployments`.
-#' For details on the content of this list, see the documentation of 
-#' the `cast_columns` function.
 #' @param rec_type A named list containing the name of the 
 #' function to cast between types for the records table.
+#' In case `split = TRUE` and some columns that will be moved
+#' to the cameras table must be converted, they should be in this list.
 #' If `NULL`, the records table will not be modified or its columns 
 #' reordered.
 #' The list's names are the names of the columns to cast 
 #' in `dat$data$observations`. 
 #' For details on the content of this list, see the documentation of 
 #' the `cast_columns` function.
+#' @param cam_type A named list containing the name of the 
+#' function to cast between types for the cameras table. It is used
+#' only if `split = FALSE`.
+#' If `NULL`, the cameras table will not be modified or its columns 
+#' reordered.
+#' The list's names are the names of the columns to cast 
+#' in `dat$data$deployments`.
+#' For details on the content of this list, see the documentation of 
+#' the `cast_columns` function.
 #' @param split Logical; should the camera data be extracted from the 
 #' records table by splitting the data?
-#' @param only_shared_cameras Logical; restrict final data to shared cameras
+#' @param only_shared_cam Logical; restrict final data to shared cameras
 #' that are in `dat$data$deployments` and in `dat$data$observations`?
-#' @param cam_col_records Name of the column with cameras names in 
-#' records (needed only of `only_shared_cameras` is `TRUE`)
-#' @param cam_col_cameras Name of the column with cameras names in 
-#' cameras (needed only of `only_shared_cameras` is `TRUE`).
-#' If `NULL` will be assumed to be the same as `cam_col_records`. 
+#' @param cam_col_dfrec Name of the column with cameras names in 
+#' records (needed only if `split` or `only_shared_cam` is `TRUE`)
+#' @param cam_col_dfcam Name of the column with cameras names in 
+#' cameras (needed only if `only_shared_cam` is `TRUE`).
+#' If `NULL` will be assumed to be the same as `cam_col_dfrec`. 
 #' @param add_rowid Should row IDs be added to the observations df?
 #' If yes, row names in the form of "ID_xx" are added to the the dataframe.
+#' @param cam_cols A character vector of the columns in `dfrec` that should
+#' be moved to the `dat$data$deployments` dataframe if `split = TRUE`.
 #' 
 #' @return An object of the same type as the original input,
 #' but where `dat$data$deployments` and `dat$data$observations` have been
@@ -335,14 +322,14 @@ filter_cameras_in_both_tables <- function(records, cameras,
 #'                       lon = c("33.44", "33.45", "33.42"))
 #' dat <- list(data = list(observations = records,
 #'                         deployments = cameras))
-#' rec_type <- list(species = "as.character",
-#'                  date = list("as.Date",
+#'                         
+#' # Clean data
+#' rec_type <- list(date = list("as.Date",
 #'                                  format = "%Y-%m-%d"),
-#'                  time = "times",
-#'                  camera = "as.character")
-#' cam_type <- list(camera = "as.character",
-#'                  lat = "as.numeric",
+#'                  time = "times")
+#' cam_type <- list(lat = "as.numeric",
 #'                  lon = "as.numeric")
+#' 
 #' # Clean data converts columns to the appropriate types 
 #' # and reorders columns
 #' clean_data(dat,
@@ -351,57 +338,55 @@ filter_cameras_in_both_tables <- function(records, cameras,
 clean_data <- function(dat, 
                        cam_type = NULL,
                        rec_type = NULL,
-                       only_shared_cameras = FALSE,
-                       cam_col_records = NULL,
-                       cam_col_cameras = NULL,
+                       only_shared_cam = FALSE,
+                       cam_col_dfrec = NULL,
+                       cam_col_dfcam = NULL,
                        split = FALSE,
+                       cam_cols = ifelse(split, cam_col_dfrec, NULL),
                        add_rowid = FALSE) {
   
-  # Prepare cameras ---
-  if (!is.null(cam_type)) {
-    cameras_colnames <- as.list(names(cam_type))
-    
-    res <- prepare_cameras(dat, 
-                           cam_columns = cameras_colnames, 
-                           cam_col = cam_col_records,
-                           split = split)
-  } else {
-    res <- dat
-  }
-  
+  # Initialize data ---
+  res <- dat 
   
   # Records ---
   # Cast
   if (!is.null(rec_type)) {
     res$data$observations <- cast_columns(res$data$observations,
                                           cast_type = rec_type)
+    
+    # Reorder
+    res$data$observations <- res$data$observations |>
+      select(all_of(names(rec_type)),
+             everything())
   }
   
-  # Reorder
-  res$data$observations <- res$data$observations |>
-    select(all_of(names(rec_type)),
-           everything())
-  
-  # Cameras ---
-  # Cast
-  if (!is.null(cam_type)) {
-    res$data$deployments <- cast_columns(res$data$deployments,
-                                         cast_type = cam_type)
+  # Split cameras ---
+  if (split) { 
+    # We need to extract relevant columns from dfrec
+    res <- split_records_cameras(res, 
+                                 cam_cols = cam_cols, 
+                                 cam_col = cam_col_dfrec)
+  } else {
+    # Cameras ---
+    if (!is.null(cam_type)) {
+      # Cast
+      res$data$deployments <- cast_columns(res$data$deployments,
+                                           cast_type = cam_type)
+      
+      # Reorder
+      res$data$deployments <- res$data$deployments |>
+        select(all_of(names(cam_type)),
+               everything())
+    }
   }
-  
-  # Reorder
-  res$data$deployments <- res$data$deployments |>
-    select(all_of(names(cam_type)),
-           everything())
-  
   
   # Both data ---
-  if (only_shared_cameras) {
+  if (only_shared_cam) {
     # Restrict data to shared cameras
     bothcam <- filter_cameras_in_both_tables(res$data$observations,
                                              res$data$deployments, 
-                                             cam_col_records,
-                                             cam_col_cameras)
+                                             cam_col_dfrec,
+                                             cam_col_dfcam)
     
     res$data$observations <- bothcam$records
     res$data$deployments <- bothcam$cameras
@@ -427,13 +412,13 @@ clean_data <- function(dat,
 #' @param mapping The mapping list for columns in the dataframe.
 #' Names are the column types. They are free, except the
 #' species column and the observation type column, which
-#' must be coded with respectively `obs_col` and `spp_col`
-#' (if they exist). If `obs_col` is present in the names,
+#' must be coded with respectively `obstype_col` and `spp_col`
+#' (if they exist). If `obstype_col` is present in the names,
 #' then `spp_col` is assumed to be present too.
 #' Values are the corresponding column names in the dataframe. 
 #' 
 #' @return The filtered dataframe, so that rows in `mapping` contain no 
-#' `NA` values. `NA` are allowed only in `spp_col` if `obs_col` 
+#' `NA` values. `NA` are allowed only in `spp_col` if `obstype_col` 
 #' is in mapping is not `animal`.
 #' 
 #' @export
@@ -444,16 +429,16 @@ clean_data <- function(dat,
 #'                  stamp = Sys.time() + seq(60, length.out = 4, by = 60), 
 #'                  camera = c("A", "B", "C", NA))
 #' mapping <- list(spp_col = "species",
-#'                 obs_col = "type",
-#'                 timestamp_col = "stamp",
+#'                 obstype_col = "type",
+#'                 datetime_col = "stamp",
 #'                 cam_col = "camera")
 #' remove_rows_with_NA(df, mapping)
 remove_rows_with_NA <- function(df, mapping) {
   
-  if ("obs_col" %in% names(mapping)) {
-    # Authorize NA values in spp_col where obs_col is not "species"
+  if ("obstype_col" %in% names(mapping)) {
+    # Authorize NA values in spp_col where obstype_col is not "species"
     spp_col_name <- mapping[["spp_col"]]
-    obs_col_name <- mapping[["obs_col"]]
+    obstype_col_name <- mapping[["obstype_col"]]
     
     na_check <- mapping[mapping != spp_col_name]
     na_check <- unlist(na_check)
@@ -462,15 +447,15 @@ remove_rows_with_NA <- function(df, mapping) {
     res <- df |>
       tidyr::drop_na(all_of(unname(na_check)))
     
-    obs_col <- res[[obs_col_name]]
+    obstype_col <- res[[obstype_col_name]]
     spp_col <- res[[spp_col_name]]
-    # Get the NA values of spp_col name where obs_col is 'animal'
-    spp_NA <- which(is.na(spp_col) & obs_col == "animal")
+    # Get the NA values of spp_col name where obstype_col is 'animal'
+    spp_NA <- which(is.na(spp_col) & obstype_col == "animal")
     
     if (length(spp_NA) != 0) {
       res <- res[-spp_NA,]
     }
-  } else { # No obs_col
+  } else { # No obstype_col
     # No NAs authorized in the mapping columns
     res <- df |>
       tidyr::drop_na(all_of(unname(mapping)))

@@ -7,9 +7,9 @@
 get_all_species(
   df,
   spp_col,
-  obs_col = NULL,
+  obstype_col = NULL,
   animal_code = "animal",
-  return_df = ifelse(is.null(obs_col), FALSE, TRUE)
+  return_df = ifelse(is.null(obstype_col), FALSE, TRUE)
 )
 }
 \arguments{
@@ -17,26 +17,26 @@ get_all_species(
 
 \item{spp_col}{name of the species column from the dataframe}
 
-\item{obs_col}{name of the observation type column from the dataframe}
+\item{obstype_col}{name of the observation type column from the dataframe}
 
-\item{animal_code}{value of \code{obs_col} coding for animal observations.}
+\item{animal_code}{value of \code{obstype_col} coding for animal observations.}
 
 \item{return_df}{return a dataframe? If \code{TRUE}, will return a dataframe
 (see below); else will return a character vector of species names.}
 }
 \value{
 species names in the same order as \code{df}.
-If \code{obs_col} is provided,  \code{NA} values in \code{spp_col} are
-replaced with the corresponding value in \code{obs_col}
-(if \code{obs_col} is not \code{animal_code}).
+If \code{obstype_col} is provided,  \code{NA} values in \code{spp_col} are
+replaced with the corresponding value in \code{obstype_col}
+(if \code{obstype_col} is not \code{animal_code}).
 If \code{return_df} is \code{TRUE}, returns a dataframe containing
 species and observation type in the same order as \code{df}.
 This dataframe has the following columns (type character):
 \itemize{
 \item a column named like \code{spp_col} containing species names
 (where \code{NA} values in \code{spp_col} are replaced as described above).
-\item a column named like \code{obs_col} containing unique corresponding
-observations types (if \code{obs_col} is provided).
+\item a column named like \code{obstype_col} containing unique corresponding
+observations types (if \code{obstype_col} is provided).
 Else, returns only the character vector containing the values of
 \code{spp_col}.
 }
@@ -54,7 +54,7 @@ df <- data.frame(species = c("rabbit", "cat", "cat", NA, NA,
                  type = c("animal", "animal", "animal", "fire", "blank", 
                           "human", "human"))
 # Use the type column
-get_all_species(df, spp_col = "species", obs_col = "type")
+get_all_species(df, spp_col = "species", obstype_col = "type")
 # Use the type column but return a vector
 get_all_species(df, spp_col = "species", return_df = FALSE)
 

@@ -158,7 +158,7 @@ sppsum <- summarize_species(with_count_NA,
 knitr::kable(sppsum)
 ```
 
-If `obs_col` is included, the final table will have one more column describing type and the values will be summarized by `species_col` and `obs_col`.
+If `obstype_col` is included, the final table will have one more column describing type and the values will be summarized by `species_col` and `obstype_col`.
 
 ```{r}
 with_obstype <- recordTableSample |> 
@@ -171,7 +171,7 @@ with_obstype <- rbind(with_obstype,
 sppsum <- summarize_species(with_obstype,
                             spp_col = "Species", 
                             cam_col = "Station", 
-                            obs_col = "type")
+                            obstype_col = "type")
 knitr::kable(sppsum)
 ```
 

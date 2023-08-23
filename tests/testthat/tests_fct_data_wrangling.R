@@ -41,7 +41,7 @@ test_that("Get nspecies", {
   # With obstype
   df <- data.frame(obstype = c("animal", "animal", "animal", "animal", "blank"),
                    species = c("cat", "cat", "cow", "dog", NA))
-  n <- get_nspecies(df, species_col = "species", obs_col = "obstype")
+  n <- get_nspecies(df, species_col = "species", obstype_col = "obstype")
   
   expect_equal(n, 3)
   
@@ -60,23 +60,23 @@ test_that("Get nspecies", {
 test_that("Summarize cameras raises errors", {
   expect_error(summarize_cameras(mica$data$observations, 
                                  cam_col = "deploymentID"),
-               "If timestamp_col is not specified or NULL, both date_col and time_col must be provided.")
+               "If datetime_col is not specified or NULL, both date_col and time_col must be provided.")
   
   expect_error(summarize_cameras(mica$data$observations, 
                                  cam_col = "deploymentID",
-                                 timestamp_col = NULL),
-               "If timestamp_col is not specified or NULL, both date_col and time_col must be provided.")
+                                 datetime_col = NULL),
+               "If datetime_col is not specified or NULL, both date_col and time_col must be provided.")
   
   expect_error(summarize_cameras(recordTableSample, 
                                  cam_col = "deploymentID",
                                  date_col = "Date"),
-               "If timestamp_col is not specified or NULL, both date_col and time_col must be provided.")
+               "If datetime_col is not specified or NULL, both date_col and time_col must be provided.")
   
   expect_message(summarize_cameras(recordTableSample, 
                                    cam_col = "Station",
-                                   timestamp_col = "DateTimeOriginal",
+                                   datetime_col = "DateTimeOriginal",
                                    date_col = "Date"),
-                 "timestamp_col is provided, so date_col and time_col will be ignored.")
+                 "datetime_col is provided, so date_col and time_col will be ignored.")
   
 })
 
@@ -87,7 +87,7 @@ test_that("Summarize cameras (no dfcam)", {
   
   res <- summarize_cameras(mica$data$observations, 
                            cam_col = "deploymentID", 
-                           timestamp_col = "timestamp")
+                           datetime_col = "timestamp")
   
   expect_equal(colnames(res), expected_colnames)
   expect_equal(class(res$setup), c("POSIXct", "POSIXt"))
@@ -247,7 +247,7 @@ test_that("Summarize cameras with a camera with one obs", {
                    camera = "A01")
   
   res <- summarize_cameras(df, 
-                           timestamp_col = "stamp",
+                           datetime_col = "stamp",
                            cam_col = "camera")
   expected <- data.frame(camera = "A01",
                          pictures = 1,
@@ -266,7 +266,7 @@ test_that("Summarize cameras with a camera with one obs", {
                    camera = c("A01", "A02", "A02"))
   
   res <- summarize_cameras(df, 
-                           timestamp_col = "stamp",
+                           datetime_col = "stamp",
                            cam_col = "camera")
   expected <- data.frame(camera = c("A01", "A02"),
                          pictures = c(1, 2),
@@ -286,7 +286,7 @@ test_that("Summarize cameras with a camera with one obs", {
                    camera = c("A01", "A01"))
   
   res <- summarize_cameras(df, 
-                           timestamp_col = "stamp",
+                           datetime_col = "stamp",
                            cam_col = "camera")
   expected <- data.frame(camera = "A01",
                          pictures = 2,
@@ -310,7 +310,7 @@ test_that("Summarize cameras (dfcam with no setup or retrieval)", {
   
   # Give cam_col_dfcam
   res <- summarize_cameras(df, 
-                           timestamp_col = "stamp",
+                           datetime_col = "stamp",
                            cam_col = "camera",
                            dfcam = dfcam,
                            cam_col_dfcam = "camera")
@@ -330,7 +330,7 @@ test_that("Summarize cameras (dfcam with no setup or retrieval)", {
   
   # Don't give cam_col_dfcam
   res <- summarize_cameras(df, 
-                           timestamp_col = "stamp",
+                           datetime_col = "stamp",
                            cam_col = "camera",
                            dfcam = dfcam)
   expect_equal(res, expected)
@@ -366,7 +366,7 @@ test_that("Summarize cameras with species col", {
   # Test without dfcam
   res <- summarize_cameras(df,
                            cam_col = "camera",
-                           timestamp_col = "stamp",
+                           datetime_col = "stamp",
                            spp_col = "species")
   
   expect_equal(res, expected_nodfcam)
@@ -374,7 +374,7 @@ test_that("Summarize cameras with species col", {
   # Test with dfcam (one more camera)
   res <- summarize_cameras(df,
                            cam_col = "camera",
-                           timestamp_col = "stamp",
+                           datetime_col = "stamp",
                            spp_col = "species",
                            dfcam = dfcam)
   
@@ -385,7 +385,7 @@ test_that("Summarize cameras with species col", {
   
   res <- summarize_cameras(df,
                            cam_col = "camera",
-                           timestamp_col = "stamp",
+                           datetime_col = "stamp",
                            spp_col = "species",
                            dfcam = dfcam2)
   
@@ -422,18 +422,18 @@ test_that("Summarize cameras with spp_col and obs_type", {
   # Test without dfcam
   res <- summarize_cameras(df,
                            cam_col = "camera",
-                           timestamp_col = "stamp",
+                           datetime_col = "stamp",
                            spp_col = "species",
-                           obs_col = "type")
+                           obstype_col = "type")
   
   expect_equal(res, expected_nodfcam)
   
   # Test with dfcam
   res <- summarize_cameras(df,
                            cam_col = "camera",
-                           timestamp_col = "stamp",
+                           datetime_col = "stamp",
                            spp_col = "species",
-                           obs_col = "type",
+                           obstype_col = "type",
                            dfcam = dfcam)
   
   expect_equal(res, expected)
@@ -441,7 +441,7 @@ test_that("Summarize cameras with spp_col and obs_type", {
   # Test without obstype
   res <- summarize_cameras(df,
                            cam_col = "camera",
-                           timestamp_col = "stamp",
+                           datetime_col = "stamp",
                            spp_col = "species",
                            dfcam = dfcam)
   expected_notype <- expected |> 
@@ -458,14 +458,14 @@ test_that("Get all species", {
                    type = c("animal", "animal", "animal", "fire", "blank", "human", "human"))
   
   # With obs_type
-  res <- get_all_species(df, spp_col = "species", obs_col = "type")
+  res <- get_all_species(df, spp_col = "species", obstype_col = "type")
   expected <- df
   expected$species[expected$type == "fire"] <- "fire"
   expected$species[expected$type == "blank"] <- "blank"
   expect_equal(res, expected)
   
   # With obs_type but return vector
-  res <- get_all_species(df, spp_col = "species", obs_col = "type",
+  res <- get_all_species(df, spp_col = "species", obstype_col = "type",
                          return_df = FALSE)
   expect_equal(res, expected$species)
   
@@ -507,7 +507,7 @@ test_that("Get unique species", {
   
   # With observation type
   res <- get_unique_species(df, 
-                            spp_col = "species", obs_col = "type",
+                            spp_col = "species", obstype_col = "type",
                             reorder = TRUE)
   expected <- data.frame(species = c("cat", "rabbit",
                                      "blank", "fire", "cameratrapper", "tourist"),
@@ -520,7 +520,7 @@ test_that("Get unique species", {
   
   # With observation type and return character
   res <- get_unique_species(df, 
-                            spp_col = "species", obs_col = "type",
+                            spp_col = "species", obstype_col = "type",
                             return_df = FALSE,
                             reorder = TRUE)
   expected_char <- expected$species
@@ -531,7 +531,7 @@ test_that("Get unique species", {
   df_fac$species <- factor(df_fac$species)
   df_fac$type <- factor(df_fac$type)
   res <- get_unique_species(df_fac, 
-                            spp_col = "species", obs_col = "type",
+                            spp_col = "species", obstype_col = "type",
                             reorder = TRUE)
   expect_equal(class(df_fac$species), "factor")
   expect_equal(class(df_fac$type), "factor")
@@ -539,7 +539,7 @@ test_that("Get unique species", {
   
   # Factor (and return vector)
   res <- get_unique_species(df_fac, 
-                            spp_col = "species", obs_col = "type", 
+                            spp_col = "species", obstype_col = "type", 
                             return_df = FALSE,
                             reorder = TRUE)
   expect_equal(class(df_fac$species), "factor")
@@ -551,7 +551,7 @@ test_that("Get unique species", {
   df <- data.frame(species = c("cat", "human", NA, NA),
                    type = c("animal", "human", "blank", NA))
   res <- get_unique_species(df, 
-                            spp_col = "species", obs_col = "type",
+                            spp_col = "species", obstype_col = "type",
                             reorder = TRUE)
   expected <- data.frame(species = c("cat", "blank", "human", NA),
                          type = c("animal", "blank", "human", NA))
@@ -566,7 +566,7 @@ test_that("Get species (obstype but no other than animal)", {
   df <- data.frame(species = c("rabbit", "cat", "cat", "cow"),
                    type = rep("animal", 4))
   res <- get_unique_species(df, 
-                     spp_col = "species", obs_col = "type",
+                     spp_col = "species", obstype_col = "type",
                      reorder = TRUE)
   
   expected <- data.frame(species = c("cat", "cow", "rabbit"),
@@ -599,7 +599,7 @@ test_that("Summarize species", {
   # With obstype ---
   res <- summarize_species(df, 
                            spp_col = "species", cam_col = "camera",
-                           obs_col = "type")
+                           obstype_col = "type")
   expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA, NA),
                          type = c("animal", "animal", "animal", "animal", "blank", "human"),
                          sightings = c(2, 2, 1, 1, 1, 1),
@@ -612,7 +612,7 @@ test_that("Summarize species", {
   res <- suppressWarnings(summarize_species(df, 
                                             spp_col = "species", 
                                             cam_col = "camera",
-                                            obs_col = "type",
+                                            obstype_col = "type",
                                             count_col = "count"))
   expected$individuals <- c(2, 53, 4, 1, NA, 1)
   expected$prop_cam <- expected$n_cameras/4
@@ -622,7 +622,7 @@ test_that("Summarize species", {
   res <- suppressWarnings(summarize_species(df, 
                                             spp_col = "species", 
                                             cam_col = "camera",
-                                            obs_col = "type",
+                                            obstype_col = "type",
                                             count_col = "count",
                                             ncam = 50))
   expected$prop_cam <- expected$n_cameras/50
@@ -686,7 +686,7 @@ test_that("Summarize species without camera", {
   # With obstype ---
   res <- summarize_species(df, 
                            spp_col = "species",
-                           obs_col = "type")
+                           obstype_col = "type")
   expected <- data.frame(species = c("cat", "cow", "rabbit", "zebra", NA, NA),
                          type = c("animal", "animal", "animal", "animal", "blank", "human"),
                          sightings = c(2, 2, 1, 1, 1, 1),
@@ -696,7 +696,7 @@ test_that("Summarize species without camera", {
   # With count ---
   res <- suppressWarnings(summarize_species(df, 
                                             spp_col = "species",
-                                            obs_col = "type",
+                                            obstype_col = "type",
                                             count_col = "count"))
   expected$individuals <- c(2, 53, 4, 1, NA, 1)
   expect_equal(res, expected)
@@ -876,7 +876,7 @@ test_that("Filter data", {
   maxdate <- max(dat$data$observations$DateTimeOriginal)
   daterange <- as.Date(c(maxdate + 1, maxdate + 10))
   res <- filter_data(dat, 
-                     timestamp_col = "DateTimeOriginal", 
+                     datetime_col = "DateTimeOriginal", 
                      daterange = daterange)
   expect_equal(nrow(res$data$observations), 0)
   expect_equal(res$data$deployments, dat$data$deployments)
@@ -894,14 +894,14 @@ test_that("Filter data", {
   dat_type$data$observations$type <- c(rep("category1", nrow(dat$data$observations) - 7),
                                        rep("category2", 7))
   res <- filter_data(dat_type, 
-                     obs_col = "type", 
+                     obstype_col = "type", 
                      obs_filter =  "category2")
   expect_equal(unique(res$data$observations$type), "category1")
   expect_equal(res$data$deployments, dat$data$deployments)
   
   # Filter observations and species
   res <- filter_data(dat_type, 
-                     obs_col = "type", 
+                     obstype_col = "type", 
                      obs_filter =  "category2",
                      spp_col = "Species", 
                      spp_filter = "PBE")
@@ -938,7 +938,7 @@ test_that("Filter data", {
 
 test_that("Filter data (dates)", {
   dat <- list(data = list(observations = records,
-                          deployments = caminfo))
+                          deployments = dfcam))
   
   # Filter dates with POSIX that have a tz ---
   daterange_orig <- range(dat$data$observations$timestamp)
@@ -946,7 +946,7 @@ test_that("Filter data (dates)", {
                  daterange_orig[2])
   
   res <- filter_data(dat, 
-                     timestamp_col = "timestamp", 
+                     datetime_col = "timestamp", 
                      daterange = daterange)
   resrange <- range(res$data$observations$timestamp)
   # There is one obs every hour, so first and last obs should fall
@@ -959,7 +959,7 @@ test_that("Filter data (dates)", {
   daterange <- as.POSIXct(c("2023-01-02 02:00:00", "2023-01-03 00:00:00"))
   
   res <- filter_data(dat, 
-                     timestamp_col = "timestamp", 
+                     datetime_col = "timestamp", 
                      daterange = daterange)
   resrange <- range(res$data$observations$timestamp)
   # There is one obs every hour, so first and last obs should fall
@@ -976,7 +976,7 @@ test_that("Filter data (dates)", {
   daterange <- as.POSIXct(c("2023-01-02 02:00:00", "2023-01-03 00:00:00"),
                           tz = "Etc/GMT-4")
   res <- filter_data(dat, 
-                     timestamp_col = "timestamp", 
+                     datetime_col = "timestamp", 
                      daterange = daterange)
   resrange <- range(res$data$observations$timestamp)
   # convert daterange to data timezone
@@ -991,7 +991,7 @@ test_that("Filter data (dates)", {
   daterange <- as.Date(c("2023-01-02", "2023-01-03"))
   
   res <- filter_data(dat, 
-                     timestamp_col = "timestamp", 
+                     datetime_col = "timestamp", 
                      daterange = daterange)
   resrange <- range(res$data$observations$timestamp)
   # Convert to POSIX
@@ -1007,7 +1007,7 @@ test_that("Filter data (dates)", {
   daterange <- c("2023-01-02", "2023-01-03")
   
   res <- filter_data(dat, 
-                     timestamp_col = "timestamp", 
+                     datetime_col = "timestamp", 
                      daterange = daterange)
   resrange <- range(res$data$observations$timestamp)
   # Convert to POSIX
@@ -1024,7 +1024,7 @@ test_that("Filter data (dates)", {
                           tz = "Etc/GMT")
   custom_tz <- "Etc/GMT+10"
   res <- filter_data(dat, 
-                     timestamp_col = "timestamp", 
+                     datetime_col = "timestamp", 
                      daterange = daterange,
                      tz = custom_tz)
   resrange <- range(res$data$observations$timestamp)
@@ -1036,7 +1036,7 @@ test_that("Filter data (dates)", {
   daterange <- as.POSIXct(c("2023-01-02 02:00:00", "2023-01-03 00:00:00"))
   custom_tz <- "Etc/GMT-10"
   res <- filter_data(dat, 
-                     timestamp_col = "timestamp", 
+                     datetime_col = "timestamp", 
                      daterange = daterange,
                      tz = custom_tz)
   resrange <- range(res$data$observations$timestamp)

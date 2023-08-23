@@ -4,16 +4,16 @@
 \alias{get_cameras_not_in}
 \title{Get non-shared cameras between two dataframes}
 \usage{
-get_cameras_not_in(dfrecords, dfcameras, cam_col_records, cam_col_cameras)
+get_cameras_not_in(dfrecords, dfcameras, cam_col_dfrec, cam_col_dfcam)
 }
 \arguments{
 \item{dfrecords}{records dataframe}
 
 \item{dfcameras}{cameras dataframe}
 
-\item{cam_col_records}{name of the cameras column in the records dataframe}
+\item{cam_col_dfrec}{name of the cameras column in the records dataframe}
 
-\item{cam_col_cameras}{name of the cameras column in the cameras dataframe}
+\item{cam_col_dfcam}{name of the cameras column in the cameras dataframe}
 }
 \value{
 A named list with two components
@@ -35,6 +35,6 @@ dfrecords <- data.frame(camID = letters[2:7])
 dfcam <- data.frame(cameras = letters[1:5])
 get_cameras_not_in(dfrecords = dfrecords, 
                    dfcameras = dfcam,
-                   cam_col_records = "camID",
-                   cam_col_cameras = "cameras")
+                   cam_col_dfrec = "camID",
+                   cam_col_dfcam = "cameras")
 }

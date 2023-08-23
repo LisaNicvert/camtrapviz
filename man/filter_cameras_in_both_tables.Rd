@@ -5,21 +5,21 @@
 \title{Filter cameras in both tables}
 \usage{
 filter_cameras_in_both_tables(
-  records,
-  cameras,
-  cam_col_records,
-  cam_col_cameras = NULL
+  dfrec,
+  dfcam,
+  cam_col_dfrec,
+  cam_col_dfcam = NULL
 )
 }
 \arguments{
-\item{records}{Records dataframe}
+\item{dfrec}{Records dataframe}
 
-\item{cameras}{Cameras dataframe}
+\item{dfcam}{Cameras dataframe}
 
-\item{cam_col_records}{Name of the column with cameras names in records}
+\item{cam_col_dfrec}{Name of the column with cameras names in \code{dfrec}}
 
-\item{cam_col_cameras}{Name of the column with cameras names in cameras.
-If \code{NULL} will be assumed to be the same as \code{cam_col_records}.}
+\item{cam_col_dfcam}{Name of the column with cameras names in \code{dfcam}
+If \code{NULL} will be assumed to be the same as \code{cam_col_dfrec}.}
 }
 \value{
 A list of two dataframes with filtered values:
@@ -32,12 +32,12 @@ A list of two dataframes with filtered values:
 Filter data to keep only rows where cameras are in both tables
 }
 \examples{
-records <- data.frame(species = c("pigeon", "mouse", "pigeon", "mouse"),
+dfrec <- data.frame(species = c("pigeon", "mouse", "pigeon", "mouse"),
                       stamp = Sys.time() + seq(60, length.out = 4, by = 60),
                       camera = c("A", "B", "C", "E"))
-cameras <- data.frame(camera = c("A", "B", "C", "D"), 
+dfcam <- data.frame(camera = c("A", "B", "C", "D"), 
                       lat = c(20.12, 20.22, 22.34, 21.35),
                       lon = c(33.44, 33.45, 33.42, 33.53))
-filter_cameras_in_both_tables(records, cameras, 
-                              cam_col_records = "camera")
+filter_cameras_in_both_tables(dfrec, dfcam, 
+                              cam_col_dfrec = "camera")
 }

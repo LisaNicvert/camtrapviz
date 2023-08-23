@@ -12,14 +12,14 @@ remove_rows_with_NA(df, mapping)
 \item{mapping}{The mapping list for columns in the dataframe.
 Names are the column types. They are free, except the
 species column and the observation type column, which
-must be coded with respectively \code{obs_col} and \code{spp_col}
-(if they exist). If \code{obs_col} is present in the names,
+must be coded with respectively \code{obstype_col} and \code{spp_col}
+(if they exist). If \code{obstype_col} is present in the names,
 then \code{spp_col} is assumed to be present too.
 Values are the corresponding column names in the dataframe.}
 }
 \value{
 The filtered dataframe, so that rows in \code{mapping} contain no
-\code{NA} values. \code{NA} are allowed only in \code{spp_col} if \code{obs_col}
+\code{NA} values. \code{NA} are allowed only in \code{spp_col} if \code{obstype_col}
 is in mapping is not \code{animal}.
 }
 \description{
@@ -31,8 +31,8 @@ df <- data.frame(species = c("pigeon", "mouse", NA, "pigeon"),
                  stamp = Sys.time() + seq(60, length.out = 4, by = 60), 
                  camera = c("A", "B", "C", NA))
 mapping <- list(spp_col = "species",
-                obs_col = "type",
-                timestamp_col = "stamp",
+                obstype_col = "type",
+                datetime_col = "stamp",
                 cam_col = "camera")
 remove_rows_with_NA(df, mapping)
 }

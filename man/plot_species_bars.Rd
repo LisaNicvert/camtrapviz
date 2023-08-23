@@ -8,7 +8,7 @@ plot_species_bars(
   df,
   spp_col,
   count_col = NULL,
-  obs_col = NULL,
+  obstype_col = NULL,
   interactive = FALSE,
   NA_count_placeholder = NA
 )
@@ -21,9 +21,9 @@ plot_species_bars(
 \item{count_col}{Name of the count column (optional). If missing,
 it will be assumed to be 1 for all observations.}
 
-\item{obs_col}{Name of the observation type column (optional).
+\item{obstype_col}{Name of the observation type column (optional).
 If it is present, the function will plot only the observations
-for which \code{obs_col} is "animal".}
+for which \code{obstype_col} is "animal".}
 
 \item{interactive}{Logical; make the plot interactive with \code{ggiraph}?}
 

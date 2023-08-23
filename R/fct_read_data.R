@@ -77,24 +77,24 @@ get_named_list <- function(df, col, widget_values) {
 #' Reads data from a file path (either csv of json file), and 
 #' optionally from another csv file (with camera data).
 #'
-#' @param records_path A valid file path for records.
-#' @param sep_records separator used for the records.
-#' @param sep_cameras separator used for the cameras (defaults to `NULL`).
-#' @param cameras_path A valid file path for cameras (defaults to `NULL`).
+#' @param path_rec A valid file path for records.
+#' @param sep_rec separator used for the records.
+#' @param sep_cam separator used for the cameras (defaults to `NULL`).
+#' @param path_cam A valid file path for cameras (defaults to `NULL`).
 #' @param NA_strings Vector of characters that should be considered `NA`
 #' after import
 #' @param add_rowid Should row IDs be added to the observations df?
 #' If yes, row names in the form of "ID_xx" are added to the the dataframe.
 #'
 #' @return A list with one component or a `datapackage` object.
-#' + if `records_path` is a json file, returns a `datapackage` object
+#' + if `path_rec` is a json file, returns a `datapackage` object
 #' (inheriting list). The data is in the `$data` slot, 
 #' which is a list with 2 components: 
 #'    + `$deployments` (cameras)
 #'    + `$observations` (records)
-#' + if `records_path` is a csv file, returns a list with one component
+#' + if `path_rec` is a csv file, returns a list with one component
 #' named `$data`, which is a list with 2 components: 
-#'    + `$deployments` (cameras: if no camera file was provided in `cameras_path`,
+#'    + `$deployments` (cameras: if no camera file was provided in `path_cam`,
 #'     it is `NULL`)
 #'    + `$observations` (records)
 #'    
@@ -105,31 +105,31 @@ get_named_list <- function(df, col, widget_values) {
 #' @examples
 #' \dontrun{
 #' # Read only records
-#' read_data(records_path = "records.csv", sep_records = ",")
+#' read_data(path_rec = "records.csv", sep_rec = ",")
 #' # Read records and cameras
-#' read_data(records_path = "records.csv", sep_records = ",",
-#'           cameras_path = "cameras.csv", sep_cameras = ",")
+#' read_data(path_rec = "records.csv", sep_rec = ",",
+#'           path_cam = "cameras.csv", sep_cam = ",")
 #' # Read a json file
-#' read_data(records_path = "datapackage.json")
+#' read_data(path_rec = "datapackage.json")
 #' }
-read_data <- function(records_path,
-                      sep_records, 
-                      cameras_path = NULL,
-                      sep_cameras = NULL,
+read_data <- function(path_rec,
+                      sep_rec, 
+                      path_cam = NULL,
+                      sep_cam = NULL,
                       NA_strings = c("NA", ""),
                       add_rowid = FALSE) {
   
   # Get file extension
-  ext <- tools::file_ext(records_path)
+  ext <- tools::file_ext(path_rec)
   
   if (ext == "csv") { # The input is a csv file
     # Read csv
-    res_records <- utils::read.csv(records_path, sep = sep_records,
+    res_records <- utils::read.csv(path_rec, sep = sep_rec,
                                    na.strings = NA_strings)
     
-    if (!is.null(cameras_path)) { # There is a camera file
+    if (!is.null(path_cam)) { # There is a camera file
       # Read csv
-      res_cameras <- utils::read.csv(cameras_path, sep = sep_cameras,
+      res_cameras <- utils::read.csv(path_cam, sep = sep_cam,
                                      na.strings = NA_strings)
     } else { # There is no camera file
       res_cameras <- NULL
@@ -139,7 +139,7 @@ read_data <- function(records_path,
                             deployments = res_cameras))
     
   } else if (ext == "json") { # CamtrapDP format
-    res <- camtraptor::read_camtrap_dp(records_path, media = FALSE)
+    res <- camtraptor::read_camtrap_dp(path_rec, media = FALSE)
   } else { # Unknown extension
     validate(need(ext == "csv" || ext == "json", 
                   "Please upload a csv file or a json datapackage"))

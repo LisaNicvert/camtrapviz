@@ -33,12 +33,12 @@ camtraps$Retrieval_date <- as.Date(camtraps$Retrieval_date, format = "%d/%m/%Y")
 # Plot points -------------------------------------------------------------
 
 (p <- plot_points(recordTableSample, 
-                  camera_col = "Station", 
+                  cam_col = "Station", 
                   points_col = "Species",
-                  timestamp_col = "DateTimeOriginal",
-                  caminfo = camtraps,
-                  caminfo_setup = "Setup_date",
-                  caminfo_retrieval = "Retrieval_date", 
+                  datetime_col = "DateTimeOriginal",
+                  dfcam = camtraps,
+                  setup_dfcam = "Setup_date",
+                  retrieval_dfcam = "Retrieval_date", 
                   date_breaks = "10 day",
                   date_limits = as.POSIXct(c("2009-04-01",
                                              "2009-05-17"),
@@ -87,11 +87,11 @@ PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
 vm <- activity::fitact(PBE_records$time_radians)
 pdf_vm <- as.data.frame(vm@pdf)
 
-plot_activity(fitted_data = pdf_vm,
-              times_fit = "x",
+plot_activity(dffit = pdf_vm,
+              time_dffit = "x",
               y_fit = "y",
-              true_data = PBE_records,
-              times_true = "Time",
+              dfrec = PBE_records,
+              time_dfrec = "Time",
               unit = "clock",
               freq = TRUE,
               interactive = TRUE)

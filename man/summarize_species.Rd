@@ -8,7 +8,7 @@ summarize_species(
   df,
   spp_col,
   cam_col = NULL,
-  obs_col = NULL,
+  obstype_col = NULL,
   count_col = NULL,
   ncam = NULL,
   by_cam = FALSE,
@@ -24,7 +24,7 @@ summarize_species(
 \item{cam_col}{Name of the column containing camera codes (optional if
 \code{by_cam} is \code{FALSE})}
 
-\item{obs_col}{Name of the observation type column (optional)}
+\item{obstype_col}{Name of the observation type column (optional)}
 
 \item{count_col}{Name of the column containing species count (optional)}
 
@@ -49,8 +49,8 @@ A table summarizing species information with the following columns:
 \itemize{
 \item Species (named like \code{spp_col}): species identity
 (same as the \code{spp_col} input column)
-\item Observation type (present only if \code{obs_col} is not \code{NULL} and named like
-\code{obs_col}): observation type (same as the \code{obs_col} input column)
+\item Observation type (present only if \code{obstype_col} is not \code{NULL} and named like
+\code{obstype_col}): observation type (same as the \code{obstype_col} input column)
 \item \code{sightings}: number of rows where the species was photographed.
 \item \code{individuals}: count of individuals observed on all
 pictures (using the input \code{count_col} column).
@@ -86,13 +86,13 @@ df <- data.frame(species = c("zebra", "cat", "cat", "cow", NA, NA),
 # Summarize species across all cameras
 summarize_species(df, 
                   spp_col = "species", cam_col = "camera",
-                  obs_col = "type",
+                  obstype_col = "type",
                   count_col = "count",
                   NA_count_placeholder = 1)
 # Summarize per species and cameras
 summarize_species(df, 
                   spp_col = "species", cam_col = "camera",
-                  obs_col = "type",
+                  obstype_col = "type",
                   count_col = "count",
                   by_cam = TRUE,
                   NA_count_placeholder = 1)

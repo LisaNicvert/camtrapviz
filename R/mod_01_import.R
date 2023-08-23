@@ -402,9 +402,9 @@ importServer <- function(id) {
                                                         ns = NS(id),
                                                         records_widgets_w[["time_col"]]
                                                         )
-    records_widgets_w[["timestamp_col"]] <- conditionalPanel(condition = "input.datetime_or_timestamp == 'timestamp'", 
+    records_widgets_w[["datetime_col"]] <- conditionalPanel(condition = "input.datetime_or_timestamp == 'timestamp'", 
                                                              ns = NS(id),
-                                                             records_widgets_w[["timestamp_col"]]
+                                                             records_widgets_w[["datetime_col"]]
     )
 
     # Add cameras conditional panel
@@ -539,8 +539,8 @@ importServer <- function(id) {
         validate(need(file_path != '', "Please upload a records file"))
         
         # Get input separator values
-        sep_records <- input$records_sep
-        sep_cameras <- input$cameras_sep
+        sep_rec <- input$records_sep
+        sep_cam <- input$cameras_sep
         
         # User wants to import a camera file?
         if (input$import_cameras) {
@@ -552,40 +552,40 @@ importServer <- function(id) {
           req(camera_file)
           
           # Get camera_path
-          cameras_path <- unname(camera_file$datapath)
-          validate(need(cameras_path != '', "Please upload camera file"))
+          path_cam <- unname(camera_file$datapath)
+          validate(need(path_cam != '', "Please upload camera file"))
           
         } else {
-          cameras_path <- NULL
+          path_cam <- NULL
         }
         
         # Try to automate separator values
-        if (is.null(sep_records)) {
+        if (is.null(sep_rec)) {
           L <- readLines(file_path, n = 1)
-          sep_records <- get_separator(L)
+          sep_rec <- get_separator(L)
         }
         
-        if (!is.null(cameras_path)) {
-          if (is.null(sep_cameras)) {
-            L <- readLines(cameras_path, n = 1)
-            sep_cameras <- get_separator(L)
+        if (!is.null(path_cam)) {
+          if (is.null(sep_cam)) {
+            L <- readLines(path_cam, n = 1)
+            sep_cam <- get_separator(L)
           }
         }
         
         # Update records separator
         updateRadioButtons(inputId = "records_sep",
-                           selected = sep_records)
+                           selected = sep_rec)
         
         # Update camera separator
         updateRadioButtons(inputId = "cameras_sep",
-                           selected = sep_cameras)
+                           selected = sep_cam)
         
         # Read data
         metaExpr({
           read_data(..(file_path), 
-                    ..(sep_records),
-                    ..(cameras_path),
-                    ..(sep_cameras))
+                    ..(sep_rec),
+                    ..(path_cam),
+                    ..(sep_cam))
         }, bindToReturn = TRUE)
       }
     }, varname = "dat_raw")
@@ -699,9 +699,8 @@ importServer <- function(id) {
 
 ## Mapping -----------------------------------------------------------------
     
-    # Mapping value for records columns
-    mapping_records <- reactive({
-      
+    # Raw mapping values
+    mapping_records_raw <- reactive({
       # Initialize NULL list
       res <- vector(mode = "list",
                     length = nrow(records_widgets))
@@ -712,7 +711,15 @@ importServer <- function(id) {
                          nullval = nullval,
                          example_mapping = example_mapping_records)
       
-      # Get the mapping corresponding to cameras in records
+      res
+    })
+    
+    # Mapping value for records columns
+    mapping_records <- reactive({
+      # Get raw mapping
+      res <- mapping_records_raw()
+      
+      # Remove camera columns
       widget_cam <- records_widgets |>
         dplyr::filter(type == "cameras")
       widget_cam <- widget_cam$widget
@@ -783,8 +790,7 @@ importServer <- function(id) {
 
 ## Mapping -----------------------------------------------------------------
     
-    # Mapping value for cameras columns extracted from the camera file
-    mapping_cameras <- reactive({
+    mapping_cameras_raw <- reactive({
       # Initialize NULL list
       res <- vector(mode = "list",
                     length = length(all_cameras_widgets))
@@ -793,22 +799,46 @@ importServer <- function(id) {
       names(res) <- all_cameras_widgets
       
       if(!is.null(cameras_cols())) { # user imported a camera file
-        widgets_to_look_at <- cameras_to_update
+        # Look for values in the relevant widgets
+        res <- get_mapping(mapping_list = res, 
+                           relevant_widgets = cameras_to_update, 
+                           nullval = nullval,
+                           example_mapping = example_mapping_cameras)
+      } else {
+        res <- NULL
+      }
+      
+      res
+    })
+    
+    mapping_cameras <- reactive({
+      
+      if(!is.null(cameras_cols())) { # user imported a camera file
+        # Get raw camera mapping
+        res <- mapping_cameras_raw()
+        
+        # Remove the _cov in the names
+        names(res) <- gsub("_cov$", "", names(res))
+        
         if (input$input_type != 1) {
           source <- "cameras"
         } else {
           source <- "example"
         }
       } else { # No camera file was imported
-        # Names for res are the records widget names
-        names(res) <- gsub("_cov$", "", names(res))
+        # Get raw records mapping
+        res <- mapping_records_raw()
         
         # Get the mapping corresponding to cameras in records
         widget_cam <- records_widgets |>
           dplyr::filter(type == "cameras")
         widget_cam <- widget_cam$widget
         # Add cam_col
-        widgets_to_look_at <- c(widget_cam, "cam_col")
+        widget_cam <- c(widget_cam, "cam_col")
+        
+        # Get only values for the cameras widgets
+        res <- res[widget_cam]
+        
         if (input$input_type != 1) {
           source <- "records"
         } else {
@@ -816,19 +846,9 @@ importServer <- function(id) {
         }
       }
       
-      # Look for values in the relevant widgets
-      res <- get_mapping(mapping_list = res, 
-                         relevant_widgets = widgets_to_look_at, 
-                         nullval = nullval,
-                         example_mapping = example_mapping_cameras)
-      
-      # Remove _cov for consistency
-      names(res) <- gsub("_cov$", "", names(res))
-      
       list(mapping = res,
            source = source)
     })
-    
 
 ## CRS ---------------------------------------------------------------------
     
@@ -937,11 +957,11 @@ importServer <- function(id) {
 # Clean data --------------------------------------------------------------
     
     dat <- metaReactive2({
-
+      
       # Ensure data is available
       req(mapping_records())
-      req(mapping_cameras()$mapping)
-
+      req(mapping_cameras())
+      
       validate(need(all(unname(unlist(mapping_records())) %in% colnames(dat_raw()$data$observations)),
                     "Wait a minute for the records :)"))
       if( mapping_cameras()$source != "records") {
@@ -955,17 +975,10 @@ importServer <- function(id) {
       lat <- mapping_cameras()$mapping$lat_col
       validate(need((!is.null(lon) & !is.null(lat)) | (is.null(lon) & is.null(lat)), 
                     "If one of latitude or longitude is provided, the other must be provided."))
-    
-      
-      if ( mapping_cameras()$source == "records" ) {
-        split <- TRUE
-      } else {
-        split <- FALSE
-      }
       
       # Get casting types ---
       # Records
-      non_null_rec <- unlist(mapping_records())
+      non_null_rec <- unlist(mapping_records_raw())
       non_null_names <- names(non_null_rec)
       castval_rec <- get_named_list(records_widgets,
                                     col = "cast",
@@ -974,68 +987,119 @@ importServer <- function(id) {
       names(castval_rec) <- unname(non_null_rec) # Rename with table column names
       
       # Cameras
-      # /!\ Here we choose to look in the records table,
-      # because the cast types should be the same in both tables
-      # and mapping_cameras was renamed to remove the _col suffix
-      non_null_cam <- unlist(mapping_cameras()$mapping)
-      non_null_names <- names(non_null_cam)
-      castval_cam <- get_named_list(records_widgets,
-                                    col = "cast",
-                                    widget_values = non_null_names)
-      castval_cam <- castval_cam[non_null_names] # Reorder values
-      names(castval_cam) <- unname(non_null_cam) # Rename with table column names
+      if (!is.null(mapping_cameras_raw())) {
+        # If a cameras file was imported (so there is a mapping)
+        non_null_cam <- unlist(mapping_cameras_raw())
+        non_null_names <- names(non_null_cam)
+        castval_cam <- get_named_list(cameras_widgets,
+                                      col = "cast",
+                                      widget_values = non_null_names)
+        castval_cam <- castval_cam[non_null_names] # Reorder values
+        names(castval_cam) <- unname(non_null_cam) # Rename with table column names
+      } else {
+        castval_cam <- NULL
+      }
       
-      # Add options to casting for dates
-      dates_cast <- records_widgets |>
+      # Add options to casting for dates ---
+      # Get names of the relevant widgets
+      dates_cast_rec <- records_widgets |>
         filter(cast == "as.Date")
-      dates_cast <- dates_cast$widget
-      # Get column names
-      dates_cast <- c(unname(unlist(mapping_records()[dates_cast])),
-                      unname(unlist(mapping_cameras()$mapping[dates_cast]))) 
-      # Add options to casting for POSIX
-      posix_cast <- records_widgets |>
-        filter(cast == "as.POSIXct")
-      posix_cast <- posix_cast$widget
-      posix_cast <- c(unname(unlist(mapping_records()[posix_cast])),
-                      unname(unlist(mapping_cameras()$mapping[posix_cast]))) 
+      dates_cast_rec <- dates_cast_rec$widget
       
+      dates_cast_cam <- cameras_widgets |>
+        filter(cast == "as.Date")
+      dates_cast_cam <- dates_cast_cam$widget
+      
+      # Get corresponding column names
+      # When mapping_cameras_raw is NULL, it is ignored
+      # (c(1:10, NULL) -> 1:10)
+      dates_cast <- c(unname(unlist(mapping_records_raw()[dates_cast_rec])),
+                      unname(unlist(mapping_cameras_raw()[dates_cast_cam])))
+      
+      
+      # Add options to casting for POSIX
+      posix_cast_rec <- records_widgets |>
+        filter(cast == "as.POSIXct")
+      posix_cast_rec <- posix_cast_rec$widget
+      
+      posix_cast_cam <- cameras_widgets |>
+        filter(cast == "as.POSIXct")
+      posix_cast_cam <- posix_cast_cam$widget
+      
+      # Get corresponding column names
+      # When mapping_cameras_raw is NULL, it is ignored
+      # (c(1:10, NULL) -> 1:10)
+      posix_cast <- c(unname(unlist(mapping_records_raw()[posix_cast_rec])),
+                      unname(unlist(mapping_cameras_raw()[posix_cast_cam])))
+
       # Add a casting type only if relevant
-      if (!all(is.null(fmt()$date))) {
+      if (!is.null(fmt()$date)) { # If a date format is provided
         castval_rec <- add_date_options(castval_rec,
                                         formats = fmt()$date,
                                         names_to_add = dates_cast)
-        castval_cam <- add_date_options(castval_cam,
-                                        formats = fmt()$date,
-                                        names_to_add = dates_cast)
+        if (!is.null(castval_cam)) {
+          castval_cam <- add_date_options(castval_cam,
+                                          formats = fmt()$date,
+                                          names_to_add = dates_cast)
+        }
       }
-      if (!all(is.null(fmt()$posix_rec)) || !is.null(tz()) ) {
+      
+      
+      if (!is.null(fmt()$posix_rec) || !is.null(tz()) ) {
+        # If a datetime format or tz is provided
         castval_rec <- add_date_options(castval_rec,
                                         formats = fmt()$posix_rec,
                                         tz = tz(),
                                         names_to_add = posix_cast)
       }
-      if (!all(is.null(fmt()$posix_cam)) || !is.null(tz()) ) {
-        castval_cam <- add_date_options(castval_cam,
-                                        formats = fmt()$posix_cam,
-                                        tz = tz(),
-                                        names_to_add = posix_cast)
+      if (!is.null(fmt()$posix_cam) || !is.null(tz()) ) {
+        # If a datetime format or tz is provided
+        if (!is.null(castval_cam)) {
+          castval_cam <- add_date_options(castval_cam,
+                                          formats = fmt()$posix_cam,
+                                          tz = tz(),
+                                          names_to_add = posix_cast)
+        }
+      }
+      
+      # Special case when we need to split data
+      if ( mapping_cameras()$source == "records" ) { 
+        # If cameras mapping comes from records
+        
+        # We want to split
+        split <- TRUE
+        
+        # We need cam_col_dfrec
+        cam_col_dfrec <- unname(mapping_records_raw()[["cam_col"]])
+        
+        # Get camera columns names
+        cam_cols <- unlist(mapping_cameras()$mapping)
+        cam_cols <- unname(cam_cols)
+      } else {
+        # Don't split
+        split <- FALSE
+        
+        # We don't need cam_col_dfrec
+        cam_col_dfrec <- NULL
+        
+        # Set cam_cols to NULL
+        cam_cols <- NULL
       }
       
       metaExpr({
-        # Casting types variables ---
+        "# Clean data ---"
+        
+        # Vectors defined here ---
         castval_rec <- ..(castval_rec)
         castval_cam <- ..(castval_cam)
-        
-        # Camera column ---
-        cam_col <- ..(unname(mapping_cameras()$mapping[["cam_col"]]))
-        rec_col <- ..(unname(mapping_records()[["cam_col"]]))
+        cam_cols <- ..(cam_cols)
         
         clean_data(dat = ..(dat_raw()), 
                    cam_type = castval_cam,
                    rec_type = castval_rec,
+                   cam_col_dfrec = ..(cam_col_dfrec),
                    split = ..(split),
-                   cam_col_cameras = cam_col,
-                   cam_col_records = rec_col,
+                   cam_cols = cam_cols,
                    add_rowid = TRUE)
       }, bindToReturn = TRUE)
       

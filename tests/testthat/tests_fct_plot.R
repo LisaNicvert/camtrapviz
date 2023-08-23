@@ -20,29 +20,29 @@ test_that("Plot points", {
   df$DateTimeOriginal <- as.POSIXct(df$DateTimeOriginal)
   
   p <- plot_points(df,
-                   camera_col = "Station",
-                   timestamp_col = "DateTimeOriginal",
+                   cam_col = "Station",
+                   datetime_col = "DateTimeOriginal",
                    points_col = "Species")
   
   br <- as.character(ggplot2::layer_scales(p)$y$get_breaks())
   expect_equal(br, unique(df$Station))
   
-  # With cameras_list
-  cameras_list <- c("StationA", "StationB", "StationC", "StationD")
+  # With cam_vec
+  cam_vec <- c("StationA", "StationB", "StationC", "StationD")
   p <- plot_points(df, 
-                   camera_col = "Station",
-                   timestamp_col = "DateTimeOriginal",
+                   cam_col = "Station",
+                   datetime_col = "DateTimeOriginal",
                    points_col = "Species",
-                   cameras_list = cameras_list)
+                   cam_vec = cam_vec)
   br <- as.character(ggplot2::layer_scales(p)$y$get_breaks())
-  expect_equal(br, cameras_list)
+  expect_equal(br, cam_vec)
   
   # With custom labels
   labels <- c(x = "Date (in French)",
               y = "Stations used in this project")
   p <- plot_points(df, 
-                   camera_col = "Station",
-                   timestamp_col = "DateTimeOriginal",
+                   cam_col = "Station",
+                   datetime_col = "DateTimeOriginal",
                    points_col = "Species",
                    ylab = labels[["y"]],
                    xlab = labels[["x"]])
@@ -56,27 +56,27 @@ test_that("Plot points (different parameter combinations)", {
   
   # Default parameters ---
   expect_no_error(plot_points(df,
-                              camera_col = "Station",
-                              timestamp_col = "DateTimeOriginal"))
+                              cam_col = "Station",
+                              datetime_col = "DateTimeOriginal"))
   
   # Color points as species ---
   p <- plot_points(df,
-                   camera_col = "Station",
-                   timestamp_col = "DateTimeOriginal",
+                   cam_col = "Station",
+                   datetime_col = "DateTimeOriginal",
                    points_col = "Species")
   expect_equal(as_label(p$mapping[[3]]), "Species")
   
   # Color points as species ---
   p <- plot_points(df,
-                   camera_col = "Station",
-                   timestamp_col = "DateTimeOriginal",
+                   cam_col = "Station",
+                   datetime_col = "DateTimeOriginal",
                    points_col = "Species")
   expect_equal(as_label(p$mapping[[3]]), "Species")
   
   # Interactive graph with no color or tooltip ---
   p <- plot_points(df,
-                   camera_col = "Station",
-                   timestamp_col = "DateTimeOriginal",
+                   cam_col = "Station",
+                   datetime_col = "DateTimeOriginal",
                    interactive = TRUE)
   expect_true("GeomInteractivePoint" %in% class(p$layers[[1]]$geom))
   expect_equal(as_label(p$layers[[1]]$mapping$tooltip),
@@ -84,8 +84,8 @@ test_that("Plot points (different parameter combinations)", {
   
   # Interactive graph with colors and tooltip (default) ---
   p <- plot_points(df,
-                   camera_col = "Station",
-                   timestamp_col = "DateTimeOriginal",
+                   cam_col = "Station",
+                   datetime_col = "DateTimeOriginal",
                    points_col = "Species",
                    interactive = TRUE)
   expect_true("GeomInteractivePoint" %in% class(p$layers[[1]]$geom)) # Interactive
@@ -95,8 +95,8 @@ test_that("Plot points (different parameter combinations)", {
   
   # Interactive graph with colors and (non-default) tooltip ---
   p <- plot_points(df,
-                   camera_col = "Station",
-                   timestamp_col = "DateTimeOriginal",
+                   cam_col = "Station",
+                   datetime_col = "DateTimeOriginal",
                    points_col = "Species", 
                    tooltip_info = "Directory",
                    interactive = TRUE)
@@ -108,8 +108,8 @@ test_that("Plot points (different parameter combinations)", {
 
   # Interactive graph with no color but custom tooltip ---
   p <- plot_points(df,
-                   camera_col = "Station",
-                   timestamp_col = "DateTimeOriginal",
+                   cam_col = "Station",
+                   datetime_col = "DateTimeOriginal",
                    tooltip_info = "Species", 
                    interactive = TRUE)
   expect_true("GeomInteractivePoint" %in% class(p$layers[[1]]$geom)) # Interactive
@@ -126,16 +126,16 @@ test_that("Plot points (colors)", {
   
   # Unique color ---
   (p <- plot_points(df,
-                    camera_col = "Station",
-                    timestamp_col = "DateTimeOriginal",
+                    cam_col = "Station",
+                    datetime_col = "DateTimeOriginal",
                     cols = "deeppink"))
   gb <- layer_data(p)
   expect_equal(unique(gb$colour), "deeppink")
   
   # Species colors ---
   (p <- plot_points(df,
-                    camera_col = "Station",
-                    timestamp_col = "DateTimeOriginal",
+                    cam_col = "Station",
+                    datetime_col = "DateTimeOriginal",
                     points_col = "Species"))
   gb <- layer_data(p)
   expect_equal(unique(gb$colour), 
@@ -145,8 +145,8 @@ test_that("Plot points (colors)", {
   spp <- unique(df$Species)
   pal <- RColorBrewer::brewer.pal(length(spp), "Set2")
   (p <- plot_points(df,
-              camera_col = "Station",
-              timestamp_col = "DateTimeOriginal",
+              cam_col = "Station",
+              datetime_col = "DateTimeOriginal",
               points_col = "Species",
               cols = pal))
   gb <- layer_data(p)
@@ -159,8 +159,8 @@ test_that("Plot points (colors)", {
   pal2 <- pal[shuf]
   names(pal2) <- spp[shuf] # Add colour names
   (p <- plot_points(df,
-                    camera_col = "Station",
-                    timestamp_col = "DateTimeOriginal",
+                    cam_col = "Station",
+                    datetime_col = "DateTimeOriginal",
                     points_col = "Species",
                     cols = pal2))
   gb <- layer_data(p)
@@ -177,19 +177,19 @@ test_that("Plot points with rectangles", {
   df <- recordTableSample
   df$DateTimeOriginal <- as.POSIXct(df$DateTimeOriginal)
   
-  caminfo <- camtraps
-  caminfo$Setup_date <- as.Date(caminfo$Setup_date, 
+  dfcam <- camtraps
+  dfcam$Setup_date <- as.Date(dfcam$Setup_date, 
                                 format = "%d/%m/%Y") 
-  caminfo$Retrieval_date <- as.Date(caminfo$Retrieval_date, 
+  dfcam$Retrieval_date <- as.Date(dfcam$Retrieval_date, 
                                     format = "%d/%m/%Y")
   
   # Normal case ---
   (p <- plot_points(df,
-                    camera_col = "Station",
-                    timestamp_col = "DateTimeOriginal",
-                    caminfo = caminfo,
-                    caminfo_setup = "Setup_date",
-                    caminfo_retrieval = "Retrieval_date"))
+                    cam_col = "Station",
+                    datetime_col = "DateTimeOriginal",
+                    dfcam = dfcam,
+                    setup_dfcam = "Setup_date",
+                    retrieval_dfcam = "Retrieval_date"))
   gb <- layer_data(p)
   # Check it is the good layer
   expect_true(all(c("xmin", "xmax", "ymin", "ymax") %in% colnames(gb)))
@@ -201,37 +201,37 @@ test_that("Plot points with rectangles", {
     mutate(Station = factor(Station))
   
   (p <- plot_points(df_fac,
-                    camera_col = "Station",
-                    timestamp_col = "DateTimeOriginal",
+                    cam_col = "Station",
+                    datetime_col = "DateTimeOriginal",
                     points_col = "Species",
-                    caminfo = caminfo,
-                    caminfo_setup = "Setup_date",
-                    caminfo_retrieval = "Retrieval_date"))
+                    dfcam = dfcam,
+                    setup_dfcam = "Setup_date",
+                    retrieval_dfcam = "Retrieval_date"))
   # Check it is the good layer
   expect_true(all(c("xmin", "xmax", "ymin", "ymax") %in% colnames(gb)))
   expect_equal(nrow(gb), 3) # 3 rectangles
   
   # Some more sampling ---
-  row <- caminfo[1,]
+  row <- dfcam[1,]
   row$Station <- "StationD"
-  caminfo_plus <- caminfo |> 
+  dfcam_plus <- dfcam |> 
     bind_rows(row)
   
   expect_warning(plot_points(df,
-                             camera_col = "Station",
-                             timestamp_col = "DateTimeOriginal",
+                             cam_col = "Station",
+                             datetime_col = "DateTimeOriginal",
                              points_col = "Species",
-                             caminfo = caminfo_plus,
-                             caminfo_setup = "Setup_date",
-                             caminfo_retrieval = "Retrieval_date"))
+                             dfcam = dfcam_plus,
+                             setup_dfcam = "Setup_date",
+                             retrieval_dfcam = "Retrieval_date"))
   suppressWarnings(
     (p <- plot_points(df,
-                      camera_col = "Station",
-                      timestamp_col = "DateTimeOriginal",
+                      cam_col = "Station",
+                      datetime_col = "DateTimeOriginal",
                       points_col = "Species",
-                      caminfo = caminfo_plus,
-                      caminfo_setup = "Setup_date",
-                      caminfo_retrieval = "Retrieval_date"))
+                      dfcam = dfcam_plus,
+                      setup_dfcam = "Setup_date",
+                      retrieval_dfcam = "Retrieval_date"))
   )
   # Check it is the good layer
   expect_true(all(c("xmin", "xmax", "ymin", "ymax") %in% colnames(gb)))
@@ -244,21 +244,21 @@ test_that("Plot points with rectangles", {
                             levels = c(unique(Station), "StationD")))
   
   expect_warning(plot_points(df_fac,
-                             camera_col = "Station",
-                             timestamp_col = "DateTimeOriginal",
+                             cam_col = "Station",
+                             datetime_col = "DateTimeOriginal",
                              points_col = "Species",
-                             caminfo = caminfo,
-                             caminfo_setup = "Setup_date",
-                             caminfo_retrieval = "Retrieval_date"))
+                             dfcam = dfcam,
+                             setup_dfcam = "Setup_date",
+                             retrieval_dfcam = "Retrieval_date"))
   
   suppressWarnings(
     (p <- plot_points(df_fac,
-                      camera_col = "Station",
-                      timestamp_col = "DateTimeOriginal",
+                      cam_col = "Station",
+                      datetime_col = "DateTimeOriginal",
                       points_col = "Species",
-                      caminfo = caminfo,
-                      caminfo_setup = "Setup_date",
-                      caminfo_retrieval = "Retrieval_date"))
+                      dfcam = dfcam,
+                      setup_dfcam = "Setup_date",
+                      retrieval_dfcam = "Retrieval_date"))
   )
   # Check it is the good layer
   expect_true(all(c("xmin", "xmax", "ymin", "ymax") %in% colnames(gb)))
@@ -273,21 +273,21 @@ test_that("Plot points with rectangles", {
     mutate(Station = "StationD")
   df_plus <- df |> bind_rows(camdup)
   expect_warning(plot_points(df_plus,
-                             camera_col = "Station",
-                             timestamp_col = "DateTimeOriginal",
+                             cam_col = "Station",
+                             datetime_col = "DateTimeOriginal",
                              points_col = "Species",
-                             caminfo = caminfo,
-                             caminfo_setup = "Setup_date",
-                             caminfo_retrieval = "Retrieval_date"))
+                             dfcam = dfcam,
+                             setup_dfcam = "Setup_date",
+                             retrieval_dfcam = "Retrieval_date"))
   
   suppressWarnings(
     (p <- plot_points(df_plus,
-                      camera_col = "Station",
-                      timestamp_col = "DateTimeOriginal",
+                      cam_col = "Station",
+                      datetime_col = "DateTimeOriginal",
                       points_col = "Species",
-                      caminfo = caminfo,
-                      caminfo_setup = "Setup_date",
-                      caminfo_retrieval = "Retrieval_date"))
+                      dfcam = dfcam,
+                      setup_dfcam = "Setup_date",
+                      retrieval_dfcam = "Retrieval_date"))
   )
   # Check it is the good layer
   expect_true(all(c("xmin", "xmax", "ymin", "ymax") %in% colnames(gb)))
@@ -303,7 +303,7 @@ test_that("Plot points and timezones", {
   # No timezone in data (date + time) ---
   custom_tz <- "Etc/GMT+12"
   (p <- plot_points(records,
-                    camera_col = "camera",
+                    cam_col = "camera",
                     date_col = "date",
                     time_col = "time",
                     tz = custom_tz))
@@ -316,8 +316,8 @@ test_that("Plot points and timezones", {
   # Datetime with timezone (converted) ---
   custom_tz <- "Etc/GMT+12"
   (p <- plot_points(records,
-                    camera_col = "camera",
-                    timestamp_col = "timestamp",
+                    cam_col = "camera",
+                    datetime_col = "timestamp",
                     tz = custom_tz))
   # Convert dates to target timezone
   true_dates <- as.POSIXct(records$timestamp, 
@@ -336,8 +336,8 @@ test_that("Plot points and timezones", {
                "")
   
   (p <- plot_points(records_notz,
-                    camera_col = "camera",
-                    timestamp_col = "timestamp",
+                    cam_col = "camera",
+                    datetime_col = "timestamp",
                     tz = custom_tz))
   
   res <- check_plot_datetimes(p,
@@ -345,59 +345,59 @@ test_that("Plot points and timezones", {
   expect_equal(res$tz, custom_tz)
   expect_equal(res$plot_time, res$data_time)
   
-  # Add caminfo (POSIX with same tz as data) ---
+  # Add dfcam (POSIX with same tz as data) ---
   data_tz <- attr(records$timestamp, "tzone")
   (p <- plot_points(records,
-                    camera_col = "camera",
-                    timestamp_col = "timestamp",
-                    caminfo = caminfo,
-                    caminfo_setup = "setup",
-                    caminfo_retrieval = "retrieval"))
+                    cam_col = "camera",
+                    datetime_col = "timestamp",
+                    dfcam = dfcam,
+                    setup_dfcam = "setup",
+                    retrieval_dfcam = "retrieval"))
   
   res <- check_plot_datetimes(p,
                               true_dates = records$timestamp,
-                              setup = caminfo$setup,
-                              retrieval = caminfo$retrieval)
+                              setup = dfcam$setup,
+                              retrieval = dfcam$retrieval)
   expect_equal(res$tz, data_tz)
   expect_equal(res$plot_time, res$data_time)
   expect_equal(res$plot_setup, res$data_setup)
   expect_equal(res$plot_retrieval, res$data_retrieval)
   
-  # Add caminfo (dates only) ---
-  caminfo_dates <- caminfo |> 
+  # Add dfcam (dates only) ---
+  dfcam_dates <- dfcam |> 
     mutate(setup = as.Date(setup),
            retrieval = as.Date(retrieval))
   (p <- plot_points(records,
-                    camera_col = "camera",
-                    timestamp_col = "timestamp",
-                    caminfo = caminfo_dates,
-                    caminfo_setup = "setup",
-                    caminfo_retrieval = "retrieval"))
+                    cam_col = "camera",
+                    datetime_col = "timestamp",
+                    dfcam = dfcam_dates,
+                    setup_dfcam = "setup",
+                    retrieval_dfcam = "retrieval"))
   res <- check_plot_datetimes(p,
                               true_dates = records$timestamp,
-                              setup = caminfo_dates$setup,
-                              retrieval = caminfo_dates$retrieval)
+                              setup = dfcam_dates$setup,
+                              retrieval = dfcam_dates$retrieval)
   expect_equal(res$tz, data_tz)
   expect_equal(res$plot_time, res$data_time)
   expect_equal(res$plot_setup, res$data_setup)
   expect_equal(res$plot_retrieval, res$data_retrieval)
   
-  # Add caminfo with another timezone ---
+  # Add dfcam with another timezone ---
   tzo = "Etc/GMT+10"
   default_tz <- "Etc/GMT"
-  caminfo_othertz <- caminfo |> 
+  dfcam_othertz <- dfcam |> 
     mutate(setup = force_tz(setup, tz = tzo),
            retrieval = force_tz(retrieval, tz = tzo))
   (p <- plot_points(records,
-                    camera_col = "camera",
-                    timestamp_col = "timestamp",
-                    caminfo = caminfo_othertz,
-                    caminfo_setup = "setup",
-                    caminfo_retrieval = "retrieval"))
+                    cam_col = "camera",
+                    datetime_col = "timestamp",
+                    dfcam = dfcam_othertz,
+                    setup_dfcam = "setup",
+                    retrieval_dfcam = "retrieval"))
   # Convert setup and retrieval to target timezone
-  true_setup <- caminfo_othertz$setup
+  true_setup <- dfcam_othertz$setup
   attr(true_setup, "tzone") <- default_tz
-  true_retrieval <- caminfo_othertz$retrieval
+  true_retrieval <- dfcam_othertz$retrieval
   attr(true_retrieval, "tzone") <- default_tz
   
   res <- check_plot_datetimes(p,
@@ -409,22 +409,22 @@ test_that("Plot points and timezones", {
   expect_equal(res$plot_setup, res$data_setup)
   expect_equal(res$plot_retrieval, res$data_retrieval)
   
-  # Add caminfo (POSIX with same tz) and convert ---
+  # Add dfcam (POSIX with same tz) and convert ---
   custom_tz <- "Etc/GMT+10"
   (p <- plot_points(records,
-                    camera_col = "camera",
-                    timestamp_col = "timestamp",
-                    caminfo = caminfo,
-                    caminfo_setup = "setup",
-                    caminfo_retrieval = "retrieval",
+                    cam_col = "camera",
+                    datetime_col = "timestamp",
+                    dfcam = dfcam,
+                    setup_dfcam = "setup",
+                    retrieval_dfcam = "retrieval",
                     tz = custom_tz))
   
   # Convert dates, setup and retrieval to target timezone
   true_dates <- records$timestamp
   attr(true_dates, "tzone") <- custom_tz
-  true_setup <- caminfo$setup
+  true_setup <- dfcam$setup
   attr(true_setup, "tzone") <- custom_tz
-  true_retrieval <- caminfo$retrieval
+  true_retrieval <- dfcam$retrieval
   attr(true_retrieval, "tzone") <- custom_tz
   
   res <- check_plot_datetimes(p,
@@ -447,7 +447,7 @@ test_that("Plot species bars", {
   # Don't replace NA ---
   p <- suppressWarnings(plot_species_bars(df, 
                                           spp_col = "species", 
-                                          obs_col = "type",
+                                          obstype_col = "type",
                                           count_col = "count"))
   br <- suppressWarnings(as.character(ggplot2::layer_scales(p)$x$get_breaks()))
   # Test that NA species was replaced with blank
@@ -456,7 +456,7 @@ test_that("Plot species bars", {
   # Replace NA with one
   p <- plot_species_bars(df, 
                          spp_col = "species", 
-                         obs_col = "type",
+                         obstype_col = "type",
                          count_col = "count",
                          NA_count_placeholder = 1)
   br <- as.character(ggplot2::layer_scales(p)$x$get_breaks())
@@ -592,8 +592,8 @@ test_that("Activity plot (histogram) with frequency", {
   PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
   
   # Clock time ---
-  (p <- plot_activity(true_data = PBE_records, 
-                      times_true = "Time"))
+  (p <- plot_activity(dfrec = PBE_records, 
+                      time_dfrec = "Time"))
   
   expect_equal(p$labels$x, "Time (hours)")
   expect_equal(p$labels$y, "Count")
@@ -608,8 +608,8 @@ test_that("Activity plot (histogram) with frequency", {
   expect_equal(tst_01, count_01)
   
   # Radians ---
-  (p <- plot_activity(true_data = PBE_records, 
-                      times_true = "time_radians",
+  (p <- plot_activity(dfrec = PBE_records, 
+                      time_dfrec = "time_radians",
                       unit = "radians"))
   
   expect_equal(p$labels$x, "Time (radians)")
@@ -642,8 +642,8 @@ test_that("Activity plot (histogram) with density", {
   PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
   
   # Clock time ---
-  (p <- plot_activity(true_data = PBE_records, 
-                      times_true = "Time",
+  (p <- plot_activity(dfrec = PBE_records, 
+                      time_dfrec = "Time",
                       hist_breaks = 2,
                       freq = FALSE))
   
@@ -661,8 +661,8 @@ test_that("Activity plot (histogram) with density", {
   expect_equal(prop_02, area_02)
   
   # Radians ---
-  (p <- plot_activity(true_data = PBE_records, 
-                      times_true = "time_radians",
+  (p <- plot_activity(dfrec = PBE_records, 
+                      time_dfrec = "time_radians",
                       unit = "radians",
                       hist_breaks = 2*(2*pi)/24,
                       freq = FALSE))
@@ -698,8 +698,8 @@ test_that("AInteractive ativity plot (histogram) with frequency", {
   PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
   
   # Clock time ---
-  (p <- plot_activity(true_data = PBE_records, 
-                      times_true = "Time",
+  (p <- plot_activity(dfrec = PBE_records, 
+                      time_dfrec = "Time",
                       interactive = TRUE))
   (g <- girafe(ggobj = p))
   
@@ -721,8 +721,8 @@ test_that("AInteractive ativity plot (histogram) with frequency", {
                "Count: 4\nTime: 00:00 — 01:00")
   
   # Radians ---
-  (p <- plot_activity(true_data = PBE_records, 
-                      times_true = "time_radians",
+  (p <- plot_activity(dfrec = PBE_records, 
+                      time_dfrec = "time_radians",
                       unit = "radians",
                       interactive = TRUE))
   
@@ -761,8 +761,8 @@ test_that("Interactive activity plot (histogram) with density", {
   PBE_records <- recordTableSample[recordTableSample$Species == "PBE", ]
   
   # Clock time ---
-  (p <- plot_activity(true_data = PBE_records, 
-                      times_true = "Time",
+  (p <- plot_activity(dfrec = PBE_records, 
+                      time_dfrec = "Time",
                       hist_breaks = 2,
                       freq = FALSE,
                       interactive = TRUE))
@@ -785,8 +785,8 @@ test_that("Interactive activity plot (histogram) with density", {
                "Density: 0.111\nTime: 00:00 — 02:00")
   
   # Radians ---
-  (p <- plot_activity(true_data = PBE_records, 
-                      times_true = "time_radians",
+  (p <- plot_activity(dfrec = PBE_records, 
+                      time_dfrec = "time_radians",
                       unit = "radians",
                       hist_breaks = 2*(2*pi)/24,
                       freq = FALSE,

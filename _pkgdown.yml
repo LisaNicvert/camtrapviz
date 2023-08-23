@@ -17,13 +17,8 @@ reference:
   - get_nspecies
   - get_all_species
   - get_unique_species
-  - starts_with("summarize")
-- title: "Analyze data"
-  contents:
   - get_diversity_indices
-  - time_to_circular
-  - vonMises_density
-  - fit_vonMises
+  - starts_with("summarize")
 - title: "Plot data"
   contents:
   - starts_with("plot")

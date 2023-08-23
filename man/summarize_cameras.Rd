@@ -5,9 +5,9 @@
 \title{Summarize cameras}
 \usage{
 summarize_cameras(
-  df,
+  dfrec,
   cam_col,
-  timestamp_col,
+  datetime_col,
   date_col = NULL,
   time_col = NULL,
   dfcam = NULL,
@@ -15,21 +15,21 @@ summarize_cameras(
   setup_col = NULL,
   retrieval_col = NULL,
   spp_col = NULL,
-  obs_col = NULL
+  obstype_col = NULL
 )
 }
 \arguments{
-\item{df}{the records dataframe: must contain the camera names and some
+\item{dfrec}{the records dataframe: must contain the camera names and some
 infortmation on the pictures sampling time (date and time or datetime).}
 
 \item{cam_col}{name of the column containing the camera ID}
 
-\item{timestamp_col}{name of the column containing timestamps for the pictures
+\item{datetime_col}{name of the column containing timestamps for the pictures
 (optional if \code{date_col} and \code{time_col} are provided)}
 
-\item{date_col}{name of the column containing date (optional if \code{timestamp_col} is provided)}
+\item{date_col}{name of the column containing date (optional if \code{datetime_col} is provided)}
 
-\item{time_col}{name of the column containing time (optional if \code{timestamp_col} is provided)}
+\item{time_col}{name of the column containing time (optional if \code{datetime_col} is provided)}
 
 \item{dfcam}{the dataframe of cameras deployments (optional).}
 
@@ -45,7 +45,7 @@ in \code{dfcam} (optional)}
 \item{spp_col}{name of the species column (optional). If present,
 the summarry will include the number of species seen on each camera.}
 
-\item{obs_col}{name of the observation type column}
+\item{obstype_col}{name of the observation type column}
 }
 \value{
 The summary is returned as a dataframe with the following columns:
@@ -57,9 +57,9 @@ If \code{setup} or \code{retrieval} are \code{NA}, then \code{sampling_length} i
 and if \code{setup} and \code{retrieval} are the same (e.g. unique picture),
 \code{sampling_length} is zero.
 \item \code{pictures}: the number of pictures taken with this camera (it
-is zero if the camera is only in \code{dfcam} but not in \code{df}).
+is zero if the camera is only in \code{dfcam} but not in \code{dfrec}).
 \item \code{species} (present only if \code{spp_col} is provided): number of species
-caught on camera. If \code{obs_col} is provided, species
+caught on camera. If \code{obstype_col} is provided, species
 marked as \code{NA} in \code{spp_col} but which have different values
 in \code{obs_type} are counted as different species.
 \item \code{setup} containing the start of the sampling for each camera.
@@ -106,7 +106,7 @@ cameras <- data.frame(camera = c("A", "B", "C"),
                       retrieval = as.Date(c("2022-03-01", "2022-03-01", NA)))
 # Summarize cameras
 summarize_cameras(records, 
-                  cam_col = "camera", timestamp_col = "stamp", 
+                  cam_col = "camera", datetime_col = "stamp", 
                   dfcam = cameras, 
                   setup_col = "setup", retrieval_col = "retrieval",
                   spp_col = "species")

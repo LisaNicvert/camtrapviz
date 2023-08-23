@@ -37,7 +37,7 @@ To compute diversity indices, we need the number and proportion of sightings for
 spp_cam <- summarize_species(records, 
                              spp_col = "vernacularNames.en", 
                              cam_col = "deploymentID",
-                             obs_col = "observationType",
+                             obstype_col = "observationType",
                              count_col = "count",
                              by_cam = TRUE,
                              NA_count_placeholder = 1)

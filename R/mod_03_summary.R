@@ -114,8 +114,8 @@ summaryServer <- function(id,
       unname(mapping_records()$spp_col)
     })    
     
-    obs_col <- reactive({
-      unname(mapping_records()$obs_col)
+    obstype_col <- reactive({
+      unname(mapping_records()$obstype_col)
     })    
     
     cam_col_cam <- reactive({
@@ -131,7 +131,7 @@ summaryServer <- function(id,
     nspecies <- reactive({
       get_nspecies(df = camtrap_data()$data$observations,
                    species_col = spp_col(),
-                   obs_col = obs_col(), 
+                   obstype_col = obstype_col(), 
                    keep_NA = FALSE)
     })
 
@@ -148,17 +148,17 @@ summaryServer <- function(id,
         metaExpr({
           summarize_cameras(..(camtrap_data())$data$observations, 
                             cam_col = ..(mapping_records$cam_col),
-                            timestamp_col = ..(mapping_records$timestamp_col),
+                            datetime_col = ..(mapping_records$datetime_col),
                             date_col = ..(mapping_records$date_col),
                             time_col = ..(mapping_records$time_col),
                             spp_col = ..(mapping_records$spp_col),
-                            obs_col = ..(mapping_records$obs_col))
+                            obstype_col = ..(mapping_records$obstype_col))
         })
       } else {
         metaExpr({
           summarize_cameras(..(camtrap_data())$data$observations, 
                             cam_col = ..(mapping_records$cam_col),
-                            timestamp_col = ..(mapping_records$timestamp_col),
+                            datetime_col = ..(mapping_records$datetime_col),
                             date_col = ..(mapping_records$date_col),
                             time_col = ..(mapping_records$time_col),
                             dfcam = ..(camtrap_data())$data$deployments, 
@@ -166,7 +166,7 @@ summaryServer <- function(id,
                             setup_col = ..(mapping_cameras$setup_col),
                             retrieval_col = ..(mapping_cameras$retrieval_col),
                             spp_col = ..(mapping_records$spp_col),
-                            obs_col = ..(mapping_records$obs_col))
+                            obstype_col = ..(mapping_records$obstype_col))
         })
       }
     }, varname = "camvalues")
@@ -180,7 +180,7 @@ summaryServer <- function(id,
       summarize_species(df = dat, 
                         spp_col = ..(spp_col()), 
                         cam_col = ..(cam_col_rec()), 
-                        obs_col = ..(obs_col()),
+                        obstype_col = ..(obstype_col()),
                         count_col = ..(unname(mapping_records()$count_col)),
                         ncam = ncam)
     }, varname = "sppvalues", bindToReturn = TRUE)
@@ -201,8 +201,8 @@ summaryServer <- function(id,
     cameras_status <- reactive({
       get_cameras_not_in(dfrecords = camtrap_data()$data$observations,
                          dfcameras = camtrap_data()$data$deployments,
-                         cam_col_records = cam_col_rec(),
-                         cam_col_cameras = cam_col_cam())
+                         cam_col_dfrec = cam_col_rec(),
+                         cam_col_dfcam = cam_col_cam())
     })
     
 # Infobox values ----------------------------------------------------------
@@ -337,15 +337,15 @@ summaryServer <- function(id,
           
           "# ggplot plot"
           gg <- plot_points(..(camtrap_data())$data$observations,
-                            camera_col = ..(cam_col_rec()),
+                            cam_col = ..(cam_col_rec()),
                             points_col = ..(spp_col()),
-                            timestamp_col = ..(unname(mapping_records()$timestamp_col)),
+                            datetime_col = ..(unname(mapping_records()$datetime_col)),
                             time_col = ..(unname(mapping_records()$time_col)),
                             date_col = ..(unname(mapping_records()$date_col)),
-                            caminfo = ..(cameras_values()),
+                            dfcam = ..(cameras_values()),
                             tz = ..(tz()),
                             interactive = TRUE,
-                            cameras_list = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
+                            cam_vec = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
           
           "# ggiraph plot (interactive)"
           gi <- ggiraph::girafe(ggobj = gg,
@@ -366,14 +366,14 @@ summaryServer <- function(id,
           
           "# ggplot plot"
           gg <- plot_points(..(camtrap_data())$data$observations,
-                            camera_col = ..(cam_col_rec()),
+                            cam_col = ..(cam_col_rec()),
                             points_col = ..(spp_col()),
-                            timestamp_col = ..(unname(mapping_records()$timestamp_col)),
+                            datetime_col = ..(unname(mapping_records()$datetime_col)),
                             time_col = ..(unname(mapping_records()$time_col)),
                             date_col = ..(unname(mapping_records()$date_col)),
                             tz = ..(tz()),
                             interactive = TRUE,
-                            cameras_list = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
+                            cam_vec = levels(..(camtrap_data())$data$observations[[..(cam_col_rec())]]))
           
           "# ggiraph plot (interactive)"
           gi <- ggiraph::girafe(ggobj = gg,

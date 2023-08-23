@@ -15,13 +15,13 @@ test_that("Find default colnames", {
   colnames <- c("species", "timestamp")
   regex <- c("^vernacularNames\\.en$|species", "station|deployment|camera",
              "timestamp|datetime")
-  names(regex) <-  c("spp_col", "cam_col", "timestamp_col")
+  names(regex) <-  c("spp_col", "cam_col", "datetime_col")
   
   default <- find_default_colnames(regex_list = regex,
                                    colnames = colnames)
   expect_equal(default, list("spp_col" = "species", 
                              "cam_col" = NULL, 
-                             "timestamp_col" = "timestamp"))
+                             "datetime_col" = "timestamp"))
   
   # Test 2
   df <- mica$data$observations
@@ -29,7 +29,7 @@ test_that("Find default colnames", {
              "date", "hour|time(?!stamp)", "lat|((^|[^[:alpha:]]+)x([^[:alpha:]]+|$))",
              "lon|((^|[^[:alpha:]]+)y([^[:alpha:]]+|$))", "count", "observationType")
   names(regex) <- c("spp_col", "cam_col", "date_col", "time_col",
-                    "lat_col", "lon_col", "count_col", "obs_col")
+                    "lat_col", "lon_col", "count_col", "obstype_col")
   
   default <- find_default_colnames(regex_list = regex,
                                    colnames = colnames(df))
@@ -44,8 +44,8 @@ test_that("Get cameras not in", {
   # Test matching cameras
   res <- get_cameras_not_in(dfrecords = dfrecords, 
                             dfcameras = dfcam,
-                            cam_col_records = "camrec",
-                            cam_col_cameras = "cameras")
+                            cam_col_dfrec = "camrec",
+                            cam_col_dfcam = "cameras")
   expect_equal(res$not_in_records, character(0))
   expect_equal(res$not_in_cameras, character(0))
   
@@ -53,8 +53,8 @@ test_that("Get cameras not in", {
   dfcam2 <- dfcam |> filter(cameras != "a")
   res <- get_cameras_not_in(dfrecords = dfrecords, 
                             dfcameras = dfcam2,
-                            cam_col_records = "camrec",
-                            cam_col_cameras = "cameras")
+                            cam_col_dfrec = "camrec",
+                            cam_col_dfcam = "cameras")
   expect_equal(res$not_in_records, character(0))
   expect_equal(res$not_in_cameras, "a")
   
@@ -62,8 +62,8 @@ test_that("Get cameras not in", {
   dfrecords2 <- dfrecords |> filter(camrec != "a")
   res <- get_cameras_not_in(dfrecords = dfrecords2, 
                             dfcameras = dfcam,
-                            cam_col_records = "camrec",
-                            cam_col_cameras = "cameras")
+                            cam_col_dfrec = "camrec",
+                            cam_col_dfcam = "cameras")
   expect_equal(res$not_in_records, "a")
   expect_equal(res$not_in_cameras,  character(0))
   
@@ -72,8 +72,8 @@ test_that("Get cameras not in", {
   dfcam2 <- dfcam |> filter(!(cameras %in% c("b", "c")))
   res <- get_cameras_not_in(dfrecords = dfrecords2, 
                             dfcameras = dfcam2,
-                            cam_col_records = "camrec",
-                            cam_col_cameras = "cameras")
+                            cam_col_dfrec = "camrec",
+                            cam_col_dfcam = "cameras")
   expect_equal(res$not_in_records, "a")
   expect_equal(res$not_in_cameras,  c("b", "c"))
 })
