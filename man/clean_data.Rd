@@ -13,6 +13,7 @@ clean_data(
   cam_col_dfcam = NULL,
   split = FALSE,
   cam_cols = ifelse(split, cam_col_dfrec, NULL),
+  reorder = FALSE,
   add_rowid = FALSE
 )
 }
@@ -26,7 +27,7 @@ are in the \verb{$data} slot with two components:
 }}
 
 \item{cam_type}{A named list containing the name of the
-function to cast between types for the cameras table. It is used
+function to cast types for the cameras table. It is used
 only if \code{split = FALSE}.
 If \code{NULL}, the cameras table will not be modified or its columns
 reordered.
@@ -36,9 +37,9 @@ For details on the content of this list, see the documentation of
 the \code{cast_columns} function.}
 
 \item{rec_type}{A named list containing the name of the
-function to cast between types for the records table.
-In case \code{split = TRUE} and some columns that will be moved
-to the cameras table must be converted, they should be in this list.
+function to cast types for the records table.
+If \code{split = TRUE}, the type conversion is performed before the split:
+so future columns of the cameras table to cast should be in this list.
 If \code{NULL}, the records table will not be modified or its columns
 reordered.
 The list's names are the names of the columns to cast
@@ -50,7 +51,7 @@ the \code{cast_columns} function.}
 that are in \code{dat$data$deployments} and in \code{dat$data$observations}?}
 
 \item{cam_col_dfrec}{Name of the column with cameras names in
-records (needed only if \code{split} or \code{only_shared_cam} is \code{TRUE})}
+records (needed only if \code{split} or \code{only_shared_cam} are \code{TRUE})}
 
 \item{cam_col_dfcam}{Name of the column with cameras names in
 cameras (needed only if \code{only_shared_cam} is \code{TRUE}).
@@ -61,6 +62,9 @@ records table by splitting the data?}
 
 \item{cam_cols}{A character vector of the columns in \code{dfrec} that should
 be moved to the \code{dat$data$deployments} dataframe if \code{split = TRUE}.}
+
+\item{reorder}{Reorder the columns indicated in \code{cam_type} or
+\code{rec_type} at the beginning of the table?}
 
 \item{add_rowid}{Should row IDs be added to the observations df?
 If yes, row names in the form of "ID_xx" are added to the the dataframe.}
@@ -73,11 +77,12 @@ cleaned as described above.
 \description{
 Cleans data by:
 \itemize{
-\item splitting records data in records and cameras (if needed)
 \item formatting cameras and records tables: casting specified columns
-and moving them to the beginning
+\item splitting records data in records and cameras (if needed)
 \item if \code{only_shared_cam} is \code{TRUE}: selecting the subset of
 cameras present in both records and cameras tables
+\item if \code{reorder} is \code{TRUE}: moving columns in \code{rec_type} and \code{cam_type}
+to the beginning of the table.
 }
 }
 \examples{

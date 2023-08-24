@@ -254,11 +254,12 @@ filter_cameras_in_both_tables <- function(dfrec, dfcam,
 #' Clean data
 #'
 #' Cleans data by:
+#' + formatting cameras and records tables: casting specified columns
 #' + splitting records data in records and cameras (if needed)
-#' + formatting cameras and records tables: casting specified columns 
-#' and moving them to the beginning
 #' + if `only_shared_cam` is `TRUE`: selecting the subset of 
 #' cameras present in both records and cameras tables
+#' + if `reorder` is `TRUE`: moving columns in `rec_type` and `cam_type`
+#' to the beginning of the table.
 #'  
 #' @param dat The data to clean. It can be either a list with one component `$data`
 #' or a `datapackage` object (inheriting list). Either way, the data 
@@ -266,9 +267,9 @@ filter_cameras_in_both_tables <- function(dfrec, dfcam,
 #' + `$deployments` (cameras table)
 #' + `$observations` (records table)
 #' @param rec_type A named list containing the name of the 
-#' function to cast between types for the records table.
-#' In case `split = TRUE` and some columns that will be moved
-#' to the cameras table must be converted, they should be in this list.
+#' function to cast types for the records table. 
+#' If `split = TRUE`, the type conversion is performed before the split: 
+#' so future columns of the cameras table to cast should be in this list.
 #' If `NULL`, the records table will not be modified or its columns 
 #' reordered.
 #' The list's names are the names of the columns to cast 
@@ -276,7 +277,7 @@ filter_cameras_in_both_tables <- function(dfrec, dfcam,
 #' For details on the content of this list, see the documentation of 
 #' the `cast_columns` function.
 #' @param cam_type A named list containing the name of the 
-#' function to cast between types for the cameras table. It is used
+#' function to cast types for the cameras table. It is used
 #' only if `split = FALSE`.
 #' If `NULL`, the cameras table will not be modified or its columns 
 #' reordered.
@@ -289,7 +290,7 @@ filter_cameras_in_both_tables <- function(dfrec, dfcam,
 #' @param only_shared_cam Logical; restrict final data to shared cameras
 #' that are in `dat$data$deployments` and in `dat$data$observations`?
 #' @param cam_col_dfrec Name of the column with cameras names in 
-#' records (needed only if `split` or `only_shared_cam` is `TRUE`)
+#' records (needed only if `split` or `only_shared_cam` are `TRUE`)
 #' @param cam_col_dfcam Name of the column with cameras names in 
 #' cameras (needed only if `only_shared_cam` is `TRUE`).
 #' If `NULL` will be assumed to be the same as `cam_col_dfrec`. 
@@ -297,6 +298,8 @@ filter_cameras_in_both_tables <- function(dfrec, dfcam,
 #' If yes, row names in the form of "ID_xx" are added to the the dataframe.
 #' @param cam_cols A character vector of the columns in `dfrec` that should
 #' be moved to the `dat$data$deployments` dataframe if `split = TRUE`.
+#' @param reorder Reorder the columns indicated in `cam_type` or 
+#' `rec_type` at the beginning of the table?
 #' 
 #' @return An object of the same type as the original input,
 #' but where `dat$data$deployments` and `dat$data$observations` have been
@@ -343,10 +346,14 @@ clean_data <- function(dat,
                        cam_col_dfcam = NULL,
                        split = FALSE,
                        cam_cols = ifelse(split, cam_col_dfrec, NULL),
+                       reorder = FALSE,
                        add_rowid = FALSE) {
   
   # Initialize data ---
   res <- dat 
+
+# -------------------------------------------------------------------------
+
   
   # Records ---
   # Cast
@@ -355,9 +362,11 @@ clean_data <- function(dat,
                                           cast_type = rec_type)
     
     # Reorder
-    res$data$observations <- res$data$observations |>
-      select(all_of(names(rec_type)),
-             everything())
+    if (reorder) {
+      res$data$observations <- res$data$observations |>
+        select(all_of(names(rec_type)),
+               everything())
+    }
   }
   
   # Split cameras ---
@@ -374,9 +383,11 @@ clean_data <- function(dat,
                                            cast_type = cam_type)
       
       # Reorder
-      res$data$deployments <- res$data$deployments |>
-        select(all_of(names(cam_type)),
-               everything())
+      if (reorder) {
+        res$data$deployments <- res$data$deployments |>
+          select(all_of(names(cam_type)),
+                 everything())
+      }
     }
   }
   

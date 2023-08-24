@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, message=FALSE, results='hide'}
 library(camtrapviz)
 library(dplyr)
 ```
@@ -24,7 +24,7 @@ library(dplyr)
 ## Write data in tempfile
 
 ```{r}
-# csv files ------------------------------------------
+# records and cameras in separate files ------------------------------------------
 data(recordTableSample, package = "camtrapR")
 data(camtraps, package = "camtrapR")
 
@@ -43,7 +43,7 @@ write.csv(camtraps, camtrapfile,
 
 
 ```{r}
-# csv camera ------------------------------------------
+# records and cameras in same file ------------------------------------------
 # Create file
 recordcam <- recordTableSample |>
   dplyr::left_join(camtraps, by = "Station")
@@ -58,7 +58,9 @@ write.csv(recordcam, recordcamfile,
 ```
 
 
-## Records and cameras in separate csv files (2 csv files)
+## Records and cameras in separate csv files
+
+First, we see how data import and cleaning is performed with two csv files (records and cameras):
 
 ### Read data
 
@@ -69,8 +71,10 @@ dat <- read_data(path_rec = recordfile,
 ```
 
 ```{r}
-head(dat$data$observations)
-head(dat$data$deployments)
+head(dat$data$observations) |> 
+  knitr::kable()
+head(dat$data$deployments) |> 
+  knitr::kable()
 ```
 
 The imported file is a list with one component `$data` containing 2 dataframes:
@@ -82,7 +86,7 @@ The imported file is a list with one component `$data` containing 2 dataframes:
 
 This step ensures all columns have the desired type. It will also move these columns to the beginning of the table.
 
-To cast data to the appropriate type, this function two arguments created below: `rec_type` (for the records table) and `cam_type` (for the cameras table).
+To cast data to the appropriate type, this function has two arguments, created below: `rec_type` (for the records table) and `cam_type` (for the cameras table).
 
 ```{r}
 rec_type <- list(Station = "as.character",
@@ -101,7 +105,7 @@ cam_type <- list(Station = "as.character",
 
 These lists contain the information about how to convert column types.
 
-+ Values contain the casting function to apply (e.g. `as.Date` will translate to `as.date(x)`). Values cal also be lists to provide additional arguments: for instance, `list("as.Date", format = "%d/%m/%Y")` will translate to `as.Date(x,  format = "%d/%m/%Y")`.
++ Values contain the casting function to apply (e.g. `"as.Date"` will translate to `as.Date(x)`). Values cal also be lists to provide additional arguments: for instance, `list("as.Date", format = "%d/%m/%Y")` will translate to `as.Date(x,  format = "%d/%m/%Y")`.
 + the names of the list give the corresponding column of the data that should be casted.
 
 ```{r}
@@ -112,51 +116,50 @@ dat_clean <- clean_data(dat,
 
 
 ```{r}
-head(dat_clean$data$observations)
-head(dat_clean$data$deployments)
+head(dat_clean$data$observations) |> 
+  knitr::kable()
+head(dat_clean$data$deployments) |> 
+  knitr::kable()
 ```
 
-In case cameras in records and in the cameras file do not match, `clean_data` has an option allowing to keep only shared cameras.
+In case cameras in records and in the cameras file do not match, `clean_data` has an option allowing to keep only shared cameras. We create a new dataset where the observations table has Stations A, B and C and the deployments table has stations B, C and D:
 
 
 ```{r}
 # Initialize new data
-dat_test <- dat
+dat_diffcam <- dat
 
-# Remove a camera from the records
-dat_test$data$observations <- dat_test$data$observations |> 
-  filter(Station != "StationC")
-
-# Add a camera in deployments
-newcam <- dat_test$data$deployments[1, ]
+# Replace a camera in deployments
+newcam <- dat_diffcam$data$deployments[1, ]
 newcam$Station <- "StationD"
 
-dat_test$data$deployments <- dat_test$data$deployments |> 
+dat_diffcam$data$deployments <- dat_diffcam$data$deployments |> 
+  filter(Station != "StationA") |> 
   bind_rows(newcam)
 
-# Observations has Stations A and B
-unique(dat_test$data$observations$Station)
-# Deployments has stations A, B, C and D
-unique(dat_test$data$deployments$Station)
+unique(dat_diffcam$data$observations$Station)
+unique(dat_diffcam$data$deployments$Station)
 ```
 
+Cleaning the data will keep only data with cameras that are common between the two datasets (B and C);
 
 ```{r}
-dat_clean <- clean_data(dat_test, 
-                        rec_type = rec_type,
-                        cam_type = cam_type,
-                        cam_col_dfrec = "Station",
-                        cam_col_dfcam = "Station", 
-                        only_shared_cam = TRUE)
+dat_diffcam_clean <- clean_data(dat_diffcam, 
+                                rec_type = rec_type,
+                                cam_type = cam_type,
+                                cam_col_dfrec = "Station",
+                                cam_col_dfcam = "Station", 
+                                only_shared_cam = TRUE)
 
-# Observations and deployments have the same stations (A and B)
-unique(dat_clean$data$observations$Station)
-unique(dat_clean$data$deployments$Station)
+unique(dat_diffcam_clean$data$observations$Station)
+unique(dat_diffcam_clean$data$deployments$Station)
 ```
 
 
 
 ## Records and cameras in the same csv (1 csv file)
+
+Then, we see how data import and cleaning is performed with a unique csv file containing records and cameras information:
 
 ### Read data
 
@@ -166,8 +169,10 @@ dat <- read_data(path_rec = recordcamfile,
 ```
 
 ```{r}
-head(dat$data$observations)
-head(dat$data$deployments)
+head(dat$data$observations) |> 
+  knitr::kable()
+head(dat$data$deployments) |> 
+  knitr::kable()
 ```
 
 Again the imported file is a list with one component `$data`:
@@ -177,9 +182,9 @@ Again the imported file is a list with one component `$data`:
 
 ### Clean data
 
-This step will split the information between cameras and records. To do this, it will move all columns listed in `cam_cols` in the cameras file. The column containing cameras IDs must be specified in the `cam_col_dfrec` argument (so that it is kept in the records).
+In this step, will split the information from the observations table between observations and deployments. To do this, `clean_data` will move all columns listed in `cam_cols` in the deployments table. The column containing cameras IDs must be specified in the `cam_col_dfrec` argument (so that this column is kept in the observations table).
 
-Since at the beginning all columns are in the records file, the casting specifications should be in the `rec_type` argument.
+Since at the beginning, all columns are in the observations dataframe, the casting specifications should be in the `rec_type` argument.
 
 ```{r}
 cam_cols <- c("Station", "Setup_date", "Retrieval_date", 
@@ -211,15 +216,19 @@ dat_clean <- clean_data(dat,
 ```
 
 ```{r}
-head(dat_clean$data$observations)
-head(dat_clean$data$deployments)
+head(dat_clean$data$observations) |> 
+  knitr::kable()
+head(dat_clean$data$deployments) |> 
+  knitr::kable()
 ```
 
 ## CamtrapDP format (json file)
 
+Then, we see how data import and cleaning is performed with a dataset in [camtrapDP](https://tdwg.github.io/camtrap-dp/) format.
+
 ### Read data
 
-The `read_data` function can also read json files corresponding to camtrapDP datapackage.
+The `read_data` function can also read json files corresponding to the camtrapDP datapackage.
 
 ```{r}
 dat <- read_data(path_rec = "https://raw.githubusercontent.com/tdwg/camtrap-dp/main/example/datapackage.json")
@@ -227,23 +236,25 @@ dat <- read_data(path_rec = "https://raw.githubusercontent.com/tdwg/camtrap-dp/m
 
 Internally, we use the function `read_camtrap_dp` from the `camtraptor` package (here, it would give the same result to use use directly this function). 
 
-The imported object is a `list` and the observations and deployments info are in the `$data` slot.
+The imported object is a `list` with several slots, and the observations and deployments info are in the `$data` slot.
 
 ```{r}
 class(dat)
+names(dat)
 
-head(dat$data$observations)
-head(dat$data$deployments)
+head(dat$data$observations) |> 
+  knitr::kable()
+head(dat$data$deployments) |> 
+  knitr::kable()
 ```
 
 ### Clean data
 
-Here, the data follows the camtrapDP standard and does not need cleaning. However, for this demonstration we will change the time stamp type:
+Here, the data follows the camtrapDP standard and does not need cleaning. However, for this demonstration we change the time stamp type to character:
 
 ```{r}
 dat$data$observations$timestamp <- as.character(dat$data$observations$timestamp)
 
-# timestamp was converted to character
 class(dat$data$observations$timestamp)
 ```
 
@@ -254,14 +265,22 @@ rec_type <- list(timestamp = list("as.POSIXct",
 
 dat_clean <- clean_data(dat, 
                         rec_type = rec_type)
+```
 
-# timestamp is back to POSIX
+In the cleaned data, `timestamp` is converted back to POSIX:
+```{r}
 class(dat_clean$data$observations$timestamp)
-# The timezone is the one we specified
+```
+
+The timezone is UTC, as we specified in the casting function:
+```{r}
 attr(dat_clean$data$observations$timestamp, "tzone")
 ```
 
+Else, the data is unchanged.
 ```{r}
-head(dat_clean$data$observations)
-head(dat_clean$data$deployments)
+head(dat_clean$data$observations) |> 
+  knitr::kable()
+head(dat_clean$data$deployments) |> 
+  knitr::kable()
 ```

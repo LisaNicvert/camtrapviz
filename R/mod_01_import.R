@@ -1100,7 +1100,8 @@ importServer <- function(id) {
                    cam_col_dfrec = ..(cam_col_dfrec),
                    split = ..(split),
                    cam_cols = cam_cols,
-                   add_rowid = TRUE)
+                   add_rowid = TRUE,
+                   reorder = TRUE)
       }, bindToReturn = TRUE)
       
     }, varname = "dat")

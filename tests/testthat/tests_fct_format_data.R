@@ -8,6 +8,7 @@
 # Script Description: tests format data functions
 
 library(testthat)
+library(chron)
 
 # Cast --------------------------------------------------------------------
 
@@ -258,3 +259,41 @@ test_that("Clean data", {
   # Test classes for cameras
   expect_equal(class(dat_clean$data$deployments$Lat_Y), "numeric")
 })
+
+test_that("Clean data (reorder)", {
+  # create data
+  dat <- list(data = list(deployments = camtraps,
+                          observations = recordTableSample))
+  
+  cast_cam <- list(utm_y = "as.numeric",
+                   utm_x = "as.numeric",
+                   Station = "as.character")
+  
+  cast_rec <- list(DateTimeOriginal = "as.POSIXct",
+                   Station = "as.character",
+                   Species = "as.character")
+  
+  # Dont reorder
+  dat_clean <- clean_data(dat = dat, 
+                          rec_type = cast_rec,
+                          cam_type = cast_cam)
+  expect_equal(colnames(dat$data$observations), colnames(dat_clean$data$observations))
+  expect_equal(colnames(dat$data$deployments), colnames(dat_clean$data$deployments))
+  
+  
+  # Reorder
+  dat_clean <- clean_data(dat = dat, 
+                          rec_type = cast_rec,
+                          cam_type = cast_cam,
+                          reorder = TRUE)
+  
+  expected_obs <- colnames(dat$data$observations)
+  expected_obs <- expected_obs[c(c(3, 1, 2), 4:length(expected_obs))]
+  expect_equal(expected_obs, colnames(dat_clean$data$observations))
+  
+  expected_dep <- colnames(dat$data$deployments)
+  expected_dep <- expected_dep[c(c(2, 3, 1), 4:length(expected_dep))]
+  expect_equal(expected_dep, colnames(dat_clean$data$deployments))
+  
+})
+  
