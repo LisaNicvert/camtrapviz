@@ -7,8 +7,9 @@ onespeciesUI <- function(id) {
 # Choose species ----------------------------------------------------------
 
     fluidRow(column(width = 12,
-                    uiOutput(NS(id, "species_select"))
-                    )
+                    uiOutput(NS(id, "species_select")),
+                    dataTableOutput(NS(id, "test"))
+                    ),
              ),
     # Activity plot -----------------------------------------------------------
 
@@ -28,7 +29,14 @@ onespeciesUI <- function(id) {
 # Species count ---------------------------------------------------------------------
              h3("Species count"),
              fluidRow(
-               column(width = 12,
+               column(width = 6, 
+                      radioButtons(NS(id, "value"),
+                                   label = "Plotted value",
+                                   choices = c("Abundance" = "abundance",
+                                               "Proportion of sightings" = "proportion",
+                                               "Relative abundance index" = "RAI"))
+               ),
+               column(width = 6,
                       conditionalPanel("output.lonlat", 
                                        ns = NS(id),
                                        radioButtons(NS(id, "plot_type"),
@@ -63,6 +71,7 @@ onespeciesServer <- function(id,
                              camtrap_data, 
                              mapping_records,
                              mapping_cameras,
+                             sppcam_summary,
                              crs) {
   moduleServer(id, function(input, output, session) {
     
@@ -115,15 +124,17 @@ onespeciesServer <- function(id,
                     "Cannot analyze an empty table: plese check data filtering"))
       
       camtrapviz::get_unique_species(camtrap_data()$data$observations,
-                                     spp_col = spp_col(), obstype_col = obstype_col(),
-                                     return_df = TRUE)
+                                     spp_col = spp_col(), 
+                                     obstype_col = obstype_col(),
+                                     return_df = TRUE,
+                                     add_ID = TRUE)
     })
     
     ## Create selectInput ------------------------------------------------------
     
     output$species_select <- renderUI({
       # Create choices df
-      choices <- as.list(rownames(species_df()))
+      choices <- as.list(species_df()$ID)
       names(choices) <- species_df()[[spp_col()]]
       
       selectInput(NS(id, "species"),
@@ -134,60 +145,41 @@ onespeciesServer <- function(id,
 
     ## Get filtered data ------------------------------------------------------
 
-    filtered_records <- metaReactive2({
+    focus_spp_records <- metaReactive2({
       # Get values to filter on ---
-      # Get rows corresponding to selected obstype_col
-      has_type <- !is.null(obstype_col())
-      
-      if (has_type) {
-        # Get all selected values
-        all_filter <- species_df()[input$species, ]
-        
-        # Get species values
-        spp_filter <- all_filter[all_filter[[obstype_col()]] == "animal", ]
-        spp_filter <- spp_filter[[spp_col()]]
-        
-        # Get obs type values
-        obs_filter <- all_filter[all_filter[[obstype_col()]] != "animal", ]
-        obs_filter <- obs_filter[[obstype_col()]]
-      } else {
-        # Obs filter is NULL
-        obs_filter <- NULL
-        # spp filter is all species
-        spp_filter <- species_df()[input$species, ]
-      }
-      
-      metaExpr({
-        # Define has_type variable
-        has_type <- ..(has_type)
-        
-        "# Get filters ---"
-        spp_filter <- ..(spp_filter)
-        obs_filter <- ..(obs_filter)
-        
-        "# Initialize result ---"
-        filtered_records <- ..(camtrap_data())$data$observations
-        
-        "# Filter ---"
-        if (has_type) {
-          filtered_records <- filtered_records |>
-            dplyr::filter(.data[[..(obstype_col())]] %in% obs_filter | .data[[..(spp_col())]] %in% spp_filter)
-        } else {
-          # Filter spp_col
-          filtered_records <- filtered_records |>
-            dplyr::filter(.data[[..(spp_col())]] %in% spp_filter)
-        }
-        filtered_records
-      }, bindToReturn = TRUE)
-      
-    }, varname = "filtered_records")
 
-    filtered_records_table <- metaReactive({
-      DT::datatable(..(filtered_records()),
+      # Get subset of the df with selected values
+      all_filter <- species_df()[species_df()$ID %in% input$species, ]
+      
+      # Separate spp and obstype filters
+      filters <- get_obs_spp(all_filter,
+                             spp_col = spp_col(),
+                             obstype_col = obstype_col())
+      spp_filter <- filters$spp
+      obstype_filter <- filters$obstype
+      
+      # Separate the code in 2 for lisibility
+      if (!is.null(spp_filter)) {
+        metaExpr({
+          "# Get focus species data ---"
+          ..(camtrap_data())$data$observations |> 
+            dplyr::filter(.data[[..(spp_col())]] == ..(spp_filter))
+        }, bindToReturn = TRUE)
+      } else if (!is.null(obstype_filter)) {
+        metaExpr({
+          "# Get focus species data ---"
+          ..(camtrap_data())$data$observations |> 
+            dplyr::filter(.data[[..(obstype_col())]] == ..(obstype_filter))
+        }, bindToReturn = TRUE)
+      }
+    }, varname = "focus_spp_records")
+
+    focus_spp_records_table <- metaReactive({
+      DT::datatable(..(focus_spp_records()),
                     filter = "none",
                     selection = "none",
                     options = list(scrollX = TRUE))
-    }, bindToReturn = TRUE, varname = "filtered_records_table")
+    }, bindToReturn = TRUE, varname = "focus_spp_records_table")
     
     # Density -----------------------------------------------------------------
 
@@ -195,14 +187,14 @@ onespeciesServer <- function(id,
     ## Compute density ---------------------------------------------------------
     density <- metaReactive2({
       
-      validate(need(nrow(filtered_records()) != 0, 
+      validate(need(nrow(focus_spp_records()) != 0, 
                     "Waiting for records data..."))
 
       # Get time
       if (!is.null(datetime_col())) {
         metaExpr({
           "# Get von Mises density ---"
-          datetime <- ..(filtered_records())[[..(datetime_col())]]
+          datetime <- ..(focus_spp_records())[[..(datetime_col())]]
           time <- format(datetime, format = "%H:%M:%S")
           time <- chron::times(time)
           
@@ -213,7 +205,7 @@ onespeciesServer <- function(id,
       } else {
         metaExpr({
           "# Get von Mises density ---"
-          time <- ..(filtered_records())[[..(time_col())]]
+          time <- ..(focus_spp_records())[[..(time_col())]]
 
           time_rad <- as.numeric(time)*2*pi
           activity::fitact(time_rad, adj = ..(input$adj))
@@ -227,7 +219,7 @@ onespeciesServer <- function(id,
 
     output$density_plot <- metaRender(renderGirafe, {
       "# Plot density ---"
-      dfplot <- ..(filtered_records())
+      dfplot <- ..(focus_spp_records())
       
       # Add times column
       if (!is.null(..(datetime_col()))) {
@@ -263,29 +255,56 @@ onespeciesServer <- function(id,
       displayCodeModal(code)
     })
     
-
     # Abundance plot ----------------------------------------------------------- 
     
-    abundance_df <- metaReactive({
-      "# Get species abundance ---"
-      summarize_species(..(filtered_records()),
-                        cam_col = ..(cam_col_rec()),
-                        spp_col = ..(spp_col()),
-                        count_col = ..(mapping_cameras()$count_col), 
-                        by_cam = TRUE,
-                        keep_all_camera_levels = TRUE)
-    }, bindToReturn = TRUE, varname = "abundance_df")
+    focus_spp_summary <- metaReactive2({
+      # Get subset of the df with selected values
+      all_filter <- species_df()[species_df()$ID %in% input$species, ]
+      
+      # Separate spp and obstype filters
+      filters <- get_obs_spp(all_filter,
+                             spp_col = spp_col(),
+                             obstype_col = obstype_col())
+      spp_filter <- filters$spp
+      obstype_filter <- filters$obstype
+      
+      # Separate the code in 2 for lisibility
+      if (!is.null(spp_filter)) {
+        metaExpr({
+          "# Get focus species data ---"
+          ..(sppcam_summary()) |> 
+            dplyr::filter(.data[[..(spp_col())]] == ..(spp_filter))
+        }, bindToReturn = TRUE)
+      } else if (!is.null(obstype_filter)) {
+        metaExpr({
+          "# Get focus species data ---"
+          ..(sppcam_summary()) |> 
+            dplyr::filter(.data[[..(obstype_col())]] == ..(obstype_filter))
+        }, bindToReturn = TRUE)
+      }
+      
+    }, varname = "focus_spp_summary")
+    
+    plot_val <- reactive({
+      if (input$value == "abundance") {
+        plot_val <- "individuals"
+      } else if (input$value == "proportion") {
+        plot_val <- "individuals_prop"
+      }
+    })
     
     ## Abundance map ----------------------------------------------------------- 
     
     output$plot_abundance_map <- metaRender(renderLeaflet, {
       "# Plot abundance map ---"
-      abundance <- ..(abundance_df())$individuals
-      names(abundance) <- ..(abundance_df())[[..(cam_col_rec())]]
+      abundance <- ..(focus_spp_summary())[[plot_val()]]
+      names(abundance) <- ..(focus_spp_summary())[[..(cam_col_rec())]]
       
       "# Set hovering labels (replace NA with 'No data')"
       labels <- ifelse(is.na(abundance), 
                        "No data", abundance)
+      cat("------\n")
+      cat(labels)
       
       plot_map(..(camtrap_data())$data$deployments, 
                lat_col = ..(unname(mapping_cameras()$lat_col)),
@@ -302,18 +321,18 @@ onespeciesServer <- function(id,
     ## Abundance barplot -------------------------------------------------------
 
     output$plot_abundance <- metaRender2(renderGirafe, {
-      hw <- get_hw(nrow(abundance_df()))
+      hw <- get_hw(nrow(focus_spp_summary()))
       height <- hw$height
       width <- hw$width
       
       metaExpr({
         "# Plot abundance ---"
         "# Replace NA with zero (cameras with no data) to discard warning"
-        abundance_df_plot <- ..(abundance_df())
-        abundance_df_plot[is.na(abundance_df_plot)] <- 0
+        focus_spp_summary_plot <- ..(focus_spp_summary())
+        focus_spp_summary_plot[is.na(focus_spp_summary_plot)] <- 0
         
-        gg <- plot_diversity(abundance_df_plot, 
-                             div_col = "individuals", 
+        gg <- plot_diversity(focus_spp_summary_plot, 
+                             div_col = plot_val(), 
                              cam_col = ..(cam_col_rec()),
                              interactive = TRUE) +
           ylab("Count") +
@@ -341,16 +360,14 @@ onespeciesServer <- function(id,
       displayCodeModal(code)
     })
 
-# Tests -------------------------------------------------------------------
     
-    # output$test <- renderDataTable({
-    #   filtered_records()
-    # })
+    output$test <- renderDataTable({
+      focus_spp_summary()
+    })
     
-
     # Return values -----------------------------------------------------------
 
-    return(list(filtered_records = filtered_records_table,
+    return(list(focus_spp_records = focus_spp_records_table,
                 density_plot = output$density_plot,
                 abundance_map = output$plot_abundance_map))
       

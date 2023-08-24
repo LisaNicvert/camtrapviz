@@ -34,7 +34,6 @@ server <- function(input, output, session) {
 
   # Summary reactives -------------------------------------------------------
   summary_val <- summaryServer("summary",
-                               test = import_val$camtrap_data,
                                camtrap_data = select_val$camtrap_data,
                                mapping_records = import_val$mapping_records,
                                mapping_cameras = import_val$mapping_cameras,
@@ -54,7 +53,8 @@ server <- function(input, output, session) {
                                      camtrap_data = select_val$camtrap_data,
                                      mapping_records = import_val$mapping_records,
                                      mapping_cameras = import_val$mapping_cameras,
-                                     crs = import_val$crs) 
+                                     crs = import_val$crs,
+                                     sppcam_summary = allspecies_val$sppcam_summary) 
   
   # Download handler --------------------------------------------------------
   
@@ -84,8 +84,8 @@ server <- function(input, output, session) {
                                                   .expansionContext = ec),
                     plot_diversity = expandChain(allspecies_val$diversity_map(),
                                                   .expansionContext = ec),
-                    filtered_records = expandChain(onespecies_val$filtered_records(),
-                                                   .expansionContext = ec),
+                    focus_spp_records = expandChain(onespecies_val$focus_spp_records(),
+                                                    .expansionContext = ec),
                     density_plot = expandChain(onespecies_val$density_plot(),
                                                .expansionContext = ec),
                     abundance_map = expandChain(onespecies_val$abundance_map(),

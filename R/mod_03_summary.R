@@ -84,7 +84,6 @@ summaryUI <- function(id) {
 # Server ------------------------------------------------------------------
 
 summaryServer <- function(id, 
-                          test,
                           camtrap_data, 
                           mapping_records,
                           mapping_cameras,

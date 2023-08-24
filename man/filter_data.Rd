@@ -8,7 +8,7 @@ filter_data(
   dat,
   spp_filter = NULL,
   spp_col = NULL,
-  obs_filter = NULL,
+  obstype_filter = NULL,
   obstype_col = NULL,
   cam_filter = NULL,
   cam_col_rec = NULL,
@@ -20,7 +20,8 @@ filter_data(
   time_col = NULL,
   date_col = NULL,
   tz = NULL,
-  cam_as_factor = FALSE
+  cam_as_factor = FALSE,
+  filter_out = TRUE
 )
 }
 \arguments{
@@ -36,7 +37,7 @@ are in the \verb{$data} slot with two components:
 
 \item{spp_col}{Name of the species column}
 
-\item{obs_filter}{Observation types to filter from the data}
+\item{obstype_filter}{Observation types to filter from the data}
 
 \item{obstype_col}{Name of the observation column}
 
@@ -73,6 +74,8 @@ For the filtering step, if needed datetimes in \code{datetime_col} can be
 converted to \code{tz} but the output data will not be affected.}
 
 \item{cam_as_factor}{Transform cameras as factors?}
+
+\item{filter_out}{Filter out (\code{TRUE}) or keep values?}
 }
 \value{
 The filtered data. Species and dates remove data only in \code{dat$data$observations},
@@ -81,6 +84,8 @@ but cameras also remove cameras from \code{dat$data$deployments}.
 \description{
 Allows to filter camera trap data observations and
 cameras metadata based on species, cameras and dates.
+Values will be filtered out by default, but if \code{filter_out}
+is \code{FALSE} they will be kept instead.
 }
 \details{
 For the \code{spp_filter}, \code{cam_filter}, \code{daterange} and \code{custom_col} values:

@@ -648,7 +648,7 @@ plot_map <- function(df,
 #' @param df A dataframe containing cameras information
 #' @param lat_col Name of the latitude (or the projected y-coordinate) 
 #' column
-#' @param lon_col Name of the longitude (or the projected y-coordinate) 
+#' @param lon_col Name of the longitude (or the projected x-coordinate) 
 #' column
 #' @param crs EPSG code for the coordinate reference system (CRS)
 #' Defaults to EPSG:4326, which is the code for WGS84 standard.

@@ -460,6 +460,7 @@ test_that("Get all species", {
   # With obs_type
   res <- get_all_species(df, spp_col = "species", obstype_col = "type")
   expected <- df
+  expected$species_orig <- df$species
   expected$species[expected$type == "fire"] <- "fire"
   expected$species[expected$type == "blank"] <- "blank"
   expect_equal(res, expected)
@@ -495,12 +496,21 @@ test_that("Get unique species", {
                             reorder = TRUE,
                             return_df = TRUE)
   expected <- data.frame(species = c("cameratrapper", "cat", "rabbit", "tourist", NA))
-  expected <- expected |> 
-    mutate(ID = species, .before = 1)
   expect_equal(res, expected)
   
-  # No observation type and reorder
+  # Add an ID
   res <- get_unique_species(df, spp_col = "species", 
+                            reorder = TRUE,
+                            return_df = TRUE, 
+                            add_ID = TRUE)
+  expected_ID <- expected |> 
+    mutate(ID = paste0("ID_", 1:nrow(expected)), 
+           .before = 1)
+  expect_equal(res, expected_ID)
+  
+  # No observation type and reorder
+  res <- get_unique_species(df, 
+                            spp_col = "species", 
                             reorder = TRUE)
   expected_char <- expected$species
   expect_equal(res, expected_char)
@@ -512,10 +522,9 @@ test_that("Get unique species", {
   expected <- data.frame(species = c("cat", "rabbit",
                                      "blank", "fire", "cameratrapper", "tourist"),
                          type = c("animal", "animal",
-                                  "blank", "fire", "human", "human"))
-  expected <- expected |> 
-    mutate(ID = paste(species, type, sep = "_"), 
-           .before = 1)
+                                  "blank", "fire", "human", "human"),
+                         species_orig = c("cat", "rabbit",
+                                          NA, NA, "cameratrapper", "tourist"))
   expect_equal(res, expected)
   
   # With observation type and return character
@@ -554,12 +563,9 @@ test_that("Get unique species", {
                             spp_col = "species", obstype_col = "type",
                             reorder = TRUE)
   expected <- data.frame(species = c("cat", "blank", "human", NA),
-                         type = c("animal", "blank", "human", NA))
-  expected <- expected |> 
-    mutate(ID = paste(species, type, sep = "_"), 
-           .before = 1)
+                         type = c("animal", "blank", "human", NA),
+                         species_orig = c("cat", NA, "human", NA))
   expect_equal(res, expected)
-  
 })
 
 test_that("Get species (obstype but no other than animal)", {
@@ -570,10 +576,8 @@ test_that("Get species (obstype but no other than animal)", {
                      reorder = TRUE)
   
   expected <- data.frame(species = c("cat", "cow", "rabbit"),
-                         type = rep("animal", 3))
-  expected <- expected |> 
-    mutate(ID = paste(species, type, sep = "_"), 
-           .before = 1)
+                         type = rep("animal", 3),
+                         species_orig = c("cat", "cow", "rabbit"))
   expect_equal(res, expected)
 })
 
@@ -895,14 +899,14 @@ test_that("Filter data", {
                                        rep("category2", 7))
   res <- filter_data(dat_type, 
                      obstype_col = "type", 
-                     obs_filter =  "category2")
+                     obstype_filter =  "category2")
   expect_equal(unique(res$data$observations$type), "category1")
   expect_equal(res$data$deployments, dat$data$deployments)
   
   # Filter observations and species
   res <- filter_data(dat_type, 
                      obstype_col = "type", 
-                     obs_filter =  "category2",
+                     obstype_filter =  "category2",
                      spp_col = "Species", 
                      spp_filter = "PBE")
   expect_equal(unique(res$data$observations$type), "category1")

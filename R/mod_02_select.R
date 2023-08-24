@@ -200,6 +200,27 @@ selectServer <- function(id,
                               df = camtrap_data()$data$observations)
       }) |> shiny::bindEvent(input$daterange_col)
 
+      # Get species and cameras -------------------------------------------------
+      
+      species_df <- reactive({
+        get_unique_species(camtrap_data()$data$observations,
+                           spp_col =  spp_col(), 
+                           obstype_col = obstype_col(),
+                           reorder = TRUE,
+                           return_df = TRUE, 
+                           add_ID = TRUE)
+      })
+      
+      cameras <- reactive({
+        
+        cam_cam <- camtrap_data()$data$deployments[[cam_col_cam()]]
+        cam_rec <- unique(camtrap_data()$data$observations[[cam_col_rec()]])
+        
+        cam <- get_cameras(cam_cam, cam_rec)
+        
+        return(cam)
+      })
+      
       # Get selected species and cameras ----------------------------------------------------
 
       selected_spp_id <- reactive({
@@ -209,21 +230,33 @@ selectServer <- function(id,
           validate(need(!is.null(res), 
                         "You need to keep at least one species"))
         } else {
-          # Filter species corresponding to specified values in
-          # another column
-          df <- camtrap_data()$data$observations
+          # If selection based on another column
           
           validate(need(!all(is.null(input$spp_col_val)), 
                         "You need to keep at least one species"))
           
+          # Filter species corresponding to specified values in
+          # another column
+          df <- camtrap_data()$data$observations
           filtered_df <- df[df[[input$spp_col]] %in% input$spp_col_val, ]
           
-          res_df <- get_unique_species(filtered_df,
-                                       spp_col =  spp_col(),
-                                       obstype_col = obstype_col(),
-                                       reorder = TRUE,
-                                       return_df = TRUE)
-          res <- res_df$ID
+          # Then we need to get the species in this filtered data
+          ufiltered_df <- get_unique_species(filtered_df,
+                                             spp_col =  spp_col(),
+                                             obstype_col = obstype_col(),
+                                             return_df = TRUE)
+          
+          # Get the IDs of the species that are in unique filtered data
+          join_df <- species_df() |> 
+            select(ID, 
+                   .data[[obstype_col()]],
+                   .data[[paste0(spp_col(), "_orig")]])
+          
+          res <- ufiltered_df |> 
+            left_join(join_df, 
+                      by = c(obstype_col(), paste0(spp_col(), "_orig")))
+          
+          res <- res$ID
         }
         res
       })
@@ -244,43 +277,7 @@ selectServer <- function(id,
         res
       })
   
-      # Get species and cameras -------------------------------------------------
-      
-      species_df <- reactive({
-        get_unique_species(camtrap_data()$data$observations,
-                           spp_col =  spp_col(), obstype_col = obstype_col(),
-                           reorder = TRUE,
-                           return_df = TRUE)
-      })
-      
-      cameras <- reactive({
-        
-        cam_cam <- camtrap_data()$data$deployments[[cam_col_cam()]]
-        cam_rec <- unique(camtrap_data()$data$observations[[cam_col_rec()]])
-        
-        cam <- get_cameras(cam_cam, cam_rec)
-        
-        return(cam)
-      })
-      
-
-      # Display species and cameras ---------------------------------------------
-  
-      output$species_list <- renderText({
-        
-        # Get df subset where ID is in selected_spp_id()
-        species <- species_df()[species_df()$ID %in% selected_spp_id(), ]
-        # Get species names
-        species <- species[[spp_col()]]
-        
-        paste("Selected species:", paste(species, collapse = ", "))
-      })
-        
-      output$cam_vec <- renderText({
-        paste("Selected cameras:", paste(selected_cam(), collapse = ", "))
-      })
-      
-      # Update selectInput ------------------------------------------------------
+      # Update species and cameras PickerInput ----------------------------------
       
       default_species <- reactive({
         if (is.null(obstype_col())) {
@@ -313,6 +310,22 @@ selectServer <- function(id,
       })
       
 
+      # Display species and cameras ---------------------------------------------
+  
+      output$species_list <- renderText({
+        
+        # Get df subset where ID is in selected_spp_id()
+        species <- species_df()[species_df()$ID %in% selected_spp_id(), ]
+        # Get species names
+        species <- species[[spp_col()]]
+        
+        paste("Selected species:", paste(species, collapse = ", "))
+      })
+        
+      output$cam_vec <- renderText({
+        paste("Selected cameras:", paste(selected_cam(), collapse = ", "))
+      })
+
       # Filter tables -----------------------------------------------------------
 
       dat_filtered <- metaReactive2({
@@ -323,27 +336,16 @@ selectServer <- function(id,
         }
         
         # Get values to filter on ---
-        # Get rows corresponding to selected obstype_col
-        has_type <- !is.null(obstype_col())
         
-        if (has_type) {
-          # Get species/observations to filter out
-          all_filter <- species_df()[!(species_df()$ID %in% selected_spp_id()), ]
-          
-          # Get species values
-          spp_filter <- all_filter[all_filter[[obstype_col()]] == "animal", ]
-          spp_filter <- spp_filter[[spp_col()]]
-          
-          # Get obs type values
-          obs_filter <- all_filter[all_filter[[obstype_col()]] != "animal", ]
-          obs_filter <- obs_filter[[obstype_col()]]
-        } else {
-          # Obs filter is NULL
-          obs_filter <- NULL
-          # Get species to filter out
-          spp_filter <- species_df()[!(species_df()$ID %in% selected_spp_id()), ]
-          spp_filter <- spp_filter[[spp_col()]]
-        }
+        # Get subset of the df with values to filter out
+        all_filter <- species_df()[!(species_df()$ID %in% selected_spp_id()), ]
+        
+        # Separate species and observations
+        filters <- get_obs_spp(all_filter,
+                               spp_col = spp_col(),
+                               obstype_col = obstype_col())
+        spp_filter <- filters$spp
+        obstype_filter <- filters$obstype
         
         # Get cameras to filter out
         cam_filter <- cameras()[!cameras() %in% selected_cam()]
@@ -367,22 +369,20 @@ selectServer <- function(id,
         }
       
         metaExpr({
-          "# Get filters ---"
+          "# Filter data ---"
+          # Define filters
           spp_filter <- ..(spp_filter)
           cam_filter <- ..(cam_filter)
-          obs_filter <- ..(obs_filter)
+          obstype_filter <- ..(obstype_filter)
           date_filter <- ..(daterange)
           custom_filter <- ..(custom_filter)
           
-          "# Filter ---"
-          # Filter obstype_col
-          # Check has type and length != 0, 
-          # in case there were only animals selected
+          # Filter
           filter_data(..(camtrap_data()), 
                       spp_col = ..(spp_col()),
                       spp_filter = spp_filter,
                       obstype_col = ..(mapping_records()$obstype_col),
-                      obs_filter = obs_filter,
+                      obstype_filter = obstype_filter,
                       cam_col_rec = ..(cam_col_rec()),
                       cam_col_cam = ..(cam_col_cam()),
                       cam_filter = cam_filter,

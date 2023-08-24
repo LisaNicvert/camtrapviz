@@ -119,15 +119,15 @@ Let's filter out all categories except `animal`:
 obs_out <- unique(obstype[obstype != "animal"])
 obs_out
 
-obs_filter <- filter_data(mica, 
+obstype_filter <- filter_data(mica, 
                           obstype_col = "observationType", 
-                          obs_filter = obs_out)
+                          obstype_filter = obs_out)
 ```
 
 The only observation type remaining after data cleaning is `animal`.
 
 ```{r}
-unique(obs_filter$data$observations$observationType)
+unique(obstype_filter$data$observations$observationType)
 ```
 
 ## Filter dates

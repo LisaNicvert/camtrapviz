@@ -348,10 +348,14 @@ summarize_cameras <- function(dfrec, cam_col,
 #' This dataframe has the following columns (type character):
 #' + a column named like `spp_col` containing species names
 #' (where `NA` values in `spp_col` are replaced as described above).
-#' + a column named like `obstype_col` containing unique corresponding
-#' observations types (if `obstype_col` is provided).
+#' + if `obstype_col` is provided: a column named like `obstype_col` 
+#' containing corresponding observations types.
+#' + if `obstype_col` is provided: a column named like `spp_col` 
+#' with a suffix `_orig` which indicates the original value of 
+#' `spp_col` (before it was maybe replaced with `NA`).
 #' Else, returns only the character vector containing the values of 
 #' `spp_col`.
+#' 
 #' 
 #' @seealso [get_unique_species()]
 #' 
@@ -385,10 +389,17 @@ get_all_species <- function(df,
     # Get columns
     spp_df <- df[, c(spp_col, obstype_col)]
     
+    # Store original value
+    spp_col_orig <- spp_df[[spp_col]]
+    
     # Replace values with not animal ---
     is_non_animal <- spp_df[[obstype_col]] != animal_code # Get non-animals
-    is_non_animal[is.na(is_non_animal)] <- TRUE # Consider NAs as non-animals
+    is_non_animal[is.na(is_non_animal)] <- TRUE # Consider NAs obstype as non-animals
     spp_df[[spp_col]][is_non_animal & is.na(spp_df[[spp_col]])] <- spp_df[[obstype_col]][is_non_animal & is.na(spp_df[[spp_col]])]
+    
+    # Add original value
+    spp_df[[paste0(spp_col, "_orig")]] <- spp_col_orig
+    
   } else {
     # Df with a unique column
     spp_df <- data.frame(col = df[[spp_col]])
@@ -422,6 +433,7 @@ get_all_species <- function(df,
 #' @param reorder Reorder the results? This will arrange values by 
 #' alphabetical order. If `obstype_col` is provided, non-animal species will
 #' be arranged last.
+#' @param add_ID Add an ID column?
 #'
 #' @return 
 #' unique species names. 
@@ -431,14 +443,16 @@ get_all_species <- function(df,
 #' If `return_df` is `TRUE`, returns a dataframe containing 
 #' unique species and observation type.
 #' This dataframe has the following columns (type character):
-#' + a column `ID` to uniquely identify each species/observation
-#' combination. If `obstype_col` is not `NULL`, the IDs are of the form 
-#' `spp_type` where `spp` is the species value and 
+#' + If `add_ID` is `TRUE`: a column `ID` to uniquely identify each 
+#' species/observation combination (IDs are numbers). 
 #' `type` is the observation type value. Else, IDs are of the form `spp`.
 #' + a column named like `spp_col` containing species names
 #' (where `NA` values in `spp_col` are replaced as described above).
-#' + a column named like `obstype_col` containing unique corresponding
-#' observations types (if `obstype_col` is provided).
+#' + if `obstype_col` is provided: a column named like `obstype_col` 
+#' containing corresponding observations types.
+#' + if `obstype_col` is provided: a column named like `spp_col` 
+#' with a suffix `_orig` which indicates the original value of 
+#' `spp_col` (before it was maybe replaced with `NA`).
 #' If `return_df` is `FALSE`, returns only the unique values of 
 #' `spp_col`.
 #' @export
@@ -464,7 +478,8 @@ get_unique_species <- function(df,
                         spp_col, obstype_col = NULL,
                         animal_code = "animal",
                         return_df = ifelse(is.null(obstype_col), FALSE, TRUE),
-                        reorder = FALSE) {
+                        reorder = FALSE,
+                        add_ID = FALSE) {
   
   # Get a dataframe of non-unique species names
   spp_df_all <- get_all_species(df = df,
@@ -501,18 +516,12 @@ get_unique_species <- function(df,
   
   if (return_df) {
     # Add ID
-    res <- as.data.frame(spp_df) # Convert tibble to df
-    
-    if (!is.null(obstype_col)) {
-      res <- res |> 
-        mutate(ID = paste(.data[[spp_col]], .data[[obstype_col]], sep = "_"),
-               .before = 1)
-    } else {
-      res <- res |> 
-        mutate(ID = .data[[spp_col]],
+    if (add_ID) {
+      spp_df <- spp_df |> 
+        mutate(ID = paste("ID", 1:nrow(spp_df), sep = "_"),
                .before = 1)
     }
-    
+    res <- as.data.frame(spp_df) # Convert tibble to df
   } else {
     res <- spp_df[[spp_col]]
   }
@@ -799,6 +808,8 @@ summarize_species <- function(df,
 #' 
 #' Allows to filter camera trap data observations and
 #' cameras metadata based on species, cameras and dates.
+#' Values will be filtered out by default, but if `filter_out`
+#' is `FALSE` they will be kept instead.
 #'
 #' @param dat The data to filter. It can be either a list with one component `$data`
 #' or a `datapackage` object (inheriting list). Either way, the data 
@@ -807,7 +818,7 @@ summarize_species <- function(df,
 #' + `$observations` (records table)
 #' @param spp_filter Species to filter from the data
 #' @param spp_col Name of the species column
-#' @param obs_filter Observation types to filter from the data
+#' @param obstype_filter Observation types to filter from the data
 #' @param obstype_col Name of the observation column
 #' @param cam_filter Cameras to filter from the data
 #' @param cam_col_rec Name of the cameras column in records table (`dat$data$observations`).
@@ -832,6 +843,7 @@ summarize_species <- function(df,
 #' @param custom_col name of a custom column in to filter values in 
 #' `dat$data$observations`.
 #' @param custom_filter values to filter out in the custom column `custom_col`.
+#' @param filter_out Filter out (`TRUE`) or keep values?
 #' 
 #' @details
 #' For the `spp_filter`, `cam_filter`, `daterange` and `custom_col` values: 
@@ -865,7 +877,7 @@ summarize_species <- function(df,
 filter_data <- function(dat,
                         spp_filter = NULL,
                         spp_col = NULL,
-                        obs_filter = NULL,
+                        obstype_filter = NULL,
                         obstype_col = NULL,
                         cam_filter = NULL,
                         cam_col_rec = NULL,
@@ -877,7 +889,8 @@ filter_data <- function(dat,
                         time_col = NULL,
                         date_col = NULL,
                         tz = NULL,
-                        cam_as_factor = FALSE
+                        cam_as_factor = FALSE,
+                        filter_out = TRUE
                         ) {
   
   rec <- dat$data$observations
@@ -910,25 +923,47 @@ filter_data <- function(dat,
   
   # Filter species  ---
   if (!is.null(spp_filter)) {
-    # User wants to filter out species
-    res$data$observations <- res$data$observations |>
-      dplyr::filter(!(.data[[spp_col]] %in% spp_filter))
+    if (filter_out) {
+      # User wants to filter out species
+      res$data$observations <- res$data$observations |>
+        dplyr::filter(!(.data[[spp_col]] %in% spp_filter))
+    } else {
+      # User wants to keep species
+      res$data$observations <- res$data$observations |>
+        dplyr::filter(.data[[spp_col]] %in% spp_filter)
+    }
   }
   
   # Filter observations ---
-  if (!is.null(obs_filter)) {
-    # User wants to filter out observations
-    res$data$observations <- res$data$observations |>
-      dplyr::filter(!(.data[[obstype_col]] %in% obs_filter))
+  if (!is.null(obstype_filter)) {
+    if (filter_out) {
+      # User wants to filter out observations
+      res$data$observations <- res$data$observations |>
+        dplyr::filter(!(.data[[obstype_col]] %in% obstype_filter))
+    } else {
+      # User wants to keep observations
+      res$data$observations <- res$data$observations |>
+        dplyr::filter(.data[[obstype_col]] %in% obstype_filter)
+    }
   } 
   
   
   # Filter cameras ---
   if (!is.null(cam_filter)) {
-    res$data$observations <- res$data$observations |>
-      dplyr::filter(!(.data[[cam_col_rec]] %in% cam_filter))
-    res$data$deployments <- res$data$deployments |>
-      dplyr::filter(!(.data[[cam_col_cam]] %in% cam_filter))
+    if (filter_out) {
+      # User wants to filter out cameras
+      res$data$observations <- res$data$observations |>
+        dplyr::filter(!(.data[[cam_col_rec]] %in% cam_filter))
+      res$data$deployments <- res$data$deployments |>
+        dplyr::filter(!(.data[[cam_col_cam]] %in% cam_filter))
+    } else {
+      # User wants to keep cameras
+      res$data$observations <- res$data$observations |>
+        dplyr::filter(.data[[cam_col_rec]] %in% cam_filter)
+      res$data$deployments <- res$data$deployments |>
+        dplyr::filter(.data[[cam_col_cam]] %in% cam_filter)
+    }
+    
   }
   
   
@@ -974,8 +1009,15 @@ filter_data <- function(dat,
   
   # Custom filter ---
   if (!is.null(custom_col)) {
-    res$data$observations <- res$data$observations |>
-      dplyr::filter(!(.data[[custom_col]] %in% custom_filter))
+    if (filter_out) {
+      # User wants to filter out a custom column
+      res$data$observations <- res$data$observations |>
+        dplyr::filter(!(.data[[custom_col]] %in% custom_filter))
+    } else {
+      # User wants to keep a custom column
+      res$data$observations <- res$data$observations |>
+        dplyr::filter(.data[[custom_col]] %in% custom_filter)
+    }
   }
   
   # Cameras to factor ---

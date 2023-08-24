@@ -83,7 +83,7 @@ Below is the plot representing the chosen index:
 Now the analyses will concentrate on a single species.
 
 ```{r}
-{{filtered_records}}
+{{focus_spp_records}}
 ```
 
 Below is the activity curve of the species, estimated with a mixture of von Mises distributions, along with the histogram of the observed activity times.

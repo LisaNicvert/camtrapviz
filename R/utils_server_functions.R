@@ -341,3 +341,52 @@ add_tz <- function(vec, tz, force_tz = FALSE) {
   }
   return(res)
 }
+
+
+# Species -----------------------------------------------------------------
+
+#' Get observation type or species
+#'
+#' From a dataframe obtained with get_unique_species,
+#' separate which items were originally in the species
+#' or in the observation type column
+#' 
+#' @param df df obtained with get_unique_species
+#' @param spp_col Name of the column containing species names 
+#' (where NAs have been replaced)
+#' @param obstype_col Name of the column containing observation types
+#'
+#' @return A list with two components (can be `NULL`): 
+#' `obstype` and `spp`
+#' 
+#' @noRd
+get_obs_spp <- function(df, 
+                        spp_col = NULL, 
+                        obstype_col = NULL) {
+  
+  if (!is.null(obstype_col)) {
+    # Get species that were originally NA
+    NAs <- is.na(df[[paste0(spp_col, "_orig")]])
+    
+    # Species that were not NA are from the species column
+    spp <- df[!NAs, spp_col]
+    if(length(spp) == 0) {
+      spp <- NULL
+    }
+    
+    # Species that were NA are filtered from the observation type column
+    obstype <- df[NAs, spp_col]
+    if(length(obstype) == 0) {
+      obstype <- NULL
+    }
+    
+  } else {
+    # Obs filter is NULL
+    obstype <- NULL
+    
+    # spp filter is all species
+    spp <- df[[spp_col]]
+  }
+  return(list(obstype = obstype,
+              spp = spp))
+}

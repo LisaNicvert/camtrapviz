@@ -35,8 +35,11 @@ This dataframe has the following columns (type character):
 \itemize{
 \item a column named like \code{spp_col} containing species names
 (where \code{NA} values in \code{spp_col} are replaced as described above).
-\item a column named like \code{obstype_col} containing unique corresponding
-observations types (if \code{obstype_col} is provided).
+\item if \code{obstype_col} is provided: a column named like \code{obstype_col}
+containing corresponding observations types.
+\item if \code{obstype_col} is provided: a column named like \code{spp_col}
+with a suffix \verb{_orig} which indicates the original value of
+\code{spp_col} (before it was maybe replaced with \code{NA}).
 Else, returns only the character vector containing the values of
 \code{spp_col}.
 }

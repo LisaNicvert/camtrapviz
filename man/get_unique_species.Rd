@@ -10,7 +10,8 @@ get_unique_species(
   obstype_col = NULL,
   animal_code = "animal",
   return_df = ifelse(is.null(obstype_col), FALSE, TRUE),
-  reorder = FALSE
+  reorder = FALSE,
+  add_ID = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ species names.}
 \item{reorder}{Reorder the results? This will arrange values by
 alphabetical order. If \code{obstype_col} is provided, non-animal species will
 be arranged last.}
+
+\item{add_ID}{Add an ID column?}
 }
 \value{
 unique species names.
@@ -39,14 +42,16 @@ If \code{return_df} is \code{TRUE}, returns a dataframe containing
 unique species and observation type.
 This dataframe has the following columns (type character):
 \itemize{
-\item a column \code{ID} to uniquely identify each species/observation
-combination. If \code{obstype_col} is not \code{NULL}, the IDs are of the form
-\code{spp_type} where \code{spp} is the species value and
+\item If \code{add_ID} is \code{TRUE}: a column \code{ID} to uniquely identify each
+species/observation combination (IDs are numbers).
 \code{type} is the observation type value. Else, IDs are of the form \code{spp}.
 \item a column named like \code{spp_col} containing species names
 (where \code{NA} values in \code{spp_col} are replaced as described above).
-\item a column named like \code{obstype_col} containing unique corresponding
-observations types (if \code{obstype_col} is provided).
+\item if \code{obstype_col} is provided: a column named like \code{obstype_col}
+containing corresponding observations types.
+\item if \code{obstype_col} is provided: a column named like \code{spp_col}
+with a suffix \verb{_orig} which indicates the original value of
+\code{spp_col} (before it was maybe replaced with \code{NA}).
 If \code{return_df} is \code{FALSE}, returns only the unique values of
 \code{spp_col}.
 }
