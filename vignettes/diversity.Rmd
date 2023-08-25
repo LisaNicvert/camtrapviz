@@ -88,12 +88,37 @@ plot_diversity(div,
   ggtitle("Species richness")
 ```
 
-The plot can alsp be made interactive.
+The plot can also be made interactive.
 
 ```{r}
 pr <- plot_diversity(div, 
                      div_col = "richness", 
                      cam_col = "deploymentID", 
+                     interactive = TRUE) +
+  ggtitle("Species richness")
+
+girafe(ggobj = pr)
+```
+
+In case you want to show more cameras than the ones in the `div` dataframe, you can use the `cam_vec` argument.
+
+```{r}
+div_less <- div[1:3, ]
+cameras <- unique(div$deploymentID)
+
+# We deleted one camera
+unique(div_less$deploymentID)
+
+# But it is still in cameras
+cameras
+```
+
+
+```{r}
+pr <- plot_diversity(div_less, 
+                     div_col = "richness", 
+                     cam_col = "deploymentID", 
+                     cam_vec = cameras,
                      interactive = TRUE) +
   ggtitle("Species richness")
 

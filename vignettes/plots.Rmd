@@ -20,6 +20,7 @@ This vignette demonstrates how this package can be used to plot camera trap data
 library(camtrapviz)
 library(dplyr)
 library(ggiraph)
+library(ggplot2)
 library(RColorBrewer)
 ```
 
@@ -260,4 +261,28 @@ Another vignette gives a more in-depth overview of this type of plots (see [here
 
 # Plot diversity
 
-To complete
+It is also possible to plot diversity indices:
+
+```{r}
+# Get diversity
+spp_cam <- summarize_species(recordTableSample, 
+                             spp_col = "Species", 
+                             cam_col = "Station",
+                             by_cam = TRUE)
+
+div <- get_diversity_indices(spp_cam,
+                             spp_col = "Species",
+                             cam_col = "Station")
+```
+
+
+```{r}
+p <- plot_diversity(div, 
+                    div_col = "simpson", 
+                    cam_col = "Station", 
+                    interactive = TRUE) + 
+  ggtitle("Simpson diversity index")
+girafe(ggobj = p)
+```
+
+Another vignette gives a more in-depth overview of this type of plots (see [here](https://lisanicvert.github.io/camtrapviz/articles/diversity.html)).
