@@ -70,7 +70,7 @@
 <span>  height <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">cam_col</span>,</span>
 <span>  color <span class="op">=</span> <span class="st">"black"</span>,</span>
-<span>  radius <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  radius <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  rescale <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  label <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -125,8 +125,9 @@ in the same order as the rows of df)</p></dd>
 
 
 <dt>radius</dt>
-<dd><p>A named vector of radii tu use for the cirles. Names
-correspond to camera names.</p></dd>
+<dd><p>A vector of radii to use for the cirles. It can be named
+with names correspond to camera names. If it is not named,
+the labels are assumed to be in the same order as the cameras.</p></dd>
 
 
 <dt>rescale</dt>
@@ -136,7 +137,10 @@ so that the maximum corresponds to 300m, and radii smaller than
 
 
 <dt>label</dt>
-<dd><p>label to display when hovering over the map points</p></dd>
+<dd><p>vector of labels to display when hovering over the map
+points. It can be named with names correspond to camera names.
+If it is not named,
+the labels are assumed to be in the same order as the cameras.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -162,8 +166,8 @@ When clicking on a camera, a popup displaying the camera name appears.</p>
 <span class="r-in"><span>         lon_col <span class="op">=</span> <span class="st">"utm_x"</span>,</span></span>
 <span class="r-in"><span>         crs <span class="op">=</span> <span class="fl">32650</span>, <span class="co"># Here we use the EPSG code for UTM zone 50N</span></span></span>
 <span class="r-in"><span>         cam_col <span class="op">=</span> <span class="st">"Station"</span><span class="op">)</span></span></span>
-<div id="htmlwidget-29763ed047b748b9a697" style="width:700px;height:432.632880098888px;" class="leaflet html-widget "></div>
-<script type="application/json" data-for="htmlwidget-29763ed047b748b9a697">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org\">OpenStreetMap<\/a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA<\/a>"}]},{"method":"addCircleMarkers","args":[[5.46436552331582,5.482468354317958,5.491960550449553],[117.2347143299215,117.2076382765414,117.2256972583553],3,["StationA","StationB","StationC"],null,{"interactive":true,"className":"","stroke":false,"color":"#03F","weight":5,"opacity":0.5,"fill":true,"fillColor":["black","black","black"],"fillOpacity":0.8},null,null,["Camera: StationA","Camera: StationB","Camera: StationC"],{"maxWidth":300,"minWidth":50,"autoPan":true,"keepInView":false,"closeButton":true,"closeOnClick":true,"className":""},["StationA","StationB","StationC"],{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[5.46436552331582,5.491960550449553],"lng":[117.2076382765414,117.2347143299215]}},"evals":[],"jsHooks":[]}</script></code></pre></div>
+<div id="htmlwidget-cae8364b5f5c69a12792" style="width:700px;height:432.632880098888px;" class="leaflet html-widget "></div>
+<script type="application/json" data-for="htmlwidget-cae8364b5f5c69a12792">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org\">OpenStreetMap<\/a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA<\/a>"}]},{"method":"addCircleMarkers","args":[[5.46436552331582,5.482468354317958,5.491960550449553],[117.2347143299215,117.2076382765414,117.2256972583553],[3,3,3],["StationA","StationB","StationC"],null,{"interactive":true,"className":"","stroke":false,"color":"#03F","weight":5,"opacity":0.5,"fill":true,"fillColor":["black","black","black"],"fillOpacity":0.8},null,null,["Camera: StationA","Camera: StationB","Camera: StationC"],{"maxWidth":300,"minWidth":50,"autoPan":true,"keepInView":false,"closeButton":true,"closeOnClick":true,"className":""},["StationA","StationB","StationC"],{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[5.46436552331582,5.491960550449553],"lng":[117.2076382765414,117.2347143299215]}},"evals":[],"jsHooks":[]}</script></code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>

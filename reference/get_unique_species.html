@@ -77,7 +77,8 @@ general type is provided (as with the camtrapDP standard).</p>
 <span>  obstype_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  animal_code <span class="op">=</span> <span class="st">"animal"</span>,</span>
 <span>  return_df <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">obstype_col</span><span class="op">)</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>  reorder <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  reorder <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  add_ID <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -110,6 +111,10 @@ species names.</p></dd>
 alphabetical order. If <code>obstype_col</code> is provided, non-animal species will
 be arranged last.</p></dd>
 
+
+<dt>add_ID</dt>
+<dd><p>Add an ID column?</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -123,14 +128,16 @@ replaced with the corresponding value in <code>obstype_col</code></p>
 <p>(if <code>obstype_col</code> is not <code>animal_code</code>).
 If <code>return_df</code> is <code>TRUE</code>, returns a dataframe containing
 unique species and observation type.
-This dataframe has the following columns (type character):</p><ul><li><p>a column <code>ID</code> to uniquely identify each species/observation
-combination. If <code>obstype_col</code> is not <code>NULL</code>, the IDs are of the form
-<code>spp_type</code> where <code>spp</code> is the species value and
+This dataframe has the following columns (type character):</p><ul><li><p>If <code>add_ID</code> is <code>TRUE</code>: a column <code>ID</code> to uniquely identify each
+species/observation combination (IDs are numbers).
 <code>type</code> is the observation type value. Else, IDs are of the form <code>spp</code>.</p></li>
 <li><p>a column named like <code>spp_col</code> containing species names
 (where <code>NA</code> values in <code>spp_col</code> are replaced as described above).</p></li>
-<li><p>a column named like <code>obstype_col</code> containing unique corresponding
-observations types (if <code>obstype_col</code> is provided).
+<li><p>if <code>obstype_col</code> is provided: a column named like <code>obstype_col</code>
+containing corresponding observations types.</p></li>
+<li><p>if <code>obstype_col</code> is provided: a column named like <code>spp_col</code>
+with a suffix <code>_orig</code> which indicates the original value of
+<code>spp_col</code> (before it was maybe replaced with <code>NA</code>).
 If <code>return_df</code> is <code>FALSE</code>, returns only the unique values of
 <code>spp_col</code>.</p></li>
 </ul></div>
@@ -148,13 +155,13 @@ If <code>return_df</code> is <code>FALSE</code>, returns only the unique values 
 <span class="r-in"><span><span class="co"># Use the type column</span></span></span>
 <span class="r-in"><span><span class="fu">get_unique_species</span><span class="op">(</span><span class="va">df</span>, spp_col <span class="op">=</span> <span class="st">"species"</span>, obstype_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
 <span class="r-in"><span>                   reorder <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                    ID       species   type</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1          cat_animal           cat animal</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2       rabbit_animal        rabbit animal</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3         blank_blank         blank  blank</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4           fire_fire          fire   fire</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 cameratrapper_human cameratrapper  human</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6       tourist_human       tourist  human</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         species   type  species_orig</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           cat animal           cat</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        rabbit animal        rabbit</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3         blank  blank          &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4          fire   fire          &lt;NA&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 cameratrapper  human cameratrapper</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       tourist  human       tourist</span>
 <span class="r-in"><span><span class="co"># Use the type column but return a vector</span></span></span>
 <span class="r-in"><span><span class="fu">get_unique_species</span><span class="op">(</span><span class="va">df</span>, spp_col <span class="op">=</span> <span class="st">"species"</span>, return_df <span class="op">=</span> <span class="cn">FALSE</span>,</span></span>
 <span class="r-in"><span>                   reorder <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>

@@ -86,20 +86,12 @@
 can be used to read and clean different data formats.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://lisanicvert.github.io/camtrapviz/">camtrapviz</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     filter, lag</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="write-data-in-tempfile">Write data in tempfile<a class="anchor" aria-label="anchor" href="#write-data-in-tempfile"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># csv files ------------------------------------------</span></span>
+<code class="sourceCode R"><span><span class="co"># records and cameras in separate files ------------------------------------------</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">recordTableSample</span>, package <span class="op">=</span> <span class="st">"camtrapR"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">camtraps</span>, package <span class="op">=</span> <span class="st">"camtrapR"</span><span class="op">)</span></span>
 <span></span>
@@ -115,7 +107,7 @@ can be used to read and clean different data formats.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">camtraps</span>, <span class="va">camtrapfile</span>, </span>
 <span>          row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># csv camera ------------------------------------------</span></span>
+<code class="sourceCode R"><span><span class="co"># records and cameras in same file ------------------------------------------</span></span>
 <span><span class="co"># Create file</span></span>
 <span><span class="va">recordcam</span> <span class="op">&lt;-</span> <span class="va">recordTableSample</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">camtraps</span>, by <span class="op">=</span> <span class="st">"Station"</span><span class="op">)</span></span>
@@ -129,8 +121,10 @@ can be used to read and clean different data formats.</p>
 <span>          row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="records-and-cameras-in-separate-csv-files-2-csv-files">Records and cameras in separate csv files (2 csv files)<a class="anchor" aria-label="anchor" href="#records-and-cameras-in-separate-csv-files-2-csv-files"></a>
+<h2 id="records-and-cameras-in-separate-csv-files">Records and cameras in separate csv files<a class="anchor" aria-label="anchor" href="#records-and-cameras-in-separate-csv-files"></a>
 </h2>
+<p>First, we see how data import and cleaning is performed with two csv
+files (records and cameras):</p>
 <div class="section level3">
 <h3 id="read-data">Read data<a class="anchor" aria-label="anchor" href="#read-data"></a>
 </h3>
@@ -139,40 +133,168 @@ can be used to read and clean different data formats.</p>
 <span>                 path_cam <span class="op">=</span> <span class="va">camtrapfile</span>,</span>
 <span>                 sep_rec <span class="op">=</span> <span class="st">","</span>, sep_cam <span class="op">=</span> <span class="st">","</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Station Species    DateTimeOriginal       Date     Time delta.time.secs</span></span>
-<span><span class="co">#&gt; 1 StationA     PBE 2009-04-21 00:40:00 2009-04-21 00:40:00               0</span></span>
-<span><span class="co">#&gt; 2 StationA     PBE 2009-04-22 20:19:00 2009-04-22 20:19:00          157140</span></span>
-<span><span class="co">#&gt; 3 StationA     PBE 2009-04-23 00:07:00 2009-04-23 00:07:00           13560</span></span>
-<span><span class="co">#&gt; 4 StationA     PBE 2009-05-07 17:11:00 2009-05-07 17:11:00         1270920</span></span>
-<span><span class="co">#&gt; 5 StationA     VTA 2009-04-10 05:07:00 2009-04-10 05:07:00               0</span></span>
-<span><span class="co">#&gt; 6 StationA     VTA 2009-05-06 19:06:00 2009-05-06 19:06:00         2296740</span></span>
-<span><span class="co">#&gt;   delta.time.mins delta.time.hours delta.time.days</span></span>
-<span><span class="co">#&gt; 1               0              0.0             0.0</span></span>
-<span><span class="co">#&gt; 2            2619             43.6             1.8</span></span>
-<span><span class="co">#&gt; 3             226              3.8             0.2</span></span>
-<span><span class="co">#&gt; 4           21182            353.0            14.7</span></span>
-<span><span class="co">#&gt; 5               0              0.0             0.0</span></span>
-<span><span class="co">#&gt; 6           38279            638.0            26.6</span></span>
-<span><span class="co">#&gt;                                                                                     Directory</span></span>
-<span><span class="co">#&gt; 1 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 2 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 3 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 4 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 5 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
-<span><span class="co">#&gt; 6 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
-<span><span class="co">#&gt;                                FileName</span></span>
-<span><span class="co">#&gt; 1 StationA__2009-04-21__00-40-00(1).JPG</span></span>
-<span><span class="co">#&gt; 2 StationA__2009-04-22__20-19-00(1).JPG</span></span>
-<span><span class="co">#&gt; 3 StationA__2009-04-23__00-07-00(1).JPG</span></span>
-<span><span class="co">#&gt; 4 StationA__2009-05-07__17-11-00(1).JPG</span></span>
-<span><span class="co">#&gt; 5 StationA__2009-04-10__05-07-00(1).JPG</span></span>
-<span><span class="co">#&gt; 6 StationA__2009-05-06__19-06-00(1).JPG</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Station  utm_y  utm_x Setup_date Retrieval_date Problem1_from Problem1_to</span></span>
-<span><span class="co">#&gt; 1 StationA 604000 526000 02/04/2009     14/05/2009          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 2 StationB 606000 523000 03/04/2009     16/05/2009          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 3 StationC 607050 525000 04/04/2009     17/05/2009    12/05/2009  17/05/2009</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="3%">
+<col width="3%">
+<col width="7%">
+<col width="4%">
+<col width="3%">
+<col width="6%">
+<col width="6%">
+<col width="6%">
+<col width="6%">
+<col width="36%">
+<col width="15%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Station</th>
+<th align="left">Species</th>
+<th align="left">DateTimeOriginal</th>
+<th align="left">Date</th>
+<th align="left">Time</th>
+<th align="right">delta.time.secs</th>
+<th align="right">delta.time.mins</th>
+<th align="right">delta.time.hours</th>
+<th align="right">delta.time.days</th>
+<th align="left">Directory</th>
+<th align="left">FileName</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-21 00:40:00</td>
+<td align="left">2009-04-21</td>
+<td align="left">00:40:00</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.0</td>
+<td align="right">0.0</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-21__00-40-00(1).JPG</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-22 20:19:00</td>
+<td align="left">2009-04-22</td>
+<td align="left">20:19:00</td>
+<td align="right">157140</td>
+<td align="right">2619</td>
+<td align="right">43.6</td>
+<td align="right">1.8</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-22__20-19-00(1).JPG</td>
+</tr>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-23 00:07:00</td>
+<td align="left">2009-04-23</td>
+<td align="left">00:07:00</td>
+<td align="right">13560</td>
+<td align="right">226</td>
+<td align="right">3.8</td>
+<td align="right">0.2</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-23__00-07-00(1).JPG</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-05-07 17:11:00</td>
+<td align="left">2009-05-07</td>
+<td align="left">17:11:00</td>
+<td align="right">1270920</td>
+<td align="right">21182</td>
+<td align="right">353.0</td>
+<td align="right">14.7</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-05-07__17-11-00(1).JPG</td>
+</tr>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">VTA</td>
+<td align="left">2009-04-10 05:07:00</td>
+<td align="left">2009-04-10</td>
+<td align="left">05:07:00</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.0</td>
+<td align="right">0.0</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</td>
+<td align="left">StationA__2009-04-10__05-07-00(1).JPG</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">VTA</td>
+<td align="left">2009-05-06 19:06:00</td>
+<td align="left">2009-05-06</td>
+<td align="left">19:06:00</td>
+<td align="right">2296740</td>
+<td align="right">38279</td>
+<td align="right">638.0</td>
+<td align="right">26.6</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</td>
+<td align="left">StationA__2009-05-06__19-06-00(1).JPG</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="12%">
+<col width="9%">
+<col width="9%">
+<col width="14%">
+<col width="20%">
+<col width="18%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Station</th>
+<th align="right">utm_y</th>
+<th align="right">utm_x</th>
+<th align="left">Setup_date</th>
+<th align="left">Retrieval_date</th>
+<th align="left">Problem1_from</th>
+<th align="left">Problem1_to</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="right">604000</td>
+<td align="right">526000</td>
+<td align="left">02/04/2009</td>
+<td align="left">14/05/2009</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">StationB</td>
+<td align="right">606000</td>
+<td align="right">523000</td>
+<td align="left">03/04/2009</td>
+<td align="left">16/05/2009</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">StationC</td>
+<td align="right">607050</td>
+<td align="right">525000</td>
+<td align="left">04/04/2009</td>
+<td align="left">17/05/2009</td>
+<td align="left">12/05/2009</td>
+<td align="left">17/05/2009</td>
+</tr>
+</tbody>
+</table>
 <p>The imported file is a list with one component <code>$data</code>
 containing 2 dataframes:</p>
 <ul>
@@ -187,10 +309,10 @@ containing 2 dataframes:</p>
 </h3>
 <p>This step ensures all columns have the desired type. It will also
 move these columns to the beginning of the table.</p>
-<p>To cast data to the appropriate type, this function two arguments
-created below: <code>rec_type</code> (for the records table) and
-<code>cam_type</code> (for the cameras table).</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<p>To cast data to the appropriate type, this function has two
+arguments, created below: <code>rec_type</code> (for the records table)
+and <code>cam_type</code> (for the cameras table).</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rec_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Station <span class="op">=</span> <span class="st">"as.character"</span>,</span>
 <span>                 Date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as_date"</span>,</span>
 <span>                             format <span class="op">=</span> <span class="st">"%Y-%m-%d"</span><span class="op">)</span>,</span>
@@ -207,139 +329,390 @@ created below: <code>rec_type</code> (for the records table) and
 types.</p>
 <ul>
 <li>Values contain the casting function to apply
-(e.g. <code>as.Date</code> will translate to <code>as.date(x)</code>).
+(e.g. <code>"as.Date"</code> will translate to <code>as.Date(x)</code>).
 Values cal also be lists to provide additional arguments: for instance,
 <code>list("as.Date", format = "%d/%m/%Y")</code> will translate to
 <code>as.Date(x,  format = "%d/%m/%Y")</code>.</li>
 <li>the names of the list give the corresponding column of the data that
 should be casted.</li>
 </ul>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat</span>, </span>
 <span>                        rec_type <span class="op">=</span> <span class="va">rec_type</span>,</span>
 <span>                        cam_type <span class="op">=</span> <span class="va">cam_type</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Station       Date     Time    DateTimeOriginal Species delta.time.secs</span></span>
-<span><span class="co">#&gt; 1 StationA 2009-04-21 00:40:00 2009-04-21 00:40:00     PBE               0</span></span>
-<span><span class="co">#&gt; 2 StationA 2009-04-22 20:19:00 2009-04-22 20:19:00     PBE          157140</span></span>
-<span><span class="co">#&gt; 3 StationA 2009-04-23 00:07:00 2009-04-23 00:07:00     PBE           13560</span></span>
-<span><span class="co">#&gt; 4 StationA 2009-05-07 17:11:00 2009-05-07 17:11:00     PBE         1270920</span></span>
-<span><span class="co">#&gt; 5 StationA 2009-04-10 05:07:00 2009-04-10 05:07:00     VTA               0</span></span>
-<span><span class="co">#&gt; 6 StationA 2009-05-06 19:06:00 2009-05-06 19:06:00     VTA         2296740</span></span>
-<span><span class="co">#&gt;   delta.time.mins delta.time.hours delta.time.days</span></span>
-<span><span class="co">#&gt; 1               0              0.0             0.0</span></span>
-<span><span class="co">#&gt; 2            2619             43.6             1.8</span></span>
-<span><span class="co">#&gt; 3             226              3.8             0.2</span></span>
-<span><span class="co">#&gt; 4           21182            353.0            14.7</span></span>
-<span><span class="co">#&gt; 5               0              0.0             0.0</span></span>
-<span><span class="co">#&gt; 6           38279            638.0            26.6</span></span>
-<span><span class="co">#&gt;                                                                                     Directory</span></span>
-<span><span class="co">#&gt; 1 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 2 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 3 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 4 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 5 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
-<span><span class="co">#&gt; 6 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
-<span><span class="co">#&gt;                                FileName</span></span>
-<span><span class="co">#&gt; 1 StationA__2009-04-21__00-40-00(1).JPG</span></span>
-<span><span class="co">#&gt; 2 StationA__2009-04-22__20-19-00(1).JPG</span></span>
-<span><span class="co">#&gt; 3 StationA__2009-04-23__00-07-00(1).JPG</span></span>
-<span><span class="co">#&gt; 4 StationA__2009-05-07__17-11-00(1).JPG</span></span>
-<span><span class="co">#&gt; 5 StationA__2009-04-10__05-07-00(1).JPG</span></span>
-<span><span class="co">#&gt; 6 StationA__2009-05-06__19-06-00(1).JPG</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Station Setup_date Retrieval_date  utm_y  utm_x Problem1_from Problem1_to</span></span>
-<span><span class="co">#&gt; 1 StationA 2009-04-02     2009-05-14 604000 526000          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 2 StationB 2009-04-03     2009-05-16 606000 523000          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 3 StationC 2009-04-04     2009-05-17 607050 525000    12/05/2009  17/05/2009</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="3%">
+<col width="3%">
+<col width="7%">
+<col width="4%">
+<col width="3%">
+<col width="6%">
+<col width="6%">
+<col width="6%">
+<col width="6%">
+<col width="36%">
+<col width="15%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Station</th>
+<th align="left">Species</th>
+<th align="left">DateTimeOriginal</th>
+<th align="left">Date</th>
+<th align="right">Time</th>
+<th align="right">delta.time.secs</th>
+<th align="right">delta.time.mins</th>
+<th align="right">delta.time.hours</th>
+<th align="right">delta.time.days</th>
+<th align="left">Directory</th>
+<th align="left">FileName</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-21 00:40:00</td>
+<td align="left">2009-04-21</td>
+<td align="right">00:40:00</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.0</td>
+<td align="right">0.0</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-21__00-40-00(1).JPG</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-22 20:19:00</td>
+<td align="left">2009-04-22</td>
+<td align="right">20:19:00</td>
+<td align="right">157140</td>
+<td align="right">2619</td>
+<td align="right">43.6</td>
+<td align="right">1.8</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-22__20-19-00(1).JPG</td>
+</tr>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-23 00:07:00</td>
+<td align="left">2009-04-23</td>
+<td align="right">00:07:00</td>
+<td align="right">13560</td>
+<td align="right">226</td>
+<td align="right">3.8</td>
+<td align="right">0.2</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-23__00-07-00(1).JPG</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-05-07 17:11:00</td>
+<td align="left">2009-05-07</td>
+<td align="right">17:11:00</td>
+<td align="right">1270920</td>
+<td align="right">21182</td>
+<td align="right">353.0</td>
+<td align="right">14.7</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-05-07__17-11-00(1).JPG</td>
+</tr>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">VTA</td>
+<td align="left">2009-04-10 05:07:00</td>
+<td align="left">2009-04-10</td>
+<td align="right">05:07:00</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.0</td>
+<td align="right">0.0</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</td>
+<td align="left">StationA__2009-04-10__05-07-00(1).JPG</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">VTA</td>
+<td align="left">2009-05-06 19:06:00</td>
+<td align="left">2009-05-06</td>
+<td align="right">19:06:00</td>
+<td align="right">2296740</td>
+<td align="right">38279</td>
+<td align="right">638.0</td>
+<td align="right">26.6</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</td>
+<td align="left">StationA__2009-05-06__19-06-00(1).JPG</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="12%">
+<col width="9%">
+<col width="9%">
+<col width="14%">
+<col width="20%">
+<col width="18%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Station</th>
+<th align="right">utm_y</th>
+<th align="right">utm_x</th>
+<th align="left">Setup_date</th>
+<th align="left">Retrieval_date</th>
+<th align="left">Problem1_from</th>
+<th align="left">Problem1_to</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="right">604000</td>
+<td align="right">526000</td>
+<td align="left">2009-04-02</td>
+<td align="left">2009-05-14</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">StationB</td>
+<td align="right">606000</td>
+<td align="right">523000</td>
+<td align="left">2009-04-03</td>
+<td align="left">2009-05-16</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">StationC</td>
+<td align="right">607050</td>
+<td align="right">525000</td>
+<td align="left">2009-04-04</td>
+<td align="left">2009-05-17</td>
+<td align="left">12/05/2009</td>
+<td align="left">17/05/2009</td>
+</tr>
+</tbody>
+</table>
 <p>In case cameras in records and in the cameras file do not match,
 <code>clean_data</code> has an option allowing to keep only shared
-cameras.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+cameras. We create a new dataset where the observations table has
+Stations A, B and C and the deployments table has stations B, C and
+D:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Initialize new data</span></span>
-<span><span class="va">dat_test</span> <span class="op">&lt;-</span> <span class="va">dat</span></span>
+<span><span class="va">dat_diffcam</span> <span class="op">&lt;-</span> <span class="va">dat</span></span>
 <span></span>
-<span><span class="co"># Remove a camera from the records</span></span>
-<span><span class="va">dat_test</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span> <span class="op">&lt;-</span> <span class="va">dat_test</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Station</span> <span class="op">!=</span> <span class="st">"StationC"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Add a camera in deployments</span></span>
-<span><span class="va">newcam</span> <span class="op">&lt;-</span> <span class="va">dat_test</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span></span>
+<span><span class="co"># Replace a camera in deployments</span></span>
+<span><span class="va">newcam</span> <span class="op">&lt;-</span> <span class="va">dat_diffcam</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span></span>
 <span><span class="va">newcam</span><span class="op">$</span><span class="va">Station</span> <span class="op">&lt;-</span> <span class="st">"StationD"</span></span>
 <span></span>
-<span><span class="va">dat_test</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span> <span class="op">&lt;-</span> <span class="va">dat_test</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span> <span class="op">|&gt;</span> </span>
+<span><span class="va">dat_diffcam</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span> <span class="op">&lt;-</span> <span class="va">dat_diffcam</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Station</span> <span class="op">!=</span> <span class="st">"StationA"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="va">newcam</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Observations has Stations A and B</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_test</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "StationA" "StationB"</span></span>
-<span><span class="co"># Deployments has stations A, B, C and D</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_test</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "StationA" "StationB" "StationC" "StationD"</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">dat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat_test</span>, </span>
-<span>                        rec_type <span class="op">=</span> <span class="va">rec_type</span>,</span>
-<span>                        cam_type <span class="op">=</span> <span class="va">cam_type</span>,</span>
-<span>                        cam_col_dfrec <span class="op">=</span> <span class="st">"Station"</span>,</span>
-<span>                        cam_col_dfcam <span class="op">=</span> <span class="st">"Station"</span>, </span>
-<span>                        only_shared_cam <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_diffcam</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "StationA" "StationB" "StationC"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_diffcam</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "StationB" "StationC" "StationD"</span></span></code></pre></div>
+<p>Cleaning the data will keep only data with cameras that are common
+between the two datasets (B and C);</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dat_diffcam_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat_diffcam</span>, </span>
+<span>                                rec_type <span class="op">=</span> <span class="va">rec_type</span>,</span>
+<span>                                cam_type <span class="op">=</span> <span class="va">cam_type</span>,</span>
+<span>                                cam_col_dfrec <span class="op">=</span> <span class="st">"Station"</span>,</span>
+<span>                                cam_col_dfcam <span class="op">=</span> <span class="st">"Station"</span>, </span>
+<span>                                only_shared_cam <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Observations and deployments have the same stations (A and B)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "StationA" "StationB"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "StationA" "StationB"</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_diffcam_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "StationB" "StationC"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_diffcam_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "StationB" "StationC"</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="records-and-cameras-in-the-same-csv-1-csv-file">Records and cameras in the same csv (1 csv file)<a class="anchor" aria-label="anchor" href="#records-and-cameras-in-the-same-csv-1-csv-file"></a>
 </h2>
+<p>Then, we see how data import and cleaning is performed with a unique
+csv file containing records and cameras information:</p>
 <div class="section level3">
 <h3 id="read-data-1">Read data<a class="anchor" aria-label="anchor" href="#read-data-1"></a>
 </h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_data.html">read_data</a></span><span class="op">(</span>path_rec <span class="op">=</span> <span class="va">recordcamfile</span>,</span>
 <span>                 sep_rec <span class="op">=</span> <span class="st">","</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Station Species    DateTimeOriginal       Date     Time delta.time.secs</span></span>
-<span><span class="co">#&gt; 1 StationA     PBE 2009-04-21 00:40:00 2009-04-21 00:40:00               0</span></span>
-<span><span class="co">#&gt; 2 StationA     PBE 2009-04-22 20:19:00 2009-04-22 20:19:00          157140</span></span>
-<span><span class="co">#&gt; 3 StationA     PBE 2009-04-23 00:07:00 2009-04-23 00:07:00           13560</span></span>
-<span><span class="co">#&gt; 4 StationA     PBE 2009-05-07 17:11:00 2009-05-07 17:11:00         1270920</span></span>
-<span><span class="co">#&gt; 5 StationA     VTA 2009-04-10 05:07:00 2009-04-10 05:07:00               0</span></span>
-<span><span class="co">#&gt; 6 StationA     VTA 2009-05-06 19:06:00 2009-05-06 19:06:00         2296740</span></span>
-<span><span class="co">#&gt;   delta.time.mins delta.time.hours delta.time.days</span></span>
-<span><span class="co">#&gt; 1               0              0.0             0.0</span></span>
-<span><span class="co">#&gt; 2            2619             43.6             1.8</span></span>
-<span><span class="co">#&gt; 3             226              3.8             0.2</span></span>
-<span><span class="co">#&gt; 4           21182            353.0            14.7</span></span>
-<span><span class="co">#&gt; 5               0              0.0             0.0</span></span>
-<span><span class="co">#&gt; 6           38279            638.0            26.6</span></span>
-<span><span class="co">#&gt;                                                                                     Directory</span></span>
-<span><span class="co">#&gt; 1 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 2 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 3 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 4 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 5 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
-<span><span class="co">#&gt; 6 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
-<span><span class="co">#&gt;                                FileName  utm_y  utm_x Setup_date Retrieval_date</span></span>
-<span><span class="co">#&gt; 1 StationA__2009-04-21__00-40-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
-<span><span class="co">#&gt; 2 StationA__2009-04-22__20-19-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
-<span><span class="co">#&gt; 3 StationA__2009-04-23__00-07-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
-<span><span class="co">#&gt; 4 StationA__2009-05-07__17-11-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
-<span><span class="co">#&gt; 5 StationA__2009-04-10__05-07-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
-<span><span class="co">#&gt; 6 StationA__2009-05-06__19-06-00(1).JPG 604000 526000 02/04/2009     14/05/2009</span></span>
-<span><span class="co">#&gt;   Problem1_from Problem1_to</span></span>
-<span><span class="co">#&gt; 1          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 2          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 3          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 4          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 5          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 6          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
-<span><span class="co">#&gt; NULL</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="2%">
+<col width="2%">
+<col width="6%">
+<col width="3%">
+<col width="2%">
+<col width="5%">
+<col width="5%">
+<col width="5%">
+<col width="5%">
+<col width="28%">
+<col width="11%">
+<col width="2%">
+<col width="2%">
+<col width="3%">
+<col width="4%">
+<col width="4%">
+<col width="3%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Station</th>
+<th align="left">Species</th>
+<th align="left">DateTimeOriginal</th>
+<th align="left">Date</th>
+<th align="left">Time</th>
+<th align="right">delta.time.secs</th>
+<th align="right">delta.time.mins</th>
+<th align="right">delta.time.hours</th>
+<th align="right">delta.time.days</th>
+<th align="left">Directory</th>
+<th align="left">FileName</th>
+<th align="right">utm_y</th>
+<th align="right">utm_x</th>
+<th align="left">Setup_date</th>
+<th align="left">Retrieval_date</th>
+<th align="left">Problem1_from</th>
+<th align="left">Problem1_to</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-21 00:40:00</td>
+<td align="left">2009-04-21</td>
+<td align="left">00:40:00</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.0</td>
+<td align="right">0.0</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-21__00-40-00(1).JPG</td>
+<td align="right">604000</td>
+<td align="right">526000</td>
+<td align="left">02/04/2009</td>
+<td align="left">14/05/2009</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-22 20:19:00</td>
+<td align="left">2009-04-22</td>
+<td align="left">20:19:00</td>
+<td align="right">157140</td>
+<td align="right">2619</td>
+<td align="right">43.6</td>
+<td align="right">1.8</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-22__20-19-00(1).JPG</td>
+<td align="right">604000</td>
+<td align="right">526000</td>
+<td align="left">02/04/2009</td>
+<td align="left">14/05/2009</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-23 00:07:00</td>
+<td align="left">2009-04-23</td>
+<td align="left">00:07:00</td>
+<td align="right">13560</td>
+<td align="right">226</td>
+<td align="right">3.8</td>
+<td align="right">0.2</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-23__00-07-00(1).JPG</td>
+<td align="right">604000</td>
+<td align="right">526000</td>
+<td align="left">02/04/2009</td>
+<td align="left">14/05/2009</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-05-07 17:11:00</td>
+<td align="left">2009-05-07</td>
+<td align="left">17:11:00</td>
+<td align="right">1270920</td>
+<td align="right">21182</td>
+<td align="right">353.0</td>
+<td align="right">14.7</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-05-07__17-11-00(1).JPG</td>
+<td align="right">604000</td>
+<td align="right">526000</td>
+<td align="left">02/04/2009</td>
+<td align="left">14/05/2009</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">VTA</td>
+<td align="left">2009-04-10 05:07:00</td>
+<td align="left">2009-04-10</td>
+<td align="left">05:07:00</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.0</td>
+<td align="right">0.0</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</td>
+<td align="left">StationA__2009-04-10__05-07-00(1).JPG</td>
+<td align="right">604000</td>
+<td align="right">526000</td>
+<td align="left">02/04/2009</td>
+<td align="left">14/05/2009</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">VTA</td>
+<td align="left">2009-05-06 19:06:00</td>
+<td align="left">2009-05-06</td>
+<td align="left">19:06:00</td>
+<td align="right">2296740</td>
+<td align="right">38279</td>
+<td align="right">638.0</td>
+<td align="right">26.6</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</td>
+<td align="left">StationA__2009-05-06__19-06-00(1).JPG</td>
+<td align="right">604000</td>
+<td align="right">526000</td>
+<td align="left">02/04/2009</td>
+<td align="left">14/05/2009</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Again the imported file is a list with one component
 <code>$data</code>:</p>
 <ul>
@@ -354,15 +727,16 @@ one file was imported)</li>
 <div class="section level3">
 <h3 id="clean-data-1">Clean data<a class="anchor" aria-label="anchor" href="#clean-data-1"></a>
 </h3>
-<p>This step will split the information between cameras and records. To
-do this, it will move all columns listed in <code>cam_cols</code> in the
-cameras file. The column containing cameras IDs must be specified in the
-<code>cam_col_dfrec</code> argument (so that it is kept in the
-records).</p>
-<p>Since at the beginning all columns are in the records file, the
-casting specifications should be in the <code>rec_type</code>
-argument.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<p>In this step, will split the information from the observations table
+between observations and deployments. To do this,
+<code>clean_data</code> will move all columns listed in
+<code>cam_cols</code> in the deployments table. The column containing
+cameras IDs must be specified in the <code>cam_col_dfrec</code> argument
+(so that this column is kept in the observations table).</p>
+<p>Since at the beginning, all columns are in the observations
+dataframe, the casting specifications should be in the
+<code>rec_type</code> argument.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cam_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Station"</span>, <span class="st">"Setup_date"</span>, <span class="st">"Retrieval_date"</span>, </span>
 <span>              <span class="st">"utm_y"</span>, <span class="st">"utm_x"</span>, <span class="st">"Problem1_from"</span>, <span class="st">"Problem1_to"</span><span class="op">)</span></span>
 <span></span>
@@ -380,58 +754,189 @@ argument.</p>
 <span>                                       format <span class="op">=</span> <span class="st">"%d/%m/%Y"</span><span class="op">)</span>,</span>
 <span>                  Problem1_to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as.Date"</span>,</span>
 <span>                                     format <span class="op">=</span> <span class="st">"%d/%m/%Y"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat</span>, </span>
 <span>                        rec_type <span class="op">=</span> <span class="va">rec_type2</span>,</span>
 <span>                        cam_col_dfrec <span class="op">=</span> <span class="st">"Station"</span>,</span>
 <span>                        cam_cols <span class="op">=</span> <span class="va">cam_cols</span>,</span>
 <span>                        split <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Station       Date     Time    DateTimeOriginal Species delta.time.secs</span></span>
-<span><span class="co">#&gt; 1 StationA 2009-04-21 00:40:00 2009-04-21 00:40:00     PBE               0</span></span>
-<span><span class="co">#&gt; 2 StationA 2009-04-22 20:19:00 2009-04-22 20:19:00     PBE          157140</span></span>
-<span><span class="co">#&gt; 3 StationA 2009-04-23 00:07:00 2009-04-23 00:07:00     PBE           13560</span></span>
-<span><span class="co">#&gt; 4 StationA 2009-05-07 17:11:00 2009-05-07 17:11:00     PBE         1270920</span></span>
-<span><span class="co">#&gt; 5 StationA 2009-04-10 05:07:00 2009-04-10 05:07:00     VTA               0</span></span>
-<span><span class="co">#&gt; 6 StationA 2009-05-06 19:06:00 2009-05-06 19:06:00     VTA         2296740</span></span>
-<span><span class="co">#&gt;   delta.time.mins delta.time.hours delta.time.days</span></span>
-<span><span class="co">#&gt; 1               0              0.0             0.0</span></span>
-<span><span class="co">#&gt; 2            2619             43.6             1.8</span></span>
-<span><span class="co">#&gt; 3             226              3.8             0.2</span></span>
-<span><span class="co">#&gt; 4           21182            353.0            14.7</span></span>
-<span><span class="co">#&gt; 5               0              0.0             0.0</span></span>
-<span><span class="co">#&gt; 6           38279            638.0            26.6</span></span>
-<span><span class="co">#&gt;                                                                                     Directory</span></span>
-<span><span class="co">#&gt; 1 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 2 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 3 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 4 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</span></span>
-<span><span class="co">#&gt; 5 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
-<span><span class="co">#&gt; 6 C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</span></span>
-<span><span class="co">#&gt;                                FileName</span></span>
-<span><span class="co">#&gt; 1 StationA__2009-04-21__00-40-00(1).JPG</span></span>
-<span><span class="co">#&gt; 2 StationA__2009-04-22__20-19-00(1).JPG</span></span>
-<span><span class="co">#&gt; 3 StationA__2009-04-23__00-07-00(1).JPG</span></span>
-<span><span class="co">#&gt; 4 StationA__2009-05-07__17-11-00(1).JPG</span></span>
-<span><span class="co">#&gt; 5 StationA__2009-04-10__05-07-00(1).JPG</span></span>
-<span><span class="co">#&gt; 6 StationA__2009-05-06__19-06-00(1).JPG</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Station Setup_date Retrieval_date  utm_y  utm_x Problem1_from Problem1_to</span></span>
-<span><span class="co">#&gt; 1 StationA 2009-04-02     2009-05-14 604000 526000          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 2 StationB 2009-04-03     2009-05-16 606000 523000          &lt;NA&gt;        &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 3 StationC 2009-04-04     2009-05-17 607050 525000    2009-05-12  2009-05-17</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="3%">
+<col width="3%">
+<col width="7%">
+<col width="4%">
+<col width="3%">
+<col width="6%">
+<col width="6%">
+<col width="6%">
+<col width="6%">
+<col width="36%">
+<col width="15%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Station</th>
+<th align="left">Species</th>
+<th align="left">DateTimeOriginal</th>
+<th align="left">Date</th>
+<th align="right">Time</th>
+<th align="right">delta.time.secs</th>
+<th align="right">delta.time.mins</th>
+<th align="right">delta.time.hours</th>
+<th align="right">delta.time.days</th>
+<th align="left">Directory</th>
+<th align="left">FileName</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-21 00:40:00</td>
+<td align="left">2009-04-21</td>
+<td align="right">00:40:00</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.0</td>
+<td align="right">0.0</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-21__00-40-00(1).JPG</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-22 20:19:00</td>
+<td align="left">2009-04-22</td>
+<td align="right">20:19:00</td>
+<td align="right">157140</td>
+<td align="right">2619</td>
+<td align="right">43.6</td>
+<td align="right">1.8</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-22__20-19-00(1).JPG</td>
+</tr>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-04-23 00:07:00</td>
+<td align="left">2009-04-23</td>
+<td align="right">00:07:00</td>
+<td align="right">13560</td>
+<td align="right">226</td>
+<td align="right">3.8</td>
+<td align="right">0.2</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-04-23__00-07-00(1).JPG</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">PBE</td>
+<td align="left">2009-05-07 17:11:00</td>
+<td align="left">2009-05-07</td>
+<td align="right">17:11:00</td>
+<td align="right">1270920</td>
+<td align="right">21182</td>
+<td align="right">353.0</td>
+<td align="right">14.7</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/PBE</td>
+<td align="left">StationA__2009-05-07__17-11-00(1).JPG</td>
+</tr>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">VTA</td>
+<td align="left">2009-04-10 05:07:00</td>
+<td align="left">2009-04-10</td>
+<td align="right">05:07:00</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.0</td>
+<td align="right">0.0</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</td>
+<td align="left">StationA__2009-04-10__05-07-00(1).JPG</td>
+</tr>
+<tr class="even">
+<td align="left">StationA</td>
+<td align="left">VTA</td>
+<td align="left">2009-05-06 19:06:00</td>
+<td align="left">2009-05-06</td>
+<td align="right">19:06:00</td>
+<td align="right">2296740</td>
+<td align="right">38279</td>
+<td align="right">638.0</td>
+<td align="right">26.6</td>
+<td align="left">C:/Users/niedballa/Documents/R/win-library/3.1/camtrapR/pictures/sample_images/StationA/VTA</td>
+<td align="left">StationA__2009-05-06__19-06-00(1).JPG</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="12%">
+<col width="14%">
+<col width="20%">
+<col width="9%">
+<col width="9%">
+<col width="18%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Station</th>
+<th align="left">Setup_date</th>
+<th align="left">Retrieval_date</th>
+<th align="right">utm_y</th>
+<th align="right">utm_x</th>
+<th align="left">Problem1_from</th>
+<th align="left">Problem1_to</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">StationA</td>
+<td align="left">2009-04-02</td>
+<td align="left">2009-05-14</td>
+<td align="right">604000</td>
+<td align="right">526000</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">StationB</td>
+<td align="left">2009-04-03</td>
+<td align="left">2009-05-16</td>
+<td align="right">606000</td>
+<td align="right">523000</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">StationC</td>
+<td align="left">2009-04-04</td>
+<td align="left">2009-05-17</td>
+<td align="right">607050</td>
+<td align="right">525000</td>
+<td align="left">2009-05-12</td>
+<td align="left">2009-05-17</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section level2">
 <h2 id="camtrapdp-format-json-file">CamtrapDP format (json file)<a class="anchor" aria-label="anchor" href="#camtrapdp-format-json-file"></a>
 </h2>
+<p>Then, we see how data import and cleaning is performed with a dataset
+in <a href="https://tdwg.github.io/camtrap-dp/" class="external-link">camtrapDP</a>
+format.</p>
 <div class="section level3">
 <h3 id="read-data-2">Read data<a class="anchor" aria-label="anchor" href="#read-data-2"></a>
 </h3>
 <p>The <code>read_data</code> function can also read json files
-corresponding to camtrapDP datapackage.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+corresponding to the camtrapDP datapackage.</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_data.html">read_data</a></span><span class="op">(</span>path_rec <span class="op">=</span> <span class="st">"https://raw.githubusercontent.com/tdwg/camtrap-dp/main/example/datapackage.json"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Please make sure you have the right to access data from this Data Package for your intended use.</span></span>
 <span><span class="co">#&gt; Follow applicable norms or requirements to credit the dataset and its authors.</span></span>
@@ -441,99 +946,874 @@ corresponding to camtrapDP datapackage.</p>
 <p>Internally, we use the function <code>read_camtrap_dp</code> from the
 <code>camtraptor</code> package (here, it would give the same result to
 use use directly this function).</p>
-<p>The imported object is a <code>list</code> and the observations and
-deployments info are in the <code>$data</code> slot.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<p>The imported object is a <code>list</code> with several slots, and
+the observations and deployments info are in the <code>$data</code>
+slot.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "list"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] "resources"             "profile"               "name"                 </span></span>
+<span><span class="co">#&gt;  [4] "id"                    "created"               "title"                </span></span>
+<span><span class="co">#&gt;  [7] "contributors"          "description"           "version"              </span></span>
+<span><span class="co">#&gt; [10] "keywords"              "image"                 "homepage"             </span></span>
+<span><span class="co">#&gt; [13] "sources"               "licenses"              "bibliographicCitation"</span></span>
+<span><span class="co">#&gt; [16] "project"               "coordinatePrecision"   "spatial"              </span></span>
+<span><span class="co">#&gt; [19] "temporal"              "taxonomic"             "relatedIdentifiers"   </span></span>
+<span><span class="co">#&gt; [22] "references"            "directory"             "data"                 </span></span>
+<span><span class="co">#&gt; [25] "platform"              "rightsHolder"</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 28</span></span></span>
-<span><span class="co">#&gt;   observationID deploymentID sequenceID mediaID timestamp          </span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>             </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 705e6036      00a2c20d     4bb69c45   <span style="color: #BB0000;">NA</span>      2020-05-30 <span style="color: #949494;">02:57:37</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 1fcdba64      00a2c20d     f99bfff4   <span style="color: #BB0000;">NA</span>      2020-05-31 <span style="color: #949494;">04:05:10</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 4729dc5c      00a2c20d     45abeadc   <span style="color: #BB0000;">NA</span>      2020-05-31 <span style="color: #949494;">20:06:43</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> a3cf89e5      00a2c20d     ea72c74f   <span style="color: #BB0000;">NA</span>      2020-06-05 <span style="color: #949494;">02:49:20</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 254635b0      00a2c20d     52107a58   <span style="color: #BB0000;">NA</span>      2020-06-06 <span style="color: #949494;">04:11:07</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 22a452e1      00a2c20d     52107a58   <span style="color: #BB0000;">NA</span>      2020-06-06 <span style="color: #949494;">04:11:07</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 23 more variables: observationType &lt;fct&gt;, cameraSetup &lt;fct&gt;, taxonID &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   taxonIDReference &lt;chr&gt;, scientificName &lt;chr&gt;, taxonRank &lt;chr&gt;, count &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   countNew &lt;lgl&gt;, lifeStage &lt;fct&gt;, sex &lt;fct&gt;, behaviour &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   individualID &lt;chr&gt;, speed &lt;dbl&gt;, radius &lt;dbl&gt;, angle &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   classificationMethod &lt;fct&gt;, classifiedBy &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   classificationTimestamp &lt;dttm&gt;, classificationConfidence &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   comments &lt;chr&gt;, `_id` &lt;lgl&gt;, vernacularNames.eng &lt;chr&gt;, …</span></span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 24</span></span></span>
-<span><span class="co">#&gt;   deploymentID locationID locationName  longitude latitude coordinateUncertainty</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 00a2c20d     e254a13c   B_HS_val 2_p…      4.77     51.5                   187</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 29b7d356     2df5259b   B_DL_val 5_b…      5.66     51.2                   187</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 577b543a     ff1535c0   B_DL_val 3_d…      5.66     51.2                   187</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 62c200a9     ce943ced   B_DM_val 4_'…      4.01     50.7                   187</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 18 more variables: start &lt;dttm&gt;, end &lt;dttm&gt;, setupBy &lt;chr&gt;, cameraID &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   cameraModel &lt;chr&gt;, cameraInterval &lt;dbl&gt;, cameraHeight &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   cameraTilt &lt;dbl&gt;, cameraHeading &lt;dbl&gt;, timestampIssues &lt;lgl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   baitUse &lt;fct&gt;, session &lt;chr&gt;, array &lt;lgl&gt;, featureType &lt;fct&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   habitat &lt;chr&gt;, tags &lt;chr&gt;, comments &lt;chr&gt;, `_id` &lt;lgl&gt;</span></span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="3%">
+<col width="3%">
+<col width="2%">
+<col width="2%">
+<col width="5%">
+<col width="4%">
+<col width="3%">
+<col width="2%">
+<col width="10%">
+<col width="4%">
+<col width="2%">
+<col width="1%">
+<col width="2%">
+<col width="2%">
+<col width="1%">
+<col width="2%">
+<col width="3%">
+<col width="1%">
+<col width="1%">
+<col width="1%">
+<col width="5%">
+<col width="5%">
+<col width="6%">
+<col width="6%">
+<col width="2%">
+<col width="1%">
+<col width="5%">
+<col width="5%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">observationID</th>
+<th align="left">deploymentID</th>
+<th align="left">sequenceID</th>
+<th align="left">mediaID</th>
+<th align="left">timestamp</th>
+<th align="left">observationType</th>
+<th align="left">cameraSetup</th>
+<th align="left">taxonID</th>
+<th align="left">taxonIDReference</th>
+<th align="left">scientificName</th>
+<th align="left">taxonRank</th>
+<th align="right">count</th>
+<th align="left">countNew</th>
+<th align="left">lifeStage</th>
+<th align="left">sex</th>
+<th align="left">behaviour</th>
+<th align="left">individualID</th>
+<th align="right">speed</th>
+<th align="right">radius</th>
+<th align="right">angle</th>
+<th align="left">classificationMethod</th>
+<th align="left">classifiedBy</th>
+<th align="left">classificationTimestamp</th>
+<th align="right">classificationConfidence</th>
+<th align="left">comments</th>
+<th align="left">_id</th>
+<th align="left">vernacularNames.eng</th>
+<th align="left">vernacularNames.nld</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">705e6036</td>
+<td align="left">00a2c20d</td>
+<td align="left">4bb69c45</td>
+<td align="left">NA</td>
+<td align="left">2020-05-30 02:57:37</td>
+<td align="left">animal</td>
+<td align="left">NA</td>
+<td align="left">DGP6</td>
+<td align="left"><a href="https://www.checklistbank.org/dataset/3LR" class="external-link uri">https://www.checklistbank.org/dataset/3LR</a></td>
+<td align="left">Anas platyrhynchos</td>
+<td align="left">species</td>
+<td align="right">1</td>
+<td align="left">NA</td>
+<td align="left">adult</td>
+<td align="left">female</td>
+<td align="left">foraging</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">2020-07-09 09:39:52</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">mallard</td>
+<td align="left">wilde eend</td>
+</tr>
+<tr class="even">
+<td align="left">1fcdba64</td>
+<td align="left">00a2c20d</td>
+<td align="left">f99bfff4</td>
+<td align="left">NA</td>
+<td align="left">2020-05-31 04:05:10</td>
+<td align="left">animal</td>
+<td align="left">NA</td>
+<td align="left">DGP6</td>
+<td align="left"><a href="https://www.checklistbank.org/dataset/3LR" class="external-link uri">https://www.checklistbank.org/dataset/3LR</a></td>
+<td align="left">Anas platyrhynchos</td>
+<td align="left">species</td>
+<td align="right">2</td>
+<td align="left">NA</td>
+<td align="left">adult</td>
+<td align="left">female</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">2020-07-09 09:40:44</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">mallard</td>
+<td align="left">wilde eend</td>
+</tr>
+<tr class="odd">
+<td align="left">4729dc5c</td>
+<td align="left">00a2c20d</td>
+<td align="left">45abeadc</td>
+<td align="left">NA</td>
+<td align="left">2020-05-31 20:06:43</td>
+<td align="left">animal</td>
+<td align="left">NA</td>
+<td align="left">4RM67</td>
+<td align="left"><a href="https://www.checklistbank.org/dataset/3LR" class="external-link uri">https://www.checklistbank.org/dataset/3LR</a></td>
+<td align="left">Rattus norvegicus</td>
+<td align="left">species</td>
+<td align="right">1</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">2020-07-09 09:41:22</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">brown rat</td>
+<td align="left">bruine rat</td>
+</tr>
+<tr class="even">
+<td align="left">a3cf89e5</td>
+<td align="left">00a2c20d</td>
+<td align="left">ea72c74f</td>
+<td align="left">NA</td>
+<td align="left">2020-06-05 02:49:20</td>
+<td align="left">blank</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Peter Desmet</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">254635b0</td>
+<td align="left">00a2c20d</td>
+<td align="left">52107a58</td>
+<td align="left">NA</td>
+<td align="left">2020-06-06 04:11:07</td>
+<td align="left">animal</td>
+<td align="left">NA</td>
+<td align="left">DGP6</td>
+<td align="left"><a href="https://www.checklistbank.org/dataset/3LR" class="external-link uri">https://www.checklistbank.org/dataset/3LR</a></td>
+<td align="left">Anas platyrhynchos</td>
+<td align="left">species</td>
+<td align="right">1</td>
+<td align="left">NA</td>
+<td align="left">adult</td>
+<td align="left">female</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">2020-07-09 09:43:19</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">mallard</td>
+<td align="left">wilde eend</td>
+</tr>
+<tr class="even">
+<td align="left">22a452e1</td>
+<td align="left">00a2c20d</td>
+<td align="left">52107a58</td>
+<td align="left">NA</td>
+<td align="left">2020-06-06 04:11:07</td>
+<td align="left">animal</td>
+<td align="left">NA</td>
+<td align="left">DGP6</td>
+<td align="left"><a href="https://www.checklistbank.org/dataset/3LR" class="external-link uri">https://www.checklistbank.org/dataset/3LR</a></td>
+<td align="left">Anas platyrhynchos</td>
+<td align="left">species</td>
+<td align="right">9</td>
+<td align="left">NA</td>
+<td align="left">juvenile</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">2020-07-09 09:43:06</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">mallard</td>
+<td align="left">wilde eend</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="2%">
+<col width="2%">
+<col width="6%">
+<col width="2%">
+<col width="1%">
+<col width="4%">
+<col width="4%">
+<col width="4%">
+<col width="4%">
+<col width="1%">
+<col width="2%">
+<col width="3%">
+<col width="2%">
+<col width="2%">
+<col width="2%">
+<col width="3%">
+<col width="1%">
+<col width="5%">
+<col width="1%">
+<col width="2%">
+<col width="23%">
+<col width="4%">
+<col width="8%">
+<col width="0%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">deploymentID</th>
+<th align="left">locationID</th>
+<th align="left">locationName</th>
+<th align="right">longitude</th>
+<th align="right">latitude</th>
+<th align="right">coordinateUncertainty</th>
+<th align="left">start</th>
+<th align="left">end</th>
+<th align="left">setupBy</th>
+<th align="left">cameraID</th>
+<th align="left">cameraModel</th>
+<th align="right">cameraInterval</th>
+<th align="right">cameraHeight</th>
+<th align="right">cameraTilt</th>
+<th align="right">cameraHeading</th>
+<th align="left">timestampIssues</th>
+<th align="left">baitUse</th>
+<th align="left">session</th>
+<th align="left">array</th>
+<th align="left">featureType</th>
+<th align="left">habitat</th>
+<th align="left">tags</th>
+<th align="left">comments</th>
+<th align="left">_id</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">00a2c20d</td>
+<td align="left">e254a13c</td>
+<td align="left">B_HS_val 2_processiepark</td>
+<td align="right">4.774</td>
+<td align="right">51.496</td>
+<td align="right">187</td>
+<td align="left">2020-05-30 02:57:37</td>
+<td align="left">2020-07-01 09:41:41</td>
+<td align="left">anonymized:3eb30aa</td>
+<td align="left">320</td>
+<td align="left">Reconyx-HF2X</td>
+<td align="right">0</td>
+<td align="right">1.3</td>
+<td align="right">-15</td>
+<td align="right">285</td>
+<td align="left">FALSE</td>
+<td align="left">none</td>
+<td align="left">area:HS | season:spring</td>
+<td align="left">NA</td>
+<td align="left">trailGame</td>
+<td align="left">Campine area with a number of river valleys with
+valuable grasslands</td>
+<td align="left">position:above stream</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">29b7d356</td>
+<td align="left">2df5259b</td>
+<td align="left">B_DL_val 5_beek kleine vijver</td>
+<td align="right">5.655</td>
+<td align="right">51.181</td>
+<td align="right">187</td>
+<td align="left">2020-07-29 05:29:41</td>
+<td align="left">2020-08-08 04:20:40</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">250</td>
+<td align="left">Reconyx-HF2X</td>
+<td align="right">0</td>
+<td align="right">0.7</td>
+<td align="right">-15</td>
+<td align="right">350</td>
+<td align="left">FALSE</td>
+<td align="left">none</td>
+<td align="left">area:DL | season:summer</td>
+<td align="left">NA</td>
+<td align="left">trailGame</td>
+<td align="left">Protected marsh with ponds and small brooks</td>
+<td align="left">position:above stream</td>
+<td align="left">from 29/07/2020 to 08/08/2020, 120 photos</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">577b543a</td>
+<td align="left">ff1535c0</td>
+<td align="left">B_DL_val 3_dikke boom</td>
+<td align="right">5.659</td>
+<td align="right">51.184</td>
+<td align="right">187</td>
+<td align="left">2020-06-19 21:00:00</td>
+<td align="left">2020-06-28 23:33:22</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">303</td>
+<td align="left">Reconyx-HF2X</td>
+<td align="right">0</td>
+<td align="right">0.8</td>
+<td align="right">-15</td>
+<td align="right">20</td>
+<td align="left">FALSE</td>
+<td align="left">none</td>
+<td align="left">area:DL | season:summer</td>
+<td align="left">NA</td>
+<td align="left">trailGame</td>
+<td align="left">Protected marsh with ponds and small brooks</td>
+<td align="left">position:left bank</td>
+<td align="left">from 19/06/2020 to 29/06/2020, 63 photos</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">62c200a9</td>
+<td align="left">ce943ced</td>
+<td align="left">B_DM_val 4_’t WAD</td>
+<td align="right">4.013</td>
+<td align="right">50.699</td>
+<td align="right">187</td>
+<td align="left">2021-03-27 20:38:18</td>
+<td align="left">2021-04-18 21:25:00</td>
+<td align="left">NA</td>
+<td align="left">315</td>
+<td align="left">Reconyx-HF2X</td>
+<td align="right">0</td>
+<td align="right">1.0</td>
+<td align="right">-15</td>
+<td align="right">55</td>
+<td align="left">FALSE</td>
+<td align="left">none</td>
+<td align="left">area:DM | season:spring</td>
+<td align="left">NA</td>
+<td align="left">trailGame</td>
+<td align="left">Stream valley with complexes of grassland, poplar
+plantations, alluvial forrest, marsh vegetations, forbs and ponds</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3">
 <h3 id="clean-data-2">Clean data<a class="anchor" aria-label="anchor" href="#clean-data-2"></a>
 </h3>
 <p>Here, the data follows the camtrapDP standard and does not need
-cleaning. However, for this demonstration we will change the time stamp
-type:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+cleaning. However, for this demonstration we change the time stamp type
+to character:</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># timestamp was converted to character</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "character"</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rec_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>timestamp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as.POSIXct"</span>,</span>
 <span>                                  tz <span class="op">=</span> <span class="st">"UTC"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">dat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat</span>, </span>
-<span>                        rec_type <span class="op">=</span> <span class="va">rec_type</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># timestamp is back to POSIX</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "POSIXct" "POSIXt"</span></span>
-<span><span class="co"># The timezone is the one we specified</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span>, <span class="st">"tzone"</span><span class="op">)</span></span>
+<span>                        rec_type <span class="op">=</span> <span class="va">rec_type</span><span class="op">)</span></span></code></pre></div>
+<p>In the cleaned data, <code>timestamp</code> is converted back to
+POSIX:</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "POSIXct" "POSIXt"</span></span></code></pre></div>
+<p>The timezone is UTC, as we specified in the casting function:</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span>, <span class="st">"tzone"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "UTC"</span></span></code></pre></div>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 28</span></span></span>
-<span><span class="co">#&gt;   timestamp           observationID deploymentID sequenceID mediaID</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;dttm&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 2020-05-30 <span style="color: #949494;">02:57:37</span> 705e6036      00a2c20d     4bb69c45   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 2020-05-31 <span style="color: #949494;">04:05:10</span> 1fcdba64      00a2c20d     f99bfff4   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 2020-05-31 <span style="color: #949494;">20:06:43</span> 4729dc5c      00a2c20d     45abeadc   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 2020-06-05 <span style="color: #949494;">02:49:20</span> a3cf89e5      00a2c20d     ea72c74f   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 2020-06-06 <span style="color: #949494;">04:11:07</span> 254635b0      00a2c20d     52107a58   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 2020-06-06 <span style="color: #949494;">04:11:07</span> 22a452e1      00a2c20d     52107a58   <span style="color: #BB0000;">NA</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 23 more variables: observationType &lt;fct&gt;, cameraSetup &lt;fct&gt;, taxonID &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   taxonIDReference &lt;chr&gt;, scientificName &lt;chr&gt;, taxonRank &lt;chr&gt;, count &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   countNew &lt;lgl&gt;, lifeStage &lt;fct&gt;, sex &lt;fct&gt;, behaviour &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   individualID &lt;chr&gt;, speed &lt;dbl&gt;, radius &lt;dbl&gt;, angle &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   classificationMethod &lt;fct&gt;, classifiedBy &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   classificationTimestamp &lt;dttm&gt;, classificationConfidence &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   comments &lt;chr&gt;, `_id` &lt;lgl&gt;, vernacularNames.eng &lt;chr&gt;, …</span></span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 24</span></span></span>
-<span><span class="co">#&gt;   deploymentID locationID locationName  longitude latitude coordinateUncertainty</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 00a2c20d     e254a13c   B_HS_val 2_p…      4.77     51.5                   187</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 29b7d356     2df5259b   B_DL_val 5_b…      5.66     51.2                   187</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 577b543a     ff1535c0   B_DL_val 3_d…      5.66     51.2                   187</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 62c200a9     ce943ced   B_DM_val 4_'…      4.01     50.7                   187</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 18 more variables: start &lt;dttm&gt;, end &lt;dttm&gt;, setupBy &lt;chr&gt;, cameraID &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   cameraModel &lt;chr&gt;, cameraInterval &lt;dbl&gt;, cameraHeight &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   cameraTilt &lt;dbl&gt;, cameraHeading &lt;dbl&gt;, timestampIssues &lt;lgl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   baitUse &lt;fct&gt;, session &lt;chr&gt;, array &lt;lgl&gt;, featureType &lt;fct&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   habitat &lt;chr&gt;, tags &lt;chr&gt;, comments &lt;chr&gt;, `_id` &lt;lgl&gt;</span></span></span></code></pre></div>
+<p>Else, the data is unchanged.</p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="3%">
+<col width="3%">
+<col width="2%">
+<col width="2%">
+<col width="5%">
+<col width="4%">
+<col width="3%">
+<col width="2%">
+<col width="10%">
+<col width="4%">
+<col width="2%">
+<col width="1%">
+<col width="2%">
+<col width="2%">
+<col width="1%">
+<col width="2%">
+<col width="3%">
+<col width="1%">
+<col width="1%">
+<col width="1%">
+<col width="5%">
+<col width="5%">
+<col width="6%">
+<col width="6%">
+<col width="2%">
+<col width="1%">
+<col width="5%">
+<col width="5%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">observationID</th>
+<th align="left">deploymentID</th>
+<th align="left">sequenceID</th>
+<th align="left">mediaID</th>
+<th align="left">timestamp</th>
+<th align="left">observationType</th>
+<th align="left">cameraSetup</th>
+<th align="left">taxonID</th>
+<th align="left">taxonIDReference</th>
+<th align="left">scientificName</th>
+<th align="left">taxonRank</th>
+<th align="right">count</th>
+<th align="left">countNew</th>
+<th align="left">lifeStage</th>
+<th align="left">sex</th>
+<th align="left">behaviour</th>
+<th align="left">individualID</th>
+<th align="right">speed</th>
+<th align="right">radius</th>
+<th align="right">angle</th>
+<th align="left">classificationMethod</th>
+<th align="left">classifiedBy</th>
+<th align="left">classificationTimestamp</th>
+<th align="right">classificationConfidence</th>
+<th align="left">comments</th>
+<th align="left">_id</th>
+<th align="left">vernacularNames.eng</th>
+<th align="left">vernacularNames.nld</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">705e6036</td>
+<td align="left">00a2c20d</td>
+<td align="left">4bb69c45</td>
+<td align="left">NA</td>
+<td align="left">2020-05-30 02:57:37</td>
+<td align="left">animal</td>
+<td align="left">NA</td>
+<td align="left">DGP6</td>
+<td align="left"><a href="https://www.checklistbank.org/dataset/3LR" class="external-link uri">https://www.checklistbank.org/dataset/3LR</a></td>
+<td align="left">Anas platyrhynchos</td>
+<td align="left">species</td>
+<td align="right">1</td>
+<td align="left">NA</td>
+<td align="left">adult</td>
+<td align="left">female</td>
+<td align="left">foraging</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">2020-07-09 09:39:52</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">mallard</td>
+<td align="left">wilde eend</td>
+</tr>
+<tr class="even">
+<td align="left">1fcdba64</td>
+<td align="left">00a2c20d</td>
+<td align="left">f99bfff4</td>
+<td align="left">NA</td>
+<td align="left">2020-05-31 04:05:10</td>
+<td align="left">animal</td>
+<td align="left">NA</td>
+<td align="left">DGP6</td>
+<td align="left"><a href="https://www.checklistbank.org/dataset/3LR" class="external-link uri">https://www.checklistbank.org/dataset/3LR</a></td>
+<td align="left">Anas platyrhynchos</td>
+<td align="left">species</td>
+<td align="right">2</td>
+<td align="left">NA</td>
+<td align="left">adult</td>
+<td align="left">female</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">2020-07-09 09:40:44</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">mallard</td>
+<td align="left">wilde eend</td>
+</tr>
+<tr class="odd">
+<td align="left">4729dc5c</td>
+<td align="left">00a2c20d</td>
+<td align="left">45abeadc</td>
+<td align="left">NA</td>
+<td align="left">2020-05-31 20:06:43</td>
+<td align="left">animal</td>
+<td align="left">NA</td>
+<td align="left">4RM67</td>
+<td align="left"><a href="https://www.checklistbank.org/dataset/3LR" class="external-link uri">https://www.checklistbank.org/dataset/3LR</a></td>
+<td align="left">Rattus norvegicus</td>
+<td align="left">species</td>
+<td align="right">1</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">2020-07-09 09:41:22</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">brown rat</td>
+<td align="left">bruine rat</td>
+</tr>
+<tr class="even">
+<td align="left">a3cf89e5</td>
+<td align="left">00a2c20d</td>
+<td align="left">ea72c74f</td>
+<td align="left">NA</td>
+<td align="left">2020-06-05 02:49:20</td>
+<td align="left">blank</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Peter Desmet</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">254635b0</td>
+<td align="left">00a2c20d</td>
+<td align="left">52107a58</td>
+<td align="left">NA</td>
+<td align="left">2020-06-06 04:11:07</td>
+<td align="left">animal</td>
+<td align="left">NA</td>
+<td align="left">DGP6</td>
+<td align="left"><a href="https://www.checklistbank.org/dataset/3LR" class="external-link uri">https://www.checklistbank.org/dataset/3LR</a></td>
+<td align="left">Anas platyrhynchos</td>
+<td align="left">species</td>
+<td align="right">1</td>
+<td align="left">NA</td>
+<td align="left">adult</td>
+<td align="left">female</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">2020-07-09 09:43:19</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">mallard</td>
+<td align="left">wilde eend</td>
+</tr>
+<tr class="even">
+<td align="left">22a452e1</td>
+<td align="left">00a2c20d</td>
+<td align="left">52107a58</td>
+<td align="left">NA</td>
+<td align="left">2020-06-06 04:11:07</td>
+<td align="left">animal</td>
+<td align="left">NA</td>
+<td align="left">DGP6</td>
+<td align="left"><a href="https://www.checklistbank.org/dataset/3LR" class="external-link uri">https://www.checklistbank.org/dataset/3LR</a></td>
+<td align="left">Anas platyrhynchos</td>
+<td align="left">species</td>
+<td align="right">9</td>
+<td align="left">NA</td>
+<td align="left">juvenile</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+<td align="left">human</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">2020-07-09 09:43:06</td>
+<td align="right">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">mallard</td>
+<td align="left">wilde eend</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="2%">
+<col width="2%">
+<col width="6%">
+<col width="2%">
+<col width="1%">
+<col width="4%">
+<col width="4%">
+<col width="4%">
+<col width="4%">
+<col width="1%">
+<col width="2%">
+<col width="3%">
+<col width="2%">
+<col width="2%">
+<col width="2%">
+<col width="3%">
+<col width="1%">
+<col width="5%">
+<col width="1%">
+<col width="2%">
+<col width="23%">
+<col width="4%">
+<col width="8%">
+<col width="0%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">deploymentID</th>
+<th align="left">locationID</th>
+<th align="left">locationName</th>
+<th align="right">longitude</th>
+<th align="right">latitude</th>
+<th align="right">coordinateUncertainty</th>
+<th align="left">start</th>
+<th align="left">end</th>
+<th align="left">setupBy</th>
+<th align="left">cameraID</th>
+<th align="left">cameraModel</th>
+<th align="right">cameraInterval</th>
+<th align="right">cameraHeight</th>
+<th align="right">cameraTilt</th>
+<th align="right">cameraHeading</th>
+<th align="left">timestampIssues</th>
+<th align="left">baitUse</th>
+<th align="left">session</th>
+<th align="left">array</th>
+<th align="left">featureType</th>
+<th align="left">habitat</th>
+<th align="left">tags</th>
+<th align="left">comments</th>
+<th align="left">_id</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">00a2c20d</td>
+<td align="left">e254a13c</td>
+<td align="left">B_HS_val 2_processiepark</td>
+<td align="right">4.774</td>
+<td align="right">51.496</td>
+<td align="right">187</td>
+<td align="left">2020-05-30 02:57:37</td>
+<td align="left">2020-07-01 09:41:41</td>
+<td align="left">anonymized:3eb30aa</td>
+<td align="left">320</td>
+<td align="left">Reconyx-HF2X</td>
+<td align="right">0</td>
+<td align="right">1.3</td>
+<td align="right">-15</td>
+<td align="right">285</td>
+<td align="left">FALSE</td>
+<td align="left">none</td>
+<td align="left">area:HS | season:spring</td>
+<td align="left">NA</td>
+<td align="left">trailGame</td>
+<td align="left">Campine area with a number of river valleys with
+valuable grasslands</td>
+<td align="left">position:above stream</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">29b7d356</td>
+<td align="left">2df5259b</td>
+<td align="left">B_DL_val 5_beek kleine vijver</td>
+<td align="right">5.655</td>
+<td align="right">51.181</td>
+<td align="right">187</td>
+<td align="left">2020-07-29 05:29:41</td>
+<td align="left">2020-08-08 04:20:40</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">250</td>
+<td align="left">Reconyx-HF2X</td>
+<td align="right">0</td>
+<td align="right">0.7</td>
+<td align="right">-15</td>
+<td align="right">350</td>
+<td align="left">FALSE</td>
+<td align="left">none</td>
+<td align="left">area:DL | season:summer</td>
+<td align="left">NA</td>
+<td align="left">trailGame</td>
+<td align="left">Protected marsh with ponds and small brooks</td>
+<td align="left">position:above stream</td>
+<td align="left">from 29/07/2020 to 08/08/2020, 120 photos</td>
+<td align="left">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">577b543a</td>
+<td align="left">ff1535c0</td>
+<td align="left">B_DL_val 3_dikke boom</td>
+<td align="right">5.659</td>
+<td align="right">51.184</td>
+<td align="right">187</td>
+<td align="left">2020-06-19 21:00:00</td>
+<td align="left">2020-06-28 23:33:22</td>
+<td align="left">Danny Van der beeck</td>
+<td align="left">303</td>
+<td align="left">Reconyx-HF2X</td>
+<td align="right">0</td>
+<td align="right">0.8</td>
+<td align="right">-15</td>
+<td align="right">20</td>
+<td align="left">FALSE</td>
+<td align="left">none</td>
+<td align="left">area:DL | season:summer</td>
+<td align="left">NA</td>
+<td align="left">trailGame</td>
+<td align="left">Protected marsh with ponds and small brooks</td>
+<td align="left">position:left bank</td>
+<td align="left">from 19/06/2020 to 29/06/2020, 63 photos</td>
+<td align="left">NA</td>
+</tr>
+<tr class="even">
+<td align="left">62c200a9</td>
+<td align="left">ce943ced</td>
+<td align="left">B_DM_val 4_’t WAD</td>
+<td align="right">4.013</td>
+<td align="right">50.699</td>
+<td align="right">187</td>
+<td align="left">2021-03-27 20:38:18</td>
+<td align="left">2021-04-18 21:25:00</td>
+<td align="left">NA</td>
+<td align="left">315</td>
+<td align="left">Reconyx-HF2X</td>
+<td align="right">0</td>
+<td align="right">1.0</td>
+<td align="right">-15</td>
+<td align="right">55</td>
+<td align="left">FALSE</td>
+<td align="left">none</td>
+<td align="left">area:DM | season:spring</td>
+<td align="left">NA</td>
+<td align="left">trailGame</td>
+<td align="left">Stream valley with complexes of grassland, poplar
+plantations, alluvial forrest, marsh vegetations, forbs and ponds</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
