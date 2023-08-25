@@ -49,6 +49,15 @@ plot_points(recordTableSample,
             datetime_col = "DateTimeOriginal")
 ```
 
+In case a camera was in the data but no observations were made, you can provide a vector of cameras that should show up on the graph:
+```{r}
+all_cam <- c("StationA", "StationB", "StationC", "StationD")
+plot_points(recordTableSample,
+            cam_col = "Station",
+            datetime_col = "DateTimeOriginal",
+            cam_vec = all_cam)
+```
+
 `date_col` and `time_col` can also be used instead of `datetime_col`.
 
 ```{r}
@@ -166,6 +175,20 @@ plot_map(camtraps,
          crs = 32650)
 ```
 
+If data is missing, it will show up in purple on the map.
+
+```{r}
+radius_missing <- radius[1:2]
+
+plot_map(camtraps, 
+         cam_col = "Station",
+         lat_col = "utm_y", lon_col = "utm_x", 
+         radius = radius_missing,
+         label = paste("Camera:", names(radius_missing), 
+                       "| abundance:", radius_missing),
+         crs = 32650)
+```
+
 ## Plot species
 
 The package also includes a simple function to plot species counts.
@@ -234,3 +257,7 @@ girafe(ggobj = p)
 ```
 
 Another vignette gives a more in-depth overview of this type of plots (see [here](https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html)).
+
+# Plot diversity
+
+To complete

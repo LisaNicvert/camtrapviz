@@ -492,12 +492,16 @@ plot_species_bars <- function(df,
 #' @param cam_col Name of the camera name column
 #' @param color color for the points (can be a unique value or a character vector,
 #' in the same order as the rows of df)
-#' @param radius A named vector of radii tu use for the cirles. Names
-#' correspond to camera names.
+#' @param radius A vector of radii to use for the cirles. It can be named
+#' with names correspond to camera names. If it is not named,
+#' the labels are assumed to be in the same order as the cameras.
 #' @param rescale rescale circles? If `TRUE`, radii will be linearly resized 
 #' so that the maximum corresponds to 300m, and radii smaller than
 #' 10 will be set to 10m. 
-#' @param label label to display when hovering over the map points
+#' @param label vector of labels to display when hovering over the map 
+#' points. It can be named with names correspond to camera names. 
+#' If it is not named,
+#' the labels are assumed to be in the same order as the cameras.
 #' @param width Map width
 #' @param height Map height
 #' @param popup A vector of characters to display in the popup for 
@@ -530,7 +534,7 @@ plot_map <- function(df,
                      width = NULL, height = NULL,
                      cam_col,
                      color = "black",
-                     radius = 3,
+                     radius = rep(3, nrow(df)),
                      rescale = FALSE,
                      label = NULL) {
   
@@ -556,10 +560,16 @@ plot_map <- function(df,
     color <- rep(color, nrow(df_sf))
   }
   
-  # Reorder radii if named
-  if (length(radius) != 0 & !is.null(names(radius))) {
+  
+  # If radius provided
+  if (length(radius) != 0) {
+    # Name radius as cameras if not named
+    if (is.null(names(radius))) {
+      names(radius) <- df[[cam_col]][1:length(radius)]
+    }
+    # Reorder and add missing cameras
     radius <- reorder_named_values(radius, names = df[[cam_col]],
-                                         keep_all_names = TRUE)
+                                   keep_all_names = TRUE)
   }
   
   # Set custom color and placeholder for NA values
@@ -582,10 +592,14 @@ plot_map <- function(df,
   if (is.null(label)) {
     label <- df_sf[[cam_col]]
   } else {
-    if (!is.null(names(label))) {
-      label <- reorder_named_values(label, names = df[[cam_col]],
-                                    keep_all_names = TRUE)
-    }
+    # Name labels as cameras if not named
+    if (is.null(names(label))) {
+      names(label) <- df[[cam_col]][1:length(label)]
+    }      
+    # Reorder and add missing cameras
+    label <- reorder_named_values(label, names = df[[cam_col]],
+                                  keep_all_names = TRUE)
+    
   }
   
   if (NA %in% label) {

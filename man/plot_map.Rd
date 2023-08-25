@@ -15,7 +15,7 @@ plot_map(
   height = NULL,
   cam_col,
   color = "black",
-  radius = 3,
+  radius = rep(3, nrow(df)),
   rescale = FALSE,
   label = NULL
 )
@@ -47,14 +47,18 @@ Defaults to EPSG:4326, which is the code for WGS84 standard.}
 \item{color}{color for the points (can be a unique value or a character vector,
 in the same order as the rows of df)}
 
-\item{radius}{A named vector of radii tu use for the cirles. Names
-correspond to camera names.}
+\item{radius}{A vector of radii to use for the cirles. It can be named
+with names correspond to camera names. If it is not named,
+the labels are assumed to be in the same order as the cameras.}
 
 \item{rescale}{rescale circles? If \code{TRUE}, radii will be linearly resized
 so that the maximum corresponds to 300m, and radii smaller than
 10 will be set to 10m.}
 
-\item{label}{label to display when hovering over the map points}
+\item{label}{vector of labels to display when hovering over the map
+points. It can be named with names correspond to camera names.
+If it is not named,
+the labels are assumed to be in the same order as the cameras.}
 }
 \value{
 a \code{leaflet} map representing cameras as points.
