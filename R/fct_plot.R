@@ -23,7 +23,7 @@
 #' to be of class `times` (else, results are not guaranteed). 
 #' It can be `NULL` if `datetime_col` is provided.
 #' @param interactive Logical; make the plot interactive with `ggiraph`?
-#' @param cam_vec A character vector of all cameras that should appeat
+#' @param cam_vec A character vector of all cameras that should appear
 #' on the plot (optional)
 #' @param textsize Base text size for the axis text 
 #' (axes titles are 1.2 times bigger)
@@ -218,25 +218,10 @@ plot_points <- function(df,
                                    force_tz = TRUE)
   }
   
-  if (!is.null(cam_vec)) {
-    # Filter data (keep only cameras in cam_vec)
-    dfp <- dfp |> filter(.data[[cam_col]] %in% cam_vec)
-    
-    # Define levels based on cam_vec
-    levels <- unique(cam_vec)
-  } else {
-    
-    if (!is.factor(dfp[[cam_col]])) { # If not already a factor
-      # Define levels based on df
-      levels <- sort(unique(dfp[[cam_col]]))
-    } else { # Keep factor levels if it is a factor
-      levels <- levels(dfp[[cam_col]])
-    }
-  }
-  
-  # Coerce cameras to factor
-  dfp[[cam_col]] <- factor(dfp[[cam_col]],
-                              levels = levels)
+  # camera to factor if needed
+  dfp <- format_factor(dfp, 
+                       col = cam_col, 
+                       levels = cam_vec)
   
   if (!is.null(points_col)) {
     # Coerce points col to factor
@@ -253,6 +238,8 @@ plot_points <- function(df,
   
   gg <- gg + scale_y_discrete(drop = FALSE)
   
+  
+  levels <- levels(dfp[[cam_col]])
   
   if (!is.null(dfcam)) {
     # Match dfcam and df cameras ---
@@ -594,6 +581,16 @@ plot_map <- function(df,
   
   if (is.null(label)) {
     label <- df_sf[[cam_col]]
+  } else {
+    if (!is.null(names(label))) {
+      label <- reorder_named_values(label, names = df[[cam_col]],
+                                    keep_all_names = TRUE)
+    }
+  }
+  
+  if (NA %in% label) {
+    # NA label
+    label[which(is.na(label))] <- "No data"
   }
   
   if (is.null(popup)) {
@@ -1005,6 +1002,8 @@ plot_activity <- function(dfrec = NULL,
 #' @param div_col Name of the column containing the diversity index to plot
 #' @param cam_col Name of the column containing the cameras names
 #' @param interactive Make the plot interactive?
+#' @param cam_vec A character vector of all cameras that should appear
+#' on the plot (optional)
 #'
 #' @return A ggplot object representing diversity indices
 #' as bars (in x) following the different cameras (in y).
@@ -1024,9 +1023,14 @@ plot_activity <- function(dfrec = NULL,
 plot_diversity <- function(df, 
                            div_col, 
                            cam_col,
+                           cam_vec = NULL,
                            interactive = FALSE) {
   
-  gg <- ggplot(df)
+  # camera to factor if needed
+  dfp <- format_factor(df, 
+                       col = cam_col, 
+                       levels = cam_vec)
+  gg <- ggplot(dfp)
   
   if (interactive) {
     gg <- gg +
@@ -1040,6 +1044,7 @@ plot_diversity <- function(df,
   }
     
   gg <- gg +  
+    ggplot2::scale_x_discrete(drop = FALSE) +
     coord_flip() +
     theme_linedraw()
   
@@ -1095,4 +1100,46 @@ format_num <- function(num, type = c("clock", "radians")) {
   } else if (type == "radians") {
     format_radian(num)
   }
+}
+
+
+#' Format factor in dataframe
+#'
+#' Given a dataframe and a specific column of this dataframe,
+#' will transform this to a factor with the given levels (except
+#' if already is a factor)
+#'
+#' @param df The df
+#' @param col The column of the df to transform to factor
+#' @param levels THe factor levels
+#'
+#' @return The df with col as factor. In case some values of col 
+#' are not in levels they will be discarded.
+#'
+#' @noRd
+format_factor <- function(df, 
+                          col,
+                          levels = NULL) {
+  
+  res <- df
+  
+  if (!is.null(levels)) {
+    # Filter data (keep only data in levels)
+    res <- res |> filter(.data[[col]] %in% levels)
+    
+    # Define levels based on levels
+    levels_final <- unique(levels)
+  } else {
+    if (!is.factor(df[[col]])) { # If not already a factor
+      # Define levels based on df
+      levels_final <- sort(unique(df[[col]]))
+    } else { # Keep factor levels if it is a factor
+      levels_final <- levels(df[[col]])
+    }
+  }
+  
+  # Coerce cameras to factor
+  res[[col]] <- factor(res[[col]],
+                       levels = levels_final)
+  return(res)
 }

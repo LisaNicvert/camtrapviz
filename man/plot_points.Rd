@@ -58,7 +58,7 @@ It can be \code{NULL} if \code{datetime_col} is provided.}
 to be of class \code{times} (else, results are not guaranteed).
 It can be \code{NULL} if \code{datetime_col} is provided.}
 
-\item{cam_vec}{A character vector of all cameras that should appeat
+\item{cam_vec}{A character vector of all cameras that should appear
 on the plot (optional)}
 
 \item{points_col}{Name of the column to use for the color of data points

@@ -7,8 +7,7 @@ onespeciesUI <- function(id) {
 # Choose species ----------------------------------------------------------
 
     fluidRow(column(width = 12,
-                    uiOutput(NS(id, "species_select")),
-                    dataTableOutput(NS(id, "test"))
+                    uiOutput(NS(id, "species_select"))
                     ),
              ),
     # Activity plot -----------------------------------------------------------
@@ -30,11 +29,11 @@ onespeciesUI <- function(id) {
              h3("Species count"),
              fluidRow(
                column(width = 6, 
-                      radioButtons(NS(id, "value"),
-                                   label = "Plotted value",
-                                   choices = c("Abundance" = "abundance",
-                                               "Proportion of sightings" = "proportion",
-                                               "Relative abundance index" = "RAI"))
+                      selectInput(NS(id, "value"),
+                                  label = "Plotted value",
+                                  choices = c("Abundance" = "individuals",
+                                              "Proportion of sightings" = "individuals_prop",
+                                              "Relative abundance index" = "individuals_RAI"))
                ),
                column(width = 6,
                       conditionalPanel("output.lonlat", 
@@ -57,9 +56,6 @@ onespeciesUI <- function(id) {
                       )
                )
              )
-
-# Tests -------------------------------------------------------------------
-    # dataTableOutput(NS(id, "test"))
              
   )
 }
@@ -72,6 +68,7 @@ onespeciesServer <- function(id,
                              mapping_records,
                              mapping_cameras,
                              sppcam_summary,
+                             cam_summary,
                              crs) {
   moduleServer(id, function(input, output, session) {
     
@@ -257,6 +254,30 @@ onespeciesServer <- function(id,
     
     # Abundance plot ----------------------------------------------------------- 
     
+    abundance_info <- metaReactive2({
+      # Define join by
+      by <- cam_col_cam()
+      names(by) <- cam_col_rec()
+      
+      metaExpr({
+        "# Compute RAI for all species ---"
+        cam_duration <- ..(cam_summary()) |>
+          dplyr::select(.data[[..(cam_col_cam())]],
+                        .data[["sampling_length"]])
+        
+        spp_sampling <- ..(sppcam_summary()) |>
+          left_join(cam_duration,
+                    by = ..(by))
+        
+        spp_sampling |> 
+          mutate(individuals_RAI = individuals/sampling_length,
+                 sightings_RAI = sightings/sampling_length,
+                 .before = sampling_length)
+      }, bindToReturn = TRUE)
+      
+    }, varname = "abundance_info")
+
+    
     focus_spp_summary <- metaReactive2({
       # Get subset of the df with selected values
       all_filter <- species_df()[species_df()$ID %in% input$species, ]
@@ -272,39 +293,26 @@ onespeciesServer <- function(id,
       if (!is.null(spp_filter)) {
         metaExpr({
           "# Get focus species data ---"
-          ..(sppcam_summary()) |> 
+          ..(abundance_info()) |> 
             dplyr::filter(.data[[..(spp_col())]] == ..(spp_filter))
         }, bindToReturn = TRUE)
       } else if (!is.null(obstype_filter)) {
         metaExpr({
           "# Get focus species data ---"
-          ..(sppcam_summary()) |> 
+          ..(abundance_info()) |> 
             dplyr::filter(.data[[..(obstype_col())]] == ..(obstype_filter))
         }, bindToReturn = TRUE)
       }
       
     }, varname = "focus_spp_summary")
     
-    plot_val <- reactive({
-      if (input$value == "abundance") {
-        plot_val <- "individuals"
-      } else if (input$value == "proportion") {
-        plot_val <- "individuals_prop"
-      }
-    })
     
     ## Abundance map ----------------------------------------------------------- 
     
     output$plot_abundance_map <- metaRender(renderLeaflet, {
       "# Plot abundance map ---"
-      abundance <- ..(focus_spp_summary())[[plot_val()]]
+      abundance <- ..(focus_spp_summary())[[..(input$value)]]
       names(abundance) <- ..(focus_spp_summary())[[..(cam_col_rec())]]
-      
-      "# Set hovering labels (replace NA with 'No data')"
-      labels <- ifelse(is.na(abundance), 
-                       "No data", abundance)
-      cat("------\n")
-      cat(labels)
       
       plot_map(..(camtrap_data())$data$deployments, 
                lat_col = ..(unname(mapping_cameras()$lat_col)),
@@ -313,7 +321,7 @@ onespeciesServer <- function(id,
                cam_col = ..(cam_col_cam()),
                radius = abundance,
                color = "black",
-               label = labels,
+               label = round(abundance, 3),
                rescale = TRUE)
     })
     
@@ -332,7 +340,7 @@ onespeciesServer <- function(id,
         focus_spp_summary_plot[is.na(focus_spp_summary_plot)] <- 0
         
         gg <- plot_diversity(focus_spp_summary_plot, 
-                             div_col = plot_val(), 
+                             div_col = ..(input$value), 
                              cam_col = ..(cam_col_rec()),
                              interactive = TRUE) +
           ylab("Count") +
@@ -360,11 +368,6 @@ onespeciesServer <- function(id,
       displayCodeModal(code)
     })
 
-    
-    output$test <- renderDataTable({
-      focus_spp_summary()
-    })
-    
     # Return values -----------------------------------------------------------
 
     return(list(focus_spp_records = focus_spp_records_table,

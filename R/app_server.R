@@ -53,8 +53,9 @@ server <- function(input, output, session) {
                                      camtrap_data = select_val$camtrap_data,
                                      mapping_records = import_val$mapping_records,
                                      mapping_cameras = import_val$mapping_cameras,
-                                     crs = import_val$crs,
-                                     sppcam_summary = allspecies_val$sppcam_summary) 
+                                     sppcam_summary = allspecies_val$sppcam_summary,
+                                     cam_summary = summary_val$cam_summary,
+                                     crs = import_val$crs) 
   
   # Download handler --------------------------------------------------------
   

@@ -133,8 +133,8 @@ allspeciesServer <- function(id,
                       cam_col = ..(cam_col_rec()),
                       spp_col = ..(spp_col()),
                       count_col = ..(mapping_cameras()$count_col), 
-                      by_cam = TRUE,
-                      keep_all_camera_levels = TRUE)
+                      by_cam = TRUE)
+                      # keep_all_camera_levels = TRUE)
   }, bindToReturn = TRUE, varname = "sppcam_summary")
   
   diversity_df <- metaReactive({
@@ -205,10 +205,6 @@ allspeciesServer <- function(id,
       index <- ..(diversity_df())[[..(input$divtype)]]
       names(index) <- ..(diversity_df())[[..(cam_col_rec())]]
       
-      "# Set hovering labels (replace NA with 'No data')"
-      labels <- ifelse(is.na(index), 
-                       "No data", index)
-      
       plot_map(..(camtrap_data())$data$deployments, 
                lat_col = ..(unname(mapping_cameras()$lat_col)),
                lon_col = ..(unname(mapping_cameras()$lon_col)),
@@ -216,7 +212,7 @@ allspeciesServer <- function(id,
                cam_col = ..(cam_col_cam()),
                radius = index,
                color = "black",
-               label = labels,
+               label = round(index, 3),
                rescale = TRUE)
     })
   
@@ -235,9 +231,12 @@ allspeciesServer <- function(id,
       diversity_df_plot <- ..(diversity_df())
       diversity_df_plot[is.na(diversity_df_plot)] <- 0
       
+      cam_vec <- ..(camtrap_data())$data$deployments[[..(cam_col_cam())]]
+      
       gg <- plot_diversity(diversity_df_plot, 
                            div_col = ..(input$divtype), 
                            cam_col = ..(cam_col_rec()),
+                           cam_vec = cam_vec,
                            interactive = TRUE) +
         ylab(..(names(diversity_list[diversity_list == input$divtype]))) +
         xlab("Cameras")
@@ -274,7 +273,6 @@ allspeciesServer <- function(id,
       displayCodeModal(code)
     })
     
-
 # Return values -----------------------------------------------------------
     return(list(diversity_table = diversity_table,
                 sppcam_summary = sppcam_summary,

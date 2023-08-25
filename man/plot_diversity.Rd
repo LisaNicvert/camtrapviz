@@ -4,7 +4,7 @@
 \alias{plot_diversity}
 \title{Plot species diversity at cameras}
 \usage{
-plot_diversity(df, div_col, cam_col, interactive = FALSE)
+plot_diversity(df, div_col, cam_col, cam_vec = NULL, interactive = FALSE)
 }
 \arguments{
 \item{df}{The dataframe with diversity indices per camera}
@@ -12,6 +12,9 @@ plot_diversity(df, div_col, cam_col, interactive = FALSE)
 \item{div_col}{Name of the column containing the diversity index to plot}
 
 \item{cam_col}{Name of the column containing the cameras names}
+
+\item{cam_vec}{A character vector of all cameras that should appear
+on the plot (optional)}
 
 \item{interactive}{Make the plot interactive?}
 }

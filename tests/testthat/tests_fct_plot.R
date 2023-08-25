@@ -514,7 +514,7 @@ test_that("Plot map (radii)", {
            crs = 32650, # Here we use the EPSG code for UTM zone 50N
            cam_col = "Station",
            radius = radii,
-           rescale = FALSE)
+           rescale = TRUE)
 })
 
 test_that("Plot map (colors)", {
@@ -846,7 +846,7 @@ test_that("Diversity plot", {
   expect_equal(ld$tooltip[1],
                1)
   expect_equal(ld$data_id,
-               df$cam)
+               factor(df$cam))
 })
 
 
@@ -880,4 +880,60 @@ test_that("Format hour or radian", {
   
   res <- format_num(12, "clock")
   expect_equal(res, "12:00")
+})
+
+test_that("Format factor", {
+  dftest <- data.frame(col1 = letters[1:10],
+                       col2 = 1:10)
+  
+  # Same levels
+  lev <- letters[1:10]
+  res <- format_factor(dftest, 
+                       col = "col1",
+                       levels = lev)
+  expected <- dftest
+  expected$col1 <- factor(expected$col1)
+  expect_equal(expected, res)
+  
+  # No levels
+  res <- format_factor(dftest, 
+                       col = "col1")
+  expect_equal(expected, res)
+  
+  # More levels
+  lev <- letters[1:12]
+  res <- format_factor(dftest, 
+                       col = "col1",
+                       levels = lev)
+  expected <- dftest
+  expected$col1 <- factor(expected$col1,
+                          levels = lev)
+  expect_equal(expected, res)
+  
+  # Less levels
+  lev <- letters[1:5]
+  res <- format_factor(dftest, 
+                       col = "col1",
+                       levels = lev)
+  expected <- dftest
+  expected <- expected |> 
+    filter(col1 %in% lev)
+  expected$col1 <- factor(expected$col1,
+                          levels = lev)
+  expect_equal(expected, res)
+  
+  
+  # Already factor
+  dffac <- dftest
+  dffac$col1 <- factor(dffac$col1)
+  res <- format_factor(dffac, 
+                       col = "col1")
+  expect_equal(dffac, res)
+  
+  res <- format_factor(dffac, 
+                       col = "col1",
+                       levels = lev)
+  expect_equal(expected, res)
+  
+  
 })
