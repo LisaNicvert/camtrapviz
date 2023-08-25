@@ -13,6 +13,9 @@ summarize_species(
   ncam = NULL,
   by_cam = FALSE,
   keep_all_camera_levels = FALSE,
+  dfcam = NULL,
+  cam_col_dfcam = ifelse(is.null(dfcam), NULL, cam_col),
+  duration_col_dfcam = ifelse(is.null(dfcam), NULL, "sampling_length"),
   NA_count_placeholder = NA
 )
 }
@@ -39,6 +42,15 @@ there will be one row per cameras-species}
 \item{keep_all_camera_levels}{If there is a camera on which no species were
 seen, should it be present in the output? Not needed
 if \code{cam_col} is not provided.}
+
+\item{dfcam}{Dataframe containing information about the cameras
+sampling length. If it is provided, then \code{cam_col_dfcam} and
+\code{duration_col_dfcam} must be in its column names.}
+
+\item{cam_col_dfcam}{Column name containing cameras names in \code{dfcam}}
+
+\item{duration_col_dfcam}{Column name containing sampling duration
+in \code{dfcam}}
 
 \item{NA_count_placeholder}{Value with which to replace NAs present
 in the column containing counts. Defaults to NA (i.e. values are not
@@ -72,6 +84,18 @@ If \code{by_cam} is \code{TRUE}, the following rows are also present:
 \item \code{individuals_prop}: the proportion of individuans represented by the species at the camera.
 }
 
+If \code{by_cam} is \code{TRUE} and \code{dfcam} is provided,
+the following rows are also present:
+\itemize{
+\item \code{sightings_RAI}: relative abundance index for species' sightings
+at each camera. It is computed as the number of sightings over the sampling duration
+(it represents the number of sightings per time unit).
+\item \code{individuals_RAI}: the same as \code{sightings_RAI}, but computed as the
+number of individuals over the sampling duration.
+\item Sampling duration (named like \code{duration_col_dfcam}): sampling
+duration for each camera
+}
+
 Finally, if \code{keep_all_camera_levels} is \code{TRUE}, a final column named
 \code{empty} is added to indicate which cameras were empty (have no data).
 }
@@ -95,6 +119,17 @@ summarize_species(df,
                   obstype_col = "type",
                   count_col = "count",
                   by_cam = TRUE,
+                  NA_count_placeholder = 1)
+# Add camera sampling length to get the RAI
+cam_sampling <- data.frame(camera = c("C1", "C2", "C3", "C4"),
+                           sampling_duration = c(100, 1, 10, 10))
+summarize_species(df, 
+                  spp_col = "species", cam_col = "camera",
+                  obstype_col = "type",
+                  count_col = "count",
+                  by_cam = TRUE,
+                  dfcam = cam_sampling,
+                  duration_col_dfcam = "sampling_duration",
                   NA_count_placeholder = 1)
 }
 \seealso{

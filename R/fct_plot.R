@@ -1018,6 +1018,8 @@ plot_activity <- function(dfrec = NULL,
 #' @param interactive Make the plot interactive?
 #' @param cam_vec A character vector of all cameras that should appear
 #' on the plot (optional)
+#' @param round Rounding option for the diversity indices
+#' displayed when hovering. `NULL` is for no rounding.
 #'
 #' @return A ggplot object representing diversity indices
 #' as bars (in x) following the different cameras (in y).
@@ -1038,6 +1040,7 @@ plot_diversity <- function(df,
                            div_col, 
                            cam_col,
                            cam_vec = NULL,
+                           round = 3,
                            interactive = FALSE) {
   
   # camera to factor if needed
@@ -1050,7 +1053,9 @@ plot_diversity <- function(df,
     gg <- gg +
       ggiraph::geom_col_interactive(aes(x = .data[[cam_col]], 
                                         y = .data[[div_col]],
-                                        tooltip = .data[[div_col]],
+                                        tooltip = ifelse(is.null(round),
+                                                         .data[[div_col]],
+                                                         round(.data[[div_col]], round)),
                                         data_id = .data[[cam_col]]))
   } else {
     gg <- gg + 

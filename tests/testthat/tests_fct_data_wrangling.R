@@ -718,7 +718,8 @@ test_that("Summarize species per camera too", {
   expect_error(summarize_species(df, 
                                  spp_col = "species",
                                  by_cam = TRUE),
-               "cam_col must be provided when by_cam is TRUE.")
+               "cam_col (value: NULL) is not in the column names of df",
+               fixed = TRUE)
   
   # Simplest case ---
   tab <- summarize_species(df,
@@ -817,25 +818,56 @@ test_that("Summarize species per camera too", {
 
 })
 
-test_that("Reorder named values", {
-  # Create camera names that have coordinates
-  coord_cam <- letters[1:5]
+test_that("RAI", {
+  # Synthetic data ---
+  df <- data.frame(species = c("zebra", "cat", "cat", "cow", "cow", "dog", "dog"),
+                   camera = c("C1", "C1", "C1", "C1", "C2", "C3", "C4"),
+                   count = c(1, 1, 1, 50, 3, 1, NA))
+  dfcam <- data.frame(cam = c("C1", "C2", "C3", "C4", "C5"),
+                      sampling = c(100, 10, 100, 10, 100),
+                      dummycol = 1:5)
   
-  # Create test named vector
-  val <- 1:4
-  names(val) <- letters[3:6]
+  expected <- data.frame(species = c("cat", 
+                                     "cow", "cow", 
+                                     "dog", "dog",
+                                     "zebra"),
+                         camera = c("C1", 
+                                    "C1", "C2", 
+                                    "C3", "C4",
+                                    "C1"),
+                         sightings = c(2, 
+                                       1, 1, 
+                                       1, 1,
+                                       1),
+                         individuals = c(2, 
+                                         50, 3, 
+                                         1, NA,
+                                         1),
+                         sightings_prop = c(0.5, 
+                                            0.25, 1,
+                                            1, 1,
+                                            0.25),
+                         individuals_prop = c(2/53,
+                                              50/53, 1,
+                                              1, NA,
+                                              1/53),
+                         sampling = c(100, 100, 10, 100, 10, 100))
+  expected <- expected |> 
+    mutate(sightings_RAI = sightings/sampling,
+           individuals_RAI = individuals/sampling,
+           .before = sampling)
   
-  # Keep all values
-  res <- reorder_named_values(val, coord_cam, keep_all_names = TRUE)
-  expect_equal(res, 
-               c(a = NA, b = NA, c = 1, d = 2, e = 3))
-  
-  # Don't keep all values
-  res <- reorder_named_values(val, coord_cam, keep_all_names = FALSE)
-  expect_equal(res, 
-               c(c = 1, d = 2, e = 3))
+  # Test without type ---
+  res <- suppressWarnings(summarize_species(df, 
+                                            spp_col = "species", 
+                                            cam_col = "camera",
+                                            count_col = "count",
+                                            by_cam = TRUE, 
+                                            dfcam = dfcam, 
+                                            cam_col_dfcam = "cam",
+                                            duration_col_dfcam = "sampling"))
+  expect_equal(res, expected)
 })
-
 
 # Filter data -------------------------------------------------------------
 test_that("Filter data", {
@@ -1135,3 +1167,56 @@ test_that("Fit von Mises", {
   expect_equal(nrow(dt), length(seq(0, 2*pi, by = 0.01)))
 })
     
+
+# Helpers -----------------------------------------------------------------
+
+
+test_that("Reorder named values", {
+  # Create camera names that have coordinates
+  coord_cam <- letters[1:5]
+  
+  # Create test named vector
+  val <- 1:4
+  names(val) <- letters[3:6]
+  
+  # Keep all values
+  res <- reorder_named_values(val, coord_cam, keep_all_names = TRUE)
+  expect_equal(res, 
+               c(a = NA, b = NA, c = 1, d = 2, e = 3))
+  
+  # Don't keep all values
+  res <- reorder_named_values(val, coord_cam, keep_all_names = FALSE)
+  expect_equal(res, 
+               c(c = 1, d = 2, e = 3))
+})
+
+test_that("Check column names", {
+  df_cam <- data.frame(a = 1:10, b = 1:10)
+  
+  # No error ---
+  col <- "a"
+  expect_no_error(check_column_names(df_cam, col))
+  
+  # NULL df ---
+  df_null <- NULL
+  expect_no_error(check_column_names(df_null, col))
+  
+  # Error with explicit arguments---
+  col_cam <- "c"
+  expect_error(check_column_names(df_cam, col_cam,
+                                  quote(df_cam), quote(col_cam)),
+               "col_cam (value: c) is not in the column names of df_cam",
+               fixed = TRUE)
+
+  
+  # Error without_arguments---
+  expect_error(check_column_names(df_cam, col_cam),
+               "col_cam (value: c) is not in the column names of df_cam",
+               fixed = TRUE)
+  
+  # Error with NULL value ---
+  col_null <- NULL
+  expect_error(check_column_names(df_cam, col_null),
+               "col_null (value: NULL) is not in the column names of df_cam",
+               fixed = TRUE)
+})

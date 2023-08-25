@@ -253,8 +253,8 @@ selectServer <- function(id,
                    .data[[paste0(spp_col(), "_orig")]])
           
           res <- ufiltered_df |> 
-            left_join(join_df, 
-                      by = c(obstype_col(), paste0(spp_col(), "_orig")))
+            dplyr::left_join(join_df, 
+                             by = c(obstype_col(), paste0(spp_col(), "_orig")))
           
           res <- res$ID
         }

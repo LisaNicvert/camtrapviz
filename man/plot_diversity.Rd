@@ -4,7 +4,14 @@
 \alias{plot_diversity}
 \title{Plot species diversity at cameras}
 \usage{
-plot_diversity(df, div_col, cam_col, cam_vec = NULL, interactive = FALSE)
+plot_diversity(
+  df,
+  div_col,
+  cam_col,
+  cam_vec = NULL,
+  round = 3,
+  interactive = FALSE
+)
 }
 \arguments{
 \item{df}{The dataframe with diversity indices per camera}
@@ -15,6 +22,9 @@ plot_diversity(df, div_col, cam_col, cam_vec = NULL, interactive = FALSE)
 
 \item{cam_vec}{A character vector of all cameras that should appear
 on the plot (optional)}
+
+\item{round}{Rounding option for the diversity indices
+displayed when hovering. \code{NULL} is for no rounding.}
 
 \item{interactive}{Make the plot interactive?}
 }

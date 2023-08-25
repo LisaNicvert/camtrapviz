@@ -65,6 +65,7 @@ allspeciesServer <- function(id,
                              camtrap_data, 
                              mapping_records,
                              mapping_cameras,
+                             cam_summary,
                              crs) {
   moduleServer(id, function(input, output, session) {
     
@@ -133,8 +134,8 @@ allspeciesServer <- function(id,
                       cam_col = ..(cam_col_rec()),
                       spp_col = ..(spp_col()),
                       count_col = ..(mapping_cameras()$count_col), 
-                      by_cam = TRUE)
-                      # keep_all_camera_levels = TRUE)
+                      by_cam = TRUE,
+                      dfcam = ..(cam_summary()))
   }, bindToReturn = TRUE, varname = "sppcam_summary")
   
   diversity_df <- metaReactive({

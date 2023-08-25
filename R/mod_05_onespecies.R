@@ -68,7 +68,6 @@ onespeciesServer <- function(id,
                              mapping_records,
                              mapping_cameras,
                              sppcam_summary,
-                             cam_summary,
                              crs) {
   moduleServer(id, function(input, output, session) {
     
@@ -253,31 +252,7 @@ onespeciesServer <- function(id,
     })
     
     # Abundance plot ----------------------------------------------------------- 
-    
-    abundance_info <- metaReactive2({
-      # Define join by
-      by <- cam_col_cam()
-      names(by) <- cam_col_rec()
-      
-      metaExpr({
-        "# Compute RAI for all species ---"
-        cam_duration <- ..(cam_summary()) |>
-          dplyr::select(.data[[..(cam_col_cam())]],
-                        .data[["sampling_length"]])
-        
-        spp_sampling <- ..(sppcam_summary()) |>
-          left_join(cam_duration,
-                    by = ..(by))
-        
-        spp_sampling |> 
-          mutate(individuals_RAI = individuals/sampling_length,
-                 sightings_RAI = sightings/sampling_length,
-                 .before = sampling_length)
-      }, bindToReturn = TRUE)
-      
-    }, varname = "abundance_info")
-
-    
+  
     focus_spp_summary <- metaReactive2({
       # Get subset of the df with selected values
       all_filter <- species_df()[species_df()$ID %in% input$species, ]
@@ -293,13 +268,13 @@ onespeciesServer <- function(id,
       if (!is.null(spp_filter)) {
         metaExpr({
           "# Get focus species data ---"
-          ..(abundance_info()) |> 
+          ..(sppcam_summary()) |> 
             dplyr::filter(.data[[..(spp_col())]] == ..(spp_filter))
         }, bindToReturn = TRUE)
       } else if (!is.null(obstype_filter)) {
         metaExpr({
           "# Get focus species data ---"
-          ..(abundance_info()) |> 
+          ..(sppcam_summary()) |> 
             dplyr::filter(.data[[..(obstype_col())]] == ..(obstype_filter))
         }, bindToReturn = TRUE)
       }

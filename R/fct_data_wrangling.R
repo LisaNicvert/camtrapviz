@@ -589,6 +589,12 @@ get_nspecies <- function(df, species_col, obstype_col = NULL,
 #' @param keep_all_camera_levels If there is a camera on which no species were
 #' seen, should it be present in the output? Not needed
 #' if `cam_col` is not provided.
+#' @param dfcam Dataframe containing information about the cameras
+#' sampling length. If it is provided, then `cam_col_dfcam` and
+#' `duration_col_dfcam` must be in its column names.
+#' @param cam_col_dfcam Column name containing cameras names in `dfcam`
+#' @param duration_col_dfcam Column name containing sampling duration
+#' in `dfcam`
 #'
 #' @return A table summarizing species information with the following columns:
 #' + Species (named like `spp_col`): species identity 
@@ -610,6 +616,16 @@ get_nspecies <- function(df, species_col, obstype_col = NULL,
 #' If `by_cam` is `TRUE`, the following rows are also present:
 #' + `sightings_prop`: the proportion of sightings represented by the species at the camera.
 #' + `individuals_prop`: the proportion of individuans represented by the species at the camera.
+#' 
+#' If `by_cam` is `TRUE` and `dfcam` is provided, 
+#' the following rows are also present:
+#' + `sightings_RAI`: relative abundance index for species' sightings 
+#' at each camera. It is computed as the number of sightings over the sampling duration
+#' (it represents the number of sightings per time unit).
+#' + `individuals_RAI`: the same as `sightings_RAI`, but computed as the 
+#' number of individuals over the sampling duration.
+#' + Sampling duration (named like `duration_col_dfcam`): sampling
+#' duration for each camera
 #' 
 #' Finally, if `keep_all_camera_levels` is `TRUE`, a final column named
 #' `empty` is added to indicate which cameras were empty (have no data).
@@ -637,6 +653,17 @@ get_nspecies <- function(df, species_col, obstype_col = NULL,
 #'                   count_col = "count",
 #'                   by_cam = TRUE,
 #'                   NA_count_placeholder = 1)
+#' # Add camera sampling length to get the RAI
+#' cam_sampling <- data.frame(camera = c("C1", "C2", "C3", "C4"),
+#'                            sampling_duration = c(100, 1, 10, 10))
+#' summarize_species(df, 
+#'                   spp_col = "species", cam_col = "camera",
+#'                   obstype_col = "type",
+#'                   count_col = "count",
+#'                   by_cam = TRUE,
+#'                   dfcam = cam_sampling,
+#'                   duration_col_dfcam = "sampling_duration",
+#'                   NA_count_placeholder = 1)
 summarize_species <- function(df, 
                               spp_col, 
                               cam_col = NULL,
@@ -645,9 +672,13 @@ summarize_species <- function(df,
                               ncam = NULL,
                               by_cam = FALSE,
                               keep_all_camera_levels = FALSE,
+                              dfcam = NULL,
+                              cam_col_dfcam = ifelse(is.null(dfcam), NULL, cam_col),
+                              duration_col_dfcam = ifelse(is.null(dfcam), NULL, "sampling_length"),
                               NA_count_placeholder = NA) {
   
   # Check data input ---
+  
   # Set and check ncam
   if (!is.null(cam_col)) {
     ncam_df <- length(unique(df[[cam_col]]))
@@ -661,13 +692,20 @@ summarize_species <- function(df,
     }
   }
   
-  # Check that cam_col is provided if by_cam is TRUE
+  # Check column names
+  check_column_names(df, spp_col)
   if (by_cam) {
-    if (is.null(cam_col)) {
-      stop("cam_col must be provided when by_cam is TRUE.")
-    }
+    check_column_names(df, cam_col)
+  }
+  if (!is.null(obstype_col)) {
+    check_column_names(df, obstype_col)
+  }
+  if (!is.null(count_col)) {
+    check_column_names(df, count_col)
   }
   
+  check_column_names(dfcam, cam_col_dfcam)
+  check_column_names(dfcam, duration_col_dfcam)
   
   # Replace NAs in count ---
   if (!is.null(count_col)) {
@@ -744,6 +782,30 @@ summarize_species <- function(df,
     # Add prop_cam
     res$prop_cam <- res$n_cameras/ncam
   }
+  
+  if (by_cam & !is.null(dfcam)) { # Add RAI
+    # Get only interesting columns from dfcam
+    cam_duration <- dfcam |>
+      dplyr::select(.data[[cam_col_dfcam]],
+                    .data[[duration_col_dfcam]])
+    
+    # Get the correspondence between camera column in records and in cameras
+    by <- cam_col_dfcam
+    names(by) <- cam_col
+    
+    # Merge cameras table and duration
+    res <- res |>
+      dplyr::left_join(cam_duration,
+                       by = by)
+    
+    # Compute RAI
+    res <- res |>
+      mutate(across(c("sightings", "individuals"), 
+                    ~ .x/.data[[duration_col_dfcam]],
+                    .names = "{.col}_RAI"),
+             .before = duration_col_dfcam)
+  }
+  
   
   
   if(!is.null(cam_col)) {
@@ -1285,3 +1347,42 @@ reorder_named_values <- function(vec, names,
   return(res)
 }
 
+#' Check column names
+#' 
+#' Checks that a character is in the column names of a df
+#' and else returns an error.
+#'
+#' @param df The dataframe. If `NULL`, the function does nothing.
+#' @param col Character (column name to check).
+#' @param dfname Name of the dataframe argument to display in the error message
+#' @param colname Name of the column argument to display in the error message
+#'
+#' @return Either an error or nothing.
+#' @noRd
+check_column_names <- function(df, col,
+                               dfname = substitute(df), 
+                               colname = substitute(col)) {
+  
+  if (!is.null(df)) {
+    # Initialize stopping
+    stopping <- FALSE
+    
+    if (is.null(col) ) {
+      # Handle special case where col is NULL
+      stopping <- TRUE
+      colval <- "NULL"
+    } else if (!(col %in% colnames(df))) {
+      # Check if col in colnames
+      stopping <- TRUE
+      colval <- col
+    }
+    
+    if (stopping) {
+      # Raise error
+      stop(colname,
+           " (value: ", colval, ")",
+           " is not in the column names of ", dfname)
+    }
+  }
+  
+}
