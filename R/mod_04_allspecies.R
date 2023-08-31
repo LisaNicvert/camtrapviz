@@ -133,7 +133,7 @@ allspeciesServer <- function(id,
     summarize_species(..(camtrap_data())$data$observations,
                       cam_col = ..(cam_col_rec()),
                       spp_col = ..(spp_col()),
-                      count_col = ..(mapping_cameras()$count_col), 
+                      count_col = ..(mapping_records()$count_col), 
                       by_cam = TRUE,
                       dfcam = ..(cam_summary()))
   }, bindToReturn = TRUE, varname = "sppcam_summary")
