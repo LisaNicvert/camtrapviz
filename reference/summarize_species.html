@@ -68,6 +68,9 @@
 <span>  ncam <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  by_cam <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  keep_all_camera_levels <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  dfcam <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cam_col_dfcam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">dfcam</span><span class="op">)</span>, <span class="cn">NULL</span>, <span class="va">cam_col</span><span class="op">)</span>,</span>
+<span>  duration_col_dfcam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">dfcam</span><span class="op">)</span>, <span class="cn">NULL</span>, <span class="st">"sampling_length"</span><span class="op">)</span>,</span>
 <span>  NA_count_placeholder <span class="op">=</span> <span class="cn">NA</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -113,6 +116,21 @@ seen, should it be present in the output? Not needed
 if <code>cam_col</code> is not provided.</p></dd>
 
 
+<dt>dfcam</dt>
+<dd><p>Dataframe containing information about the cameras
+sampling length. If it is provided, then <code>cam_col_dfcam</code> and
+<code>duration_col_dfcam</code> must be in its column names.</p></dd>
+
+
+<dt>cam_col_dfcam</dt>
+<dd><p>Column name containing cameras names in <code>dfcam</code></p></dd>
+
+
+<dt>duration_col_dfcam</dt>
+<dd><p>Column name containing sampling duration
+in <code>dfcam</code></p></dd>
+
+
 <dt>NA_count_placeholder</dt>
 <dd><p>Value with which to replace NAs present
 in the column containing counts. Defaults to NA (i.e. values are not
@@ -138,6 +156,14 @@ If there are NAs in the input  <code>count_col</code>, they will propagate in <c
 If <code>ncam</code> is provided, then it uses <code>ncam</code> as the total number of cameras.</p></li>
 </ul><p>If <code>by_cam</code> is <code>TRUE</code>, the following rows are also present:</p><ul><li><p><code>sightings_prop</code>: the proportion of sightings represented by the species at the camera.</p></li>
 <li><p><code>individuals_prop</code>: the proportion of individuans represented by the species at the camera.</p></li>
+</ul><p>If <code>by_cam</code> is <code>TRUE</code> and <code>dfcam</code> is provided,
+the following rows are also present:</p><ul><li><p><code>sightings_RAI</code>: relative abundance index for species' sightings
+at each camera. It is computed as the number of sightings over the sampling duration
+(it represents the number of sightings per time unit).</p></li>
+<li><p><code>individuals_RAI</code>: the same as <code>sightings_RAI</code>, but computed as the
+number of individuals over the sampling duration.</p></li>
+<li><p>Sampling duration (named like <code>duration_col_dfcam</code>): sampling
+duration for each camera</p></li>
 </ul><p>Finally, if <code>keep_all_camera_levels</code> is <code>TRUE</code>, a final column named
 <code>empty</code> is added to indicate which cameras were empty (have no data).</p>
     </div>
@@ -179,6 +205,31 @@ If <code>ncam</code> is provided, then it uses <code>ncam</code> as the total nu
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4   zebra animal     C1         1           1            0.5       0.50000000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5    &lt;NA&gt;  blank     C4         1           1            1.0       1.00000000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6    &lt;NA&gt;  human     C3         1           1            0.5       0.01960784</span>
+<span class="r-in"><span><span class="co"># Add camera sampling length to get the RAI</span></span></span>
+<span class="r-in"><span><span class="va">cam_sampling</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>camera <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"C1"</span>, <span class="st">"C2"</span>, <span class="st">"C3"</span>, <span class="st">"C4"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                           sampling_duration <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">1</span>, <span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">summarize_species</span><span class="op">(</span><span class="va">df</span>, </span></span>
+<span class="r-in"><span>                  spp_col <span class="op">=</span> <span class="st">"species"</span>, cam_col <span class="op">=</span> <span class="st">"camera"</span>,</span></span>
+<span class="r-in"><span>                  obstype_col <span class="op">=</span> <span class="st">"type"</span>,</span></span>
+<span class="r-in"><span>                  count_col <span class="op">=</span> <span class="st">"count"</span>,</span></span>
+<span class="r-in"><span>                  by_cam <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>                  dfcam <span class="op">=</span> <span class="va">cam_sampling</span>,</span></span>
+<span class="r-in"><span>                  duration_col_dfcam <span class="op">=</span> <span class="st">"sampling_duration"</span>,</span></span>
+<span class="r-in"><span>                  NA_count_placeholder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   species   type camera sightings individuals sightings_prop individuals_prop</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     cat animal     C1         1           1            0.5       0.50000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     cat animal     C2         1           3            1.0       1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3     cow animal     C3         1          50            0.5       0.98039216</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   zebra animal     C1         1           1            0.5       0.50000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5    &lt;NA&gt;  blank     C4         1           1            1.0       1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6    &lt;NA&gt;  human     C3         1           1            0.5       0.01960784</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   sightings_RAI individuals_RAI sampling_duration</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.01            0.01               100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2          1.00            3.00                 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3          0.10            5.00                10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4          0.01            0.01               100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5          0.10            0.10                10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6          0.10            0.10                10</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

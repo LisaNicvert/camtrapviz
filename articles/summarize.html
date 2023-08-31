@@ -432,9 +432,6 @@ information from the observations will be used.</p>
 <div class="section level2">
 <h2 id="species-information">Species information<a class="anchor" aria-label="anchor" href="#species-information"></a>
 </h2>
-<div class="section level3">
-<h3 id="group-species-across-cameras">Group species across cameras<a class="anchor" aria-label="anchor" href="#group-species-across-cameras"></a>
-</h3>
 <p>We can also summarize the species sightings with the function
 <code>summarize_species</code>.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -705,11 +702,12 @@ one more column describing type and the values will be summarized by
 </tbody>
 </table>
 </div>
-<div class="section level3">
-<h3 id="summarize-per-species-and-cameras">Summarize per species and cameras<a class="anchor" aria-label="anchor" href="#summarize-per-species-and-cameras"></a>
-</h3>
+<div class="section level2">
+<h2 id="summarize-per-species-and-cameras">Summarize per species and cameras<a class="anchor" aria-label="anchor" href="#summarize-per-species-and-cameras"></a>
+</h2>
 <p>It is also possible to summarize the information per species and
-camera using the argument <code>by_cam</code>:</p>
+camera using the argument <code>by_cam</code> in the
+<code>summarize_species</code> function:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bycam</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_species.html">summarize_species</a></span><span class="op">(</span><span class="va">recordTableSample</span>,</span>
 <span>                           spp_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
@@ -814,10 +812,162 @@ but the following rows differ:</p>
 <ul>
 <li><p><code>sightings_prop</code> is the proportion of sightings of a
 given species at a given camera</p></li>
-<li><p><code>individuals_prop</code> is the proportion of individuans of
+<li><p><code>individuals_prop</code> is the proportion of individuals of
 a given species at a given camera</p></li>
 </ul>
-</div>
+<p>When providing additional information on cameras sampling (typically
+obtained with <code>summarize_cameras</code>), the relative abundance
+index can also be computed.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">camsum</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_cameras.html">summarize_cameras</a></span><span class="op">(</span><span class="va">recordTableSample</span>,</span>
+<span>                            cam_col <span class="op">=</span> <span class="st">"Station"</span>,</span>
+<span>                            date_col <span class="op">=</span> <span class="st">"Date"</span>,</span>
+<span>                            time_col <span class="op">=</span> <span class="st">"Time"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bycam_RAI</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_species.html">summarize_species</a></span><span class="op">(</span><span class="va">recordTableSample</span>,</span>
+<span>                           spp_col <span class="op">=</span> <span class="st">"Species"</span>, </span>
+<span>                           cam_col <span class="op">=</span> <span class="st">"Station"</span>,</span>
+<span>                           dfcam <span class="op">=</span> <span class="va">camsum</span>,</span>
+<span>                           by_cam <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">bycam_RAI</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="6%">
+<col width="7%">
+<col width="8%">
+<col width="10%">
+<col width="12%">
+<col width="14%">
+<col width="11%">
+<col width="13%">
+<col width="13%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Species</th>
+<th align="left">Station</th>
+<th align="right">sightings</th>
+<th align="right">individuals</th>
+<th align="right">sightings_prop</th>
+<th align="right">individuals_prop</th>
+<th align="right">sightings_RAI</th>
+<th align="right">individuals_RAI</th>
+<th align="right">sampling_length</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">EGY</td>
+<td align="left">StationC</td>
+<td align="right">6</td>
+<td align="right">6</td>
+<td align="right">0.2857143</td>
+<td align="right">0.2857143</td>
+<td align="right">0.1667570</td>
+<td align="right">0.1667570</td>
+<td align="right">35.9805</td>
+</tr>
+<tr class="even">
+<td align="left">MNE</td>
+<td align="left">StationB</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">0.1666667</td>
+<td align="right">0.1666667</td>
+<td align="right">0.0511728</td>
+<td align="right">0.0511728</td>
+<td align="right">39.0833</td>
+</tr>
+<tr class="odd">
+<td align="left">PBE</td>
+<td align="left">StationA</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">0.6666667</td>
+<td align="right">0.6666667</td>
+<td align="right">0.1454397</td>
+<td align="right">0.1454397</td>
+<td align="right">27.5028</td>
+</tr>
+<tr class="even">
+<td align="left">PBE</td>
+<td align="left">StationB</td>
+<td align="right">8</td>
+<td align="right">8</td>
+<td align="right">0.6666667</td>
+<td align="right">0.6666667</td>
+<td align="right">0.2046910</td>
+<td align="right">0.2046910</td>
+<td align="right">39.0833</td>
+</tr>
+<tr class="odd">
+<td align="left">PBE</td>
+<td align="left">StationC</td>
+<td align="right">6</td>
+<td align="right">6</td>
+<td align="right">0.2857143</td>
+<td align="right">0.2857143</td>
+<td align="right">0.1667570</td>
+<td align="right">0.1667570</td>
+<td align="right">35.9805</td>
+</tr>
+<tr class="even">
+<td align="left">TRA</td>
+<td align="left">StationC</td>
+<td align="right">8</td>
+<td align="right">8</td>
+<td align="right">0.3809524</td>
+<td align="right">0.3809524</td>
+<td align="right">0.2223427</td>
+<td align="right">0.2223427</td>
+<td align="right">35.9805</td>
+</tr>
+<tr class="odd">
+<td align="left">VTA</td>
+<td align="left">StationA</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">0.3333333</td>
+<td align="right">0.3333333</td>
+<td align="right">0.0727199</td>
+<td align="right">0.0727199</td>
+<td align="right">27.5028</td>
+</tr>
+<tr class="even">
+<td align="left">VTA</td>
+<td align="left">StationB</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">0.1666667</td>
+<td align="right">0.1666667</td>
+<td align="right">0.0511728</td>
+<td align="right">0.0511728</td>
+<td align="right">39.0833</td>
+</tr>
+<tr class="odd">
+<td align="left">VTA</td>
+<td align="left">StationC</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">0.0476190</td>
+<td align="right">0.0476190</td>
+<td align="right">0.0277928</td>
+<td align="right">0.0277928</td>
+<td align="right">35.9805</td>
+</tr>
+</tbody>
+</table>
+<p>When <code>dfcam</code> is provided, there are three additional
+columns:</p>
+<ul>
+<li><p><code>sightings_RAI</code>: relative abundance index for species’
+sightings at each camera. It is computed as the number of sightings over
+the sampling duration (it represents the number of sightings per time
+unit).</p></li>
+<li><p><code>individuals_RAI</code>: the same as
+<code>sightings_RAI</code>, but computed as the number of individuals
+over the sampling duration.</p></li>
+<li><p><code>sampling_length</code> containing the sampling duration for
+each camera</p></li>
+</ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
