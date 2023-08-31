@@ -32,8 +32,11 @@ onespeciesUI <- function(id) {
                       selectInput(NS(id, "value"),
                                   label = "Plotted value",
                                   choices = c("Abundance" = "individuals",
+                                              "Sightings" = "sightings",
+                                              "Proportion of individuals" = "sightings_prop",
                                               "Proportion of sightings" = "individuals_prop",
-                                              "Relative abundance index" = "individuals_RAI"))
+                                              "Relative abundance index (individuals)" = "individuals_RAI",
+                                              "Relative abundance index (sightings)" = "sightings_RAI"))
                ),
                column(width = 6,
                       conditionalPanel("output.lonlat", 
