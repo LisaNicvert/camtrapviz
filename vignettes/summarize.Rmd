@@ -112,8 +112,6 @@ knitr::kable(camsum)
 
 ## Species information
 
-### Group species across cameras
-
 We can also summarize the species sightings with the function `summarize_species`.
 
 ```{r}
@@ -175,9 +173,9 @@ sppsum <- summarize_species(with_obstype,
 knitr::kable(sppsum)
 ```
 
-### Summarize per species and cameras
+## Summarize per species and cameras
 
-It is also possible to summarize the information per species and camera using the argument `by_cam`:
+It is also possible to summarize the information per species and camera using the argument `by_cam` in the `summarize_species` function:
 
 ```{r}
 bycam <- summarize_species(recordTableSample,
@@ -191,4 +189,30 @@ Then, we obtain a table with one row per species and camera. The four first colu
 
 -   `sightings_prop` is the proportion of sightings of a given species at a given camera
 
--   `individuals_prop` is the proportion of individuans of a given species at a given camera
+-   `individuals_prop` is the proportion of individuals of a given species at a given camera
+
+When providing additional information on cameras sampling (typically obtained with `summarize_cameras`), the relative abundance index can also be computed.
+
+```{r}
+camsum <- summarize_cameras(recordTableSample,
+                            cam_col = "Station",
+                            date_col = "Date",
+                            time_col = "Time")
+```
+
+```{r}
+bycam_RAI <- summarize_species(recordTableSample,
+                           spp_col = "Species", 
+                           cam_col = "Station",
+                           dfcam = camsum,
+                           by_cam = TRUE)
+knitr::kable(bycam_RAI)
+```
+
+When `dfcam` is provided, there are three additional columns:
+
+-   `sightings_RAI`: relative abundance index for species' sightings at each camera. It is computed as the number of sightings over the sampling duration (it represents the number of sightings per time unit).
+
+-   `individuals_RAI`: the same as `sightings_RAI`, but computed as the number of individuals over the sampling duration.
+
+-   `sampling_length` containing the sampling duration for each camera
