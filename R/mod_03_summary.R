@@ -129,7 +129,7 @@ summaryServer <- function(id,
     
     nspecies <- reactive({
       get_nspecies(df = camtrap_data()$data$observations,
-                   species_col = spp_col(),
+                   spp_col = spp_col(),
                    obstype_col = obstype_col(), 
                    keep_NA = FALSE)
     })

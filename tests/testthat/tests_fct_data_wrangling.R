@@ -41,16 +41,16 @@ test_that("Get nspecies", {
   # With obstype
   df <- data.frame(obstype = c("animal", "animal", "animal", "animal", "blank"),
                    species = c("cat", "cat", "cow", "dog", NA))
-  n <- get_nspecies(df, species_col = "species", obstype_col = "obstype")
+  n <- get_nspecies(df, spp_col = "species", obstype_col = "obstype")
   
   expect_equal(n, 3)
   
   # Without obstype
-  n <- get_nspecies(df, species_col = "species", keep_NA = TRUE)
+  n <- get_nspecies(df, spp_col = "species", keep_NA = TRUE)
   expect_equal(n, 4)
   
   # Without obstype and rm NA
-  n <- get_nspecies(df, species_col = "species", keep_NA = FALSE)
+  n <- get_nspecies(df, spp_col = "species", keep_NA = FALSE)
   expect_equal(n, 3)
 })
 
@@ -77,6 +77,20 @@ test_that("Summarize cameras raises errors", {
                                    datetime_col = "DateTimeOriginal",
                                    date_col = "Date"),
                  "datetime_col is provided, so date_col and time_col will be ignored.")
+  
+  expect_error(summarize_cameras(recordTableSample, 
+                                 cam_col = "Station",
+                                 datetime_col = "datetimeoriginal",
+                                 date_col = "Date"),
+               "datetime_col (value: datetimeoriginal) is not in the column names of dfrec",
+               fixed = TRUE)
+  
+  expect_error(summarize_cameras(recordTableSample, 
+                                 cam_col = "Station",
+                                 date_col = "Date",
+                                 time_col = "time"),
+               "time_col (value: time) is not in the column names of dfrec",
+               fixed = TRUE)
   
 })
 
@@ -870,6 +884,72 @@ test_that("RAI", {
 })
 
 # Filter data -------------------------------------------------------------
+
+test_that("Filter data raises errors", {
+  
+  # Species error ---
+  expect_error(filter_data(dat = mica,
+                           spp_filter = "sp1"),
+               "spp_col (value: NULL) is not in the column names of dat$data$observations",
+               fixed = TRUE)
+  expect_error(filter_data(dat = mica,
+                           spp_filter = "sp1",
+                           spp_col = "xx"),
+               "spp_col (value: xx) is not in the column names of dat$data$observations",
+               fixed = TRUE)
+  
+  # Obstype error ---
+  expect_error(filter_data(dat = mica,
+                           obstype_filter = "t1"),
+               "obstype_col (value: NULL) is not in the column names of dat$data$observations",
+               fixed = TRUE)
+  expect_error(filter_data(dat = mica,
+                           obstype_filter = "t1",
+                           obstype_col = "xxx"),
+               "obstype_col (value: xxx) is not in the column names of dat$data$observations",
+               fixed = TRUE)
+  
+  # Camera error ---
+  expect_error(filter_data(dat = mica,
+                           cam_filter = "cam1"),
+               "cam_col_rec (value: NULL) is not in the column names of dat$data$observations",
+               fixed = TRUE)
+  expect_error(filter_data(dat = mica,
+                           cam_filter = "cam1",
+                           cam_col_rec = "deploymentID",
+                           cam_col_cam = "xxx"),
+               "cam_col_cam (value: xxx) is not in the column names of dat$data$deployments",
+               fixed = TRUE)
+  
+  
+  # Datetime errors ---
+  daterange <- c(Sys.time(), Sys.time() + 1000)
+  # Wrong column name
+  expect_error(filter_data(dat = mica,
+                           daterange = daterange,
+                           datetime_col = "x"),
+               "datetime_col (value: x) is not in the column names of dat$data$observations",
+               fixed = TRUE)
+  # Missing date/time
+  expect_error(filter_data(dat = mica,
+                           daterange = daterange,
+                           date_col = "z"),
+               "If datetime_col is not specified or NULL, both date_col and time_col must be provided",
+               fixed = TRUE)
+  
+  # Custom error ---
+  expect_error(filter_data(dat = mica,
+                           custom_filter = "custom"),
+               "custom_col (value: NULL) is not in the column names of dat$data$observations",
+               fixed = TRUE)
+  expect_error(filter_data(dat = mica,
+                           custom_filter = "custom",
+                           custom_col = "xxx"),
+               "custom_col (value: xxx) is not in the column names of dat$data$observations",
+               fixed = TRUE)
+  
+})
+
 test_that("Filter data", {
   df <- recordTableSample
   df$DateTimeOriginal <- as.POSIXct(df$DateTimeOriginal)
@@ -957,11 +1037,6 @@ test_that("Filter data", {
   # Filter custom ---
   colname <- "delta.time.days"
   val <- c(0, 1.8)
-  
-  expect_error(filter_data(dat, 
-                           custom_filter  = val),
-               "If custom_filter is provided, custom_col cannot be NULL.",
-               fixed = TRUE)
   
   res <- filter_data(dat, 
                      custom_col = colname, 
@@ -1214,9 +1289,72 @@ test_that("Check column names", {
                "col_cam (value: c) is not in the column names of df_cam",
                fixed = TRUE)
   
-  # Error with NULL value ---
+  # No error with NULL value ---
   col_null <- NULL
-  expect_error(check_column_names(df_cam, col_null),
+  expect_no_error(check_column_names(df_cam, col_null))
+  
+  # Error with NULL value ---
+  expect_error(check_column_names(df_cam, col_null, ignore_null = FALSE),
                "col_null (value: NULL) is not in the column names of df_cam",
                fixed = TRUE)
+})
+
+test_that("Check datetime columns", {
+  # Wrong values
+  date_col_f <- "a"
+  time_col_f <- "b"
+  datetime_col_f <- "c"
+  
+  # True values
+  date_col_t <- "Date"
+  time_col_t <- "Time"
+  datetime_col_t <- "DateTimeOriginal"
+  
+  dfname <- recordTableSample
+  
+  # Datetime not provided and date or time NULL
+  expect_error(check_datetime_cols(dfname,
+                                   datetime_col = NULL,
+                                   date_col = NULL,
+                                   time_col = time_col_f), 
+               "If datetime_col is not specified or NULL, both date_col and time_col must be provided",
+               fixed = TRUE)
+  
+  expect_error(check_datetime_cols(dfname,
+                                   datetime_col = NULL,
+                                   date_col = date_col_f,
+                                   time_col = NULL), 
+               "If datetime_col is not specified or NULL, both date_col and time_col must be provided",
+               fixed = TRUE)
+  expect_error(check_datetime_cols(dfname,
+                                   datetime_col = NULL,
+                                   date_col = date_col_t,
+                                   time_col = NULL), 
+               "If datetime_col is not specified or NULL, both date_col and time_col must be provided",
+               fixed = TRUE)
+  
+  # Datetime provided and date or time not NULL (message)
+  expect_message(check_datetime_cols(dfname,
+                                   datetime_col = datetime_col_t,
+                                   date_col = date_col_t,
+                                   time_col = NULL), 
+               "datetime_col is provided, so date_col and time_col will be ignored",
+               fixed = TRUE)
+  
+  # Datetime provided but not in column names
+  expect_error(check_datetime_cols(dfname,
+                                   datetime_col = datetime_col_f,
+                                   date_col = NULL,
+                                   time_col = NULL), 
+                 "datetime_col_f (value: c) is not in the column names of dfname",
+                 fixed = TRUE)
+  
+  # Datetime not provided and date or time not in column names
+  expect_error(check_datetime_cols(dfname,
+                                   datetime_col = NULL,
+                                   date_col = date_col_f,
+                                   time_col = time_col_f), 
+               "date_col_f (value: a) is not in the column names of dfname",
+               fixed = TRUE)
+  
 })

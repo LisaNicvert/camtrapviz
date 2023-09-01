@@ -7,15 +7,15 @@
 summarize_cameras(
   dfrec,
   cam_col,
-  datetime_col,
+  datetime_col = NULL,
   date_col = NULL,
   time_col = NULL,
-  dfcam = NULL,
-  cam_col_dfcam = NULL,
-  setup_col = NULL,
-  retrieval_col = NULL,
   spp_col = NULL,
-  obstype_col = NULL
+  obstype_col = NULL,
+  dfcam = NULL,
+  cam_col_dfcam = ifelse(is.null(dfcam), NULL, cam_col),
+  setup_col = NULL,
+  retrieval_col = NULL
 )
 }
 \arguments{
@@ -31,6 +31,11 @@ infortmation on the pictures sampling time (date and time or datetime).}
 
 \item{time_col}{name of the column containing time (optional if \code{datetime_col} is provided)}
 
+\item{spp_col}{name of the species column (optional). If present,
+the summarry will include the number of species seen on each camera.}
+
+\item{obstype_col}{name of the observation type column}
+
 \item{dfcam}{the dataframe of cameras deployments (optional).}
 
 \item{cam_col_dfcam}{name of the column containing camera ID in \code{dfcam}
@@ -41,11 +46,6 @@ in \code{dfcam} (optional)}
 
 \item{retrieval_col}{name of the column containing retrieval date or datetime
 in \code{dfcam} (optional)}
-
-\item{spp_col}{name of the species column (optional). If present,
-the summarry will include the number of species seen on each camera.}
-
-\item{obstype_col}{name of the observation type column}
 }
 \value{
 The summary is returned as a dataframe with the following columns:

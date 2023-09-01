@@ -124,38 +124,34 @@ get_cameras <- function(cam1, cam2, NA.last = TRUE) {
 #' # For camera C, as it is present only on dfcam and has no retrieval date,
 #' # only a setup date is indicated.
 summarize_cameras <- function(dfrec, cam_col, 
-                              datetime_col,
+                              datetime_col = NULL,
                               date_col = NULL, time_col = NULL,
-                              dfcam = NULL, cam_col_dfcam = NULL,
-                              setup_col = NULL, retrieval_col = NULL,
-                              spp_col = NULL, obstype_col = NULL) {
+                              spp_col = NULL, obstype_col = NULL,
+                              dfcam = NULL, 
+                              cam_col_dfcam = ifelse(is.null(dfcam), NULL, cam_col),
+                              setup_col = NULL, retrieval_col = NULL) {
   
   # --- Check inputs
-  # Display message to say that date_col and time_col will
-  # not be used
-  if (!missing(datetime_col) && !is.null(datetime_col)) {
-    if (!is.null(date_col) || !is.null(time_col)) {
-      message("datetime_col is provided, so date_col and time_col will be ignored.")
-    }
-  }
   
-  # Stop if not date AND time are specified
-  if (missing(datetime_col) || is.null(datetime_col)) {
-    if (is.null(date_col) || is.null(time_col)) {
-      stop("If datetime_col is not specified or NULL, both date_col and time_col must be provided.")
-    }
-  }
+  # Check datetime or date + time
+  check_datetime_cols(dfrec,
+                      datetime_col = datetime_col,
+                      date_col = date_col,
+                      time_col = time_col)
   
-  if (!is.null(dfcam)) { # if dfcam provided
-    if (is.null(cam_col_dfcam)) { # Set cam_col_dfcam to cam_col
-      cam_col_dfcam <- cam_col
-    }
-  }
+  # Check column names
+  check_column_names(dfrec, cam_col, ignore_null = FALSE)
+  check_column_names(dfrec, spp_col)
+  check_column_names(dfrec, obstype_col)
+  
+  check_column_names(dfcam, cam_col_dfcam, ignore_null = FALSE)
+  check_column_names(dfcam, setup_col)
+  check_column_names(dfcam, retrieval_col)
   
   # --- Compute first and last picture
   camsum <- dfrec
   
-  if (missing(datetime_col) || is.null(datetime_col)) {
+  if (is.null(datetime_col)) {
     # Create timestamp column
     camsum$timestamp <- paste(camsum[[date_col]],
                               camsum[[time_col]])
@@ -377,6 +373,9 @@ get_all_species <- function(df,
                             spp_col, obstype_col = NULL,
                             animal_code = "animal",
                             return_df = ifelse(is.null(obstype_col), FALSE, TRUE)) {
+  # Check columns ---
+  check_column_names(df, spp_col, ignore_null = FALSE)
+  check_column_names(df, obstype_col)
   
   # Convert factor to character
   df[[spp_col]] <- as.character(df[[spp_col]])
@@ -481,6 +480,8 @@ get_unique_species <- function(df,
                         reorder = FALSE,
                         add_ID = FALSE) {
   
+  # Don't check column names because it is done in get_all_species
+
   # Get a dataframe of non-unique species names
   spp_df_all <- get_all_species(df = df,
                                 spp_col = spp_col, 
@@ -533,7 +534,7 @@ get_unique_species <- function(df,
 #' Get species count from a dataframe
 #'
 #' @param df a dataframe
-#' @param species_col name of the species column from the dataframe
+#' @param spp_col name of the species column from the dataframe
 #' @param obstype_col name of the observation type column from the dataframe
 #' @param keep_NA count NAs in the species length?
 #'
@@ -546,15 +547,19 @@ get_unique_species <- function(df,
 #' @examples
 #' df <- data.frame(obstype = c("animal", "animal", "animal", "animal", "blank"),
 #'                  species = c("cat", "cat", "cow", "dog", NA))
-#' get_nspecies(df, species_col = "species", obstype_col = "obstype")
-get_nspecies <- function(df, species_col, obstype_col = NULL,
+#' get_nspecies(df, spp_col = "species", obstype_col = "obstype")
+get_nspecies <- function(df, spp_col, obstype_col = NULL,
                          keep_NA = FALSE) {
+  
+  # Check column names ---
+  check_column_names(df, spp_col, ignore_null = FALSE)
+  check_column_names(df, obstype_col)
   
   if (!is.null(obstype_col)) {
     # Filter to get only animal species
-    species <- df[[species_col]][df[[obstype_col]] == "animal"]
+    species <- df[[spp_col]][df[[obstype_col]] == "animal"]
   } else {
-    species <- df[[species_col]]
+    species <- df[[spp_col]]
   }
   
   if (!keep_NA) {
@@ -693,16 +698,15 @@ summarize_species <- function(df,
   }
   
   # Check column names
-  check_column_names(df, spp_col)
+  check_column_names(df, spp_col, 
+                     ignore_null = FALSE)
   if (by_cam) {
-    check_column_names(df, cam_col)
+    check_column_names(df, cam_col,
+                       ignore_null = FALSE)
   }
-  if (!is.null(obstype_col)) {
-    check_column_names(df, obstype_col)
-  }
-  if (!is.null(count_col)) {
-    check_column_names(df, count_col)
-  }
+  
+  check_column_names(df, obstype_col)
+  check_column_names(df, count_col)
   
   check_column_names(dfcam, cam_col_dfcam)
   check_column_names(dfcam, duration_col_dfcam)
@@ -868,7 +872,7 @@ summarize_species <- function(df,
 
 #' Filter camera trap data
 #' 
-#' Allows to filter camera trap data observations and
+#' Filter camera trap data observations and
 #' cameras metadata based on species, cameras and dates.
 #' Values will be filtered out by default, but if `filter_out`
 #' is `FALSE` they will be kept instead.
@@ -879,22 +883,27 @@ summarize_species <- function(df,
 #' + `$deployments` (cameras table)
 #' + `$observations` (records table)
 #' @param spp_filter Species to filter from the data
-#' @param spp_col Name of the species column
+#' @param spp_col Name of the species column (required if `spp_filter` is not `NULL`)
 #' @param obstype_filter Observation types to filter from the data
-#' @param obstype_col Name of the observation column
+#' @param obstype_col Name of the observation column  (required if `obstype_filter` is not `NULL`)
 #' @param cam_filter Cameras to filter from the data
 #' @param cam_col_rec Name of the cameras column in records table (`dat$data$observations`).
+#' Required if `cam_filter` is not `NULL`.
 #' @param cam_col_cam Name of the cameras column in cameras table (`dat$data$deployments`).
-#' Defaults to the same value as `cam_col_rec`.
+#' Defaults to the same value as `cam_col_rec`, and is required if `cam_filter` is not `NULL`.
 #' @param daterange Date range to filter on for the data (will filter 
 #' observations' times so that `times >= daterange[1]` and 
 #' `times <= daterange[2]`). Can be either a Date or a POSIX.
 #' @param datetime_col Name of the datetime column (must be coercible to POSIX).
-#' It is not needed if `date_col` and `time_col` are provided.
+#' It is not needed if `date_col` and `time_col` are provided, but else
+#' it is required if `daterange` is not `NULL`.
 #' @param date_col Name of the date column. It is not needed if `datetime_col` 
-#' is provided.
+#' is provided, but else it is required if `daterange` is not `NULL`.
 #' @param time_col Name of the time column. It is not needed if `datetime_col` 
-#' is provided.
+#' is provided, but else it is required if `daterange` is not `NULL`.
+#' @param custom_filter values to filter out in the custom column `custom_col`.
+#' @param custom_col name of a custom column in to filter values in 
+#' `dat$data$observations` (required if `custom_filter` is not `NULL`).
 #' @param cam_as_factor Transform cameras as factors?
 #' @param tz Timezone for the data bounds. If not provided, will try to 
 #' find the timezone in `daterange` (if it is a POSIX), then in
@@ -902,9 +911,6 @@ summarize_species <- function(df,
 #' present it will default to UTC (Etc/GMT).
 #' For the filtering step, if needed datetimes in `datetime_col` can be 
 #' converted to `tz` but the output data will not be affected.
-#' @param custom_col name of a custom column in to filter values in 
-#' `dat$data$observations`.
-#' @param custom_filter values to filter out in the custom column `custom_col`.
 #' @param filter_out Filter out (`TRUE`) or keep values?
 #' 
 #' @details
@@ -945,11 +951,11 @@ filter_data <- function(dat,
                         cam_col_rec = NULL,
                         cam_col_cam = cam_col_rec,
                         daterange = NULL,
-                        custom_col = NULL,
-                        custom_filter = NULL,
                         datetime_col = NULL,
                         time_col = NULL,
                         date_col = NULL,
+                        custom_filter = NULL,
+                        custom_col = NULL,
                         tz = NULL,
                         cam_as_factor = FALSE,
                         filter_out = TRUE
@@ -957,34 +963,15 @@ filter_data <- function(dat,
   
   rec <- dat$data$observations
   
-  if (!is.null(daterange)) {
-    if (is.null(datetime_col)) { # no timestamp
-      if (is.null(date_col) | is.null(time_col)) {
-        stop("If datetime_col is not provided, date_col and time_col must be provided.")
-      }
-      if( !(date_col %in% colnames(rec))) {
-        stop("date_col must be a column of dat$data$observations.")
-      }
-      if( !(time_col %in% colnames(rec))) {
-        stop("time_col must be a column of dat$data$observations.")
-      }
-    } else { # If provided, timestamp must be in df
-      if( !(datetime_col %in% colnames(rec))) {
-        stop("datetime_col must be a column of dat$data$observations.")
-      }
-    }
-  }
-  
-  if (!is.null(custom_filter)) {
-    if (is.null(custom_col)) {
-      stop("If custom_filter is provided, custom_col cannot be NULL.")
-    }
-  }
-  
   res <- dat
   
   # Filter species  ---
   if (!is.null(spp_filter)) {
+    
+    check_column_names(dat$data$observations, spp_col, 
+                       ignore_null = FALSE,
+                       dfname = "dat$data$observations")
+    
     if (filter_out) {
       # User wants to filter out species
       res$data$observations <- res$data$observations |>
@@ -998,6 +985,11 @@ filter_data <- function(dat,
   
   # Filter observations ---
   if (!is.null(obstype_filter)) {
+    
+    check_column_names(dat$data$observations, obstype_col, 
+                       ignore_null = FALSE,
+                       dfname = "dat$data$observations")
+    
     if (filter_out) {
       # User wants to filter out observations
       res$data$observations <- res$data$observations |>
@@ -1012,6 +1004,14 @@ filter_data <- function(dat,
   
   # Filter cameras ---
   if (!is.null(cam_filter)) {
+    
+    check_column_names(dat$data$observations, cam_col_rec, 
+                       ignore_null = FALSE,
+                       dfname = "dat$data$observations")
+    check_column_names(dat$data$deployments, cam_col_cam, 
+                       ignore_null = FALSE,
+                       dfname = "dat$data$deployments")
+    
     if (filter_out) {
       # User wants to filter out cameras
       res$data$observations <- res$data$observations |>
@@ -1031,6 +1031,12 @@ filter_data <- function(dat,
   
   # Filter daterange ---
   if (!is.null(daterange)) {
+    
+    check_datetime_cols(dat$data$observations,
+                        datetime_col = datetime_col,
+                        date_col = date_col,
+                        time_col = time_col, 
+                        dfname = "dat$data$observations")
     
     # Set the timezone ---
     default_tz <- "Etc/GMT"
@@ -1070,7 +1076,12 @@ filter_data <- function(dat,
   }
   
   # Custom filter ---
-  if (!is.null(custom_col)) {
+  if (!is.null(custom_filter)) {
+    
+    check_column_names(dat$data$observations, custom_col,
+                       ignore_null = FALSE,
+                       dfname = "dat$data$observations")
+    
     if (filter_out) {
       # User wants to filter out a custom column
       res$data$observations <- res$data$observations |>
@@ -1134,6 +1145,12 @@ filter_data <- function(dat,
 get_diversity_indices <- function(dfcount, spp_col, cam_col,
                                   count_col = "individuals",
                                   prop_col = "individuals_prop") {
+  
+  # Check column names ---
+  check_column_names(dfcount, spp_col, ignore_null = FALSE)
+  check_column_names(dfcount, cam_col, ignore_null = FALSE)
+  check_column_names(dfcount, count_col, ignore_null = FALSE)
+  check_column_names(dfcount, prop_col, ignore_null = FALSE)
   
   if ("empty" %in% colnames(dfcount)) {
     diversity_df <- dfcount |>
@@ -1356,12 +1373,15 @@ reorder_named_values <- function(vec, names,
 #' @param col Character (column name to check).
 #' @param dfname Name of the dataframe argument to display in the error message
 #' @param colname Name of the column argument to display in the error message
+#' @param ignore_null In case `col` is NULL, should the function still 
+#' raise an error?
 #'
 #' @return Either an error or nothing.
 #' @noRd
 check_column_names <- function(df, col,
                                dfname = substitute(df), 
-                               colname = substitute(col)) {
+                               colname = substitute(col),
+                               ignore_null = TRUE) {
   
   if (!is.null(df)) {
     # Initialize stopping
@@ -1369,8 +1389,11 @@ check_column_names <- function(df, col,
     
     if (is.null(col) ) {
       # Handle special case where col is NULL
-      stopping <- TRUE
-      colval <- "NULL"
+      
+      if (!ignore_null) { # If an error should be raised even if col is NULL
+        stopping <- TRUE
+        colval <- "NULL"
+      }
     } else if (!(col %in% colnames(df))) {
       # Check if col in colnames
       stopping <- TRUE
@@ -1385,4 +1408,35 @@ check_column_names <- function(df, col,
     }
   }
   
+}
+
+
+check_datetime_cols <- function(df, 
+                                datetime_col,
+                                date_col, time_col,
+                                dfname = substitute(df), 
+                                datetime_colname = substitute(datetime_col),
+                                date_colname = substitute(date_col),
+                                time_colname = substitute(time_col)) {
+  if (!is.null(datetime_col)) { 
+    # If datetime not NULL, use datetime
+    if (!is.null(date_col) || !is.null(time_col)) {
+      # If date and time are provided they will be ignored
+      message("datetime_col is provided, so date_col and time_col will be ignored.")
+    }
+    check_column_names(df, datetime_col,
+                       dfname = dfname, colname = datetime_colname)
+  } else {
+    # If datetime NULL, check date + time
+    if (is.null(date_col) || is.null(time_col)) {
+      # If either one is NULL, stop
+      stop("If datetime_col is not specified or NULL, both date_col and time_col must be provided.")
+    } else {
+      # If both are not NULL, check their names
+      check_column_names(df, date_col, 
+                         dfname = dfname, colname = date_colname)
+      check_column_names(df, time_col,
+                         dfname = dfname, colname = time_colname)
+    }
+  }
 }

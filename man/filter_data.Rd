@@ -14,11 +14,11 @@ filter_data(
   cam_col_rec = NULL,
   cam_col_cam = cam_col_rec,
   daterange = NULL,
-  custom_col = NULL,
-  custom_filter = NULL,
   datetime_col = NULL,
   time_col = NULL,
   date_col = NULL,
+  custom_filter = NULL,
+  custom_col = NULL,
   tz = NULL,
   cam_as_factor = FALSE,
   filter_out = TRUE
@@ -35,36 +35,38 @@ are in the \verb{$data} slot with two components:
 
 \item{spp_filter}{Species to filter from the data}
 
-\item{spp_col}{Name of the species column}
+\item{spp_col}{Name of the species column (required if \code{spp_filter} is not \code{NULL})}
 
 \item{obstype_filter}{Observation types to filter from the data}
 
-\item{obstype_col}{Name of the observation column}
+\item{obstype_col}{Name of the observation column  (required if \code{obstype_filter} is not \code{NULL})}
 
 \item{cam_filter}{Cameras to filter from the data}
 
-\item{cam_col_rec}{Name of the cameras column in records table (\code{dat$data$observations}).}
+\item{cam_col_rec}{Name of the cameras column in records table (\code{dat$data$observations}).
+Required if \code{cam_filter} is not \code{NULL}.}
 
 \item{cam_col_cam}{Name of the cameras column in cameras table (\code{dat$data$deployments}).
-Defaults to the same value as \code{cam_col_rec}.}
+Defaults to the same value as \code{cam_col_rec}, and is required if \code{cam_filter} is not \code{NULL}.}
 
 \item{daterange}{Date range to filter on for the data (will filter
 observations' times so that \code{times >= daterange[1]} and
 \code{times <= daterange[2]}). Can be either a Date or a POSIX.}
 
-\item{custom_col}{name of a custom column in to filter values in
-\code{dat$data$observations}.}
+\item{datetime_col}{Name of the datetime column (must be coercible to POSIX).
+It is not needed if \code{date_col} and \code{time_col} are provided, but else
+it is required if \code{daterange} is not \code{NULL}.}
+
+\item{time_col}{Name of the time column. It is not needed if \code{datetime_col}
+is provided, but else it is required if \code{daterange} is not \code{NULL}.}
+
+\item{date_col}{Name of the date column. It is not needed if \code{datetime_col}
+is provided, but else it is required if \code{daterange} is not \code{NULL}.}
 
 \item{custom_filter}{values to filter out in the custom column \code{custom_col}.}
 
-\item{datetime_col}{Name of the datetime column (must be coercible to POSIX).
-It is not needed if \code{date_col} and \code{time_col} are provided.}
-
-\item{time_col}{Name of the time column. It is not needed if \code{datetime_col}
-is provided.}
-
-\item{date_col}{Name of the date column. It is not needed if \code{datetime_col}
-is provided.}
+\item{custom_col}{name of a custom column in to filter values in
+\code{dat$data$observations} (required if \code{custom_filter} is not \code{NULL}).}
 
 \item{tz}{Timezone for the data bounds. If not provided, will try to
 find the timezone in \code{daterange} (if it is a POSIX), then in
@@ -82,7 +84,7 @@ The filtered data. Species and dates remove data only in \code{dat$data$observat
 but cameras also remove cameras from \code{dat$data$deployments}.
 }
 \description{
-Allows to filter camera trap data observations and
+Filter camera trap data observations and
 cameras metadata based on species, cameras and dates.
 Values will be filtered out by default, but if \code{filter_out}
 is \code{FALSE} they will be kept instead.
