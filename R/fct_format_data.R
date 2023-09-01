@@ -24,6 +24,12 @@
 #' + a list with the first element being the function to call (character)
 #' and additional arguments to the function call (that can be named as 
 #' the names of the functions' arguments).
+#' @param dfname Name of the dataframe to display in the error message.
+#' It is useful when this function is used inside other functions
+#' for a better error message.
+#' @param vec_name Name of the vector of columns to display in the error message.
+#' It is useful when this function is used inside other functions
+#' for a better error message.
 #'
 #' @return the original dataframe with the specified columns
 #' casted with the type indicated in `cast_type`.
@@ -39,7 +45,28 @@
 #'              date = list("as.Date", 
 #'                          format = "%m/%d/%Y"))
 #' dfcast <- cast_columns(df, cast)
-cast_columns <- function(df, cast_type) {
+cast_columns <- function(df, cast_type,
+                         dfname = substitute(df),
+                         vec_name = substitute(cast_type)) {
+  
+  # Check that cast_type is a named list
+  if (!("list" %in% class(cast_type))) {
+    stop("cast_type must be a list")
+  }
+  
+  # Check that all elements are named
+  if (length(cast_type) != sum(names(cast_type) != "", na.rm = TRUE)) {
+    stop("All elements of cast_type must be named")
+  }
+  
+  # Check names
+  sapply(seq_along(names(cast_type)), 
+         FUN = function(i) {
+           check_column_names(df = df, 
+                              col = names(cast_type)[i], 
+                              colname = paste0("names(", vec_name, ")[", i, "]"),
+                              dfname = dfname)
+         })
   
   # Initialize res
   res <- df
@@ -169,12 +196,22 @@ split_records_cameras <- function(dat,
                                   cam_cols = "deploymentID", 
                                   cam_col = "deploymentID") {
   
+  # Check column names ---
+  sapply(seq_along(cam_cols), 
+         FUN = function(i) {
+           check_column_names(df = dat$data$observations, 
+                            col = cam_cols[i], 
+                            colname = paste0("cam_cols[", i, "]"),
+                            dfname = "dat$data$observations")
+           })
+  
+  
   # Initialize results
   res <- dat
   
   # Check cam_col is in cam_cols
   if(!(cam_col %in% cam_cols)) {
-    stop("cam_col should be in cam_cols.")
+    stop("cam_col should be in cam_cols")
   }
   
   # Split data
@@ -220,12 +257,11 @@ split_records_cameras <- function(dat,
 #'                               cam_col_dfrec = "camera")
 filter_cameras_in_both_tables <- function(dfrec, dfcam, 
                                           cam_col_dfrec, 
-                                          cam_col_dfcam = NULL) {
+                                          cam_col_dfcam = cam_col_dfrec) {
   
-  # Set cam_col_dfcam
-  if (is.null(cam_col_dfcam)) {
-    cam_col_dfcam <- cam_col_dfrec
-  }
+  # Check column names
+  check_column_names(dfrec, cam_col_dfrec)
+  check_column_names(dfcam, cam_col_dfcam)
   
   # Get unique camera names
   ucam_records <- unique(dfrec[[cam_col_dfrec]])
@@ -292,7 +328,8 @@ filter_cameras_in_both_tables <- function(dfrec, dfcam,
 #' @param cam_col_dfrec Name of the column with cameras names in 
 #' records (needed only if `split` or `only_shared_cam` are `TRUE`)
 #' @param cam_col_dfcam Name of the column with cameras names in 
-#' cameras (needed only if `only_shared_cam` is `TRUE`).
+#' cameras (needed only if `only_shared_cam` is `TRUE`). Defaults
+#' to `cam_col_dfrec` if `only_shared_cam` is `TRUE`.
 #' If `NULL` will be assumed to be the same as `cam_col_dfrec`. 
 #' @param add_rowid Should row IDs be added to the observations df?
 #' If yes, row names in the form of "ID_xx" are added to the the dataframe.
@@ -328,7 +365,7 @@ filter_cameras_in_both_tables <- function(dfrec, dfcam,
 #'                         
 #' # Clean data
 #' rec_type <- list(date = list("as.Date",
-#'                                  format = "%Y-%m-%d"),
+#'                              format = "%Y-%m-%d"),
 #'                  time = "times")
 #' cam_type <- list(lat = "as.numeric",
 #'                  lon = "as.numeric")
@@ -343,23 +380,28 @@ clean_data <- function(dat,
                        rec_type = NULL,
                        only_shared_cam = FALSE,
                        cam_col_dfrec = NULL,
-                       cam_col_dfcam = NULL,
+                       cam_col_dfcam = ifelse(only_shared_cam,
+                                              cam_col_dfrec, NULL),
                        split = FALSE,
                        cam_cols = ifelse(split, cam_col_dfrec, NULL),
                        reorder = FALSE,
                        add_rowid = FALSE) {
+  
+  # Don't check column names because they already are in cast_columns,
+  # split_records_cameras and filter_cameras_in_both_tables.
+  
   
   # Initialize data ---
   res <- dat 
 
 # -------------------------------------------------------------------------
 
-  
   # Records ---
   # Cast
   if (!is.null(rec_type)) {
     res$data$observations <- cast_columns(res$data$observations,
-                                          cast_type = rec_type)
+                                          cast_type = rec_type,
+                                          dfname = "dat$data$observations")
     
     # Reorder
     if (reorder) {
@@ -380,7 +422,8 @@ clean_data <- function(dat,
     if (!is.null(cam_type)) {
       # Cast
       res$data$deployments <- cast_columns(res$data$deployments,
-                                           cast_type = cam_type)
+                                           cast_type = cam_type,
+                                           dfname = "dat$data$deployments")
       
       # Reorder
       if (reorder) {
@@ -445,6 +488,14 @@ clean_data <- function(dat,
 #'                 cam_col = "camera")
 #' remove_rows_with_NA(df, mapping)
 remove_rows_with_NA <- function(df, mapping) {
+  
+  # Check column names ---
+  sapply(seq_along(mapping), 
+         FUN = function(i) {
+           check_column_names(df = df, 
+                              col = mapping[[i]], 
+                              colname = paste0("mapping[", i, "]"))
+         })
   
   if ("obstype_col" %in% names(mapping)) {
     # Authorize NA values in spp_col where obstype_col is not "species"

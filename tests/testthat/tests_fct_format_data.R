@@ -12,6 +12,43 @@ library(chron)
 
 # Cast --------------------------------------------------------------------
 
+test_that("Cast columns errors", {
+  df <- data.frame(num = 1:10,
+                   char = letters[1:10])
+  
+  # Not a list
+  cast <- c("as.character", "as.factor", "as.numeric")
+  expect_error(cast_columns(df, cast), 
+               "cast_type must be a list",
+               fixed = TRUE)
+  
+  # List has no names
+  cast <- list("as.character", "as.factor", "as.numeric")
+  expect_error(cast_columns(df, cast), 
+               "All elements of cast_type must be named",
+               fixed = TRUE)
+  
+  # List has not all names
+  names(cast)[1] <- "a"
+  expect_error(cast_columns(df, cast), 
+               "All elements of cast_type must be named",
+               fixed = TRUE)
+  
+  names(cast)[1] <- ""
+  expect_error(cast_columns(df, cast), 
+               "All elements of cast_type must be named",
+               fixed = TRUE)
+  
+  # List has names not in df colnames
+  cast <- list(num = "as.character",
+               char = "as.factor",
+               foo = "as.factor")
+  expect_error(cast_columns(df, cast), 
+               "names(cast_type)[3] (value: foo) is not in the column names of df",
+               fixed = TRUE)
+})
+
+
 test_that("Cast columns", {
   df <- data.frame(num = 1:10,
                    char = letters[1:10])
@@ -164,14 +201,103 @@ test_that("split_records_cameras (error)", {
   
   cam_cols <- c("cam", "lat", "lon")
   
-  # There should be an error
+  # cam_cols not in colnames dat$data$observations
+  expect_error(split_records_cameras(dat = dat, 
+                                     cam_cols = c("lon", "xx", "lat")), 
+               "cam_cols[2] (value: xx) is not in the column names of dat$data$observations", 
+               fixed = TRUE)
+  
+  
+  # cam_col not in cam_cols
   expect_error(split_records_cameras(dat = dat, 
                                      cam_cols = cam_cols,
                                      cam_col = "CAM"), 
-               "cam_col should be in cam_cols.", fixed = TRUE)
+               "cam_col should be in cam_cols", 
+               fixed = TRUE)
+  
+})
+
+
+
+# Get cameras in both table -----------------------------------------------
+
+test_that("Cameras in both table", {
+  dfrec <- data.frame(species = c("pigeon", "mouse", "pigeon", "mouse"),
+                        stamp = Sys.time() + seq(60, length.out = 4, by = 60),
+                        camera = c("A", "B", "C", "E"))
+  dfcam <- data.frame(camera = c("A", "B", "C", "D"),
+                      lat = c(20.12, 20.22, 22.34, 21.35),
+                      lon = c(33.44, 33.45, 33.42, 33.53))
+  
+  # Errors
+  expect_error(filter_cameras_in_both_tables(dfrec, dfcam,
+                                             cam_col_dfrec = "xxx"),
+               "cam_col_dfrec (value: xxx) is not in the column names of dfrec",
+               fixed = TRUE)
+  expect_error(filter_cameras_in_both_tables(dfrec, dfcam,
+                                             cam_col_dfrec = "camera",
+                                             cam_col_dfcam = "xxx"),
+               "cam_col_dfcam (value: xxx) is not in the column names of dfcam",
+               fixed = TRUE)
+  
+  # No error
+  res <- filter_cameras_in_both_tables(dfrec, dfcam,
+                                       cam_col_dfrec = "camera")
+  
+  ucam <- c("A", "B", "C")
+  expected_dfrec <- dfrec |> 
+    dplyr::filter(camera %in% ucam)
+  expected_dfcam <- dfcam |> 
+    dplyr::filter(camera %in% ucam)
+  
+  expected <- list(records = expected_dfrec,
+                   cameras = expected_dfcam)
+  
+  expect_equal(res, expected)
 })
 
 # Final function ----------------------------------------------------------
+text_that("Chean data (errors)", {
+  # Prepare data
+  dat <- list(data = list(deployments = camtraps,
+                          observations = recordTableSample))
+  
+  # Error in cast_rec
+  cast_rec <- list(Species = "as.character",
+                   foo = "as.character")
+  
+  expect_error(clean_data(dat = dat,
+                          rec_type = cast_rec,
+                          split = FALSE),
+               "names(rec_type)[2] (value: foo) is not in the column names of dat$data$observations",
+               fixed = TRUE)
+  
+  # Error in cast_cam
+  cast_cam <- list(utm_x = "as.numeric",
+                   foo = "as.character")
+  
+  expect_error(clean_data(dat = dat,
+                          cam_type = cast_cam,
+                          split = FALSE),
+               "names(cam_type)[2] (value: foo) is not in the column names of dat$data$deployments",
+               fixed = TRUE)
+  
+  # Error in cam_cols (split)
+  clean_data(dat = dat,
+             split = TRUE,
+             cam_cols = c("Station", "foo"))
+  
+  # Error in cam_col_dfrec (only_shared_cam)
+  clean_data(dat = dat,
+             cam_col_dfrec = "foo",
+             only_shared_cam = TRUE)
+  
+  # Error in cam_col_dfcam (only_shared_cam)
+  clean_data(dat = dat,
+             cam_col_dfcam = "foo",
+             only_shared_cam = TRUE)
+  
+})
 
 test_that("Clean data", {
   
@@ -297,3 +423,30 @@ test_that("Clean data (reorder)", {
   
 })
   
+
+# Remove rows with NA -----------------------------------------------------
+
+test_that("Remove rows with NA", {
+  df <- data.frame(species = c("pigeon", "mouse", NA, "pigeon"), 
+                   type = c("animal", "animal", "blank", "animal"),
+                   stamp = Sys.time() + seq(60, length.out = 4, by = 60),
+                   camera = c("A", "B", "C", NA))
+  mapping <- list(spp_col = "species",
+                  obstype_col = "type",
+                  datetime_col = "stamp",
+                  cam_col = "camera")
+  
+  # Bad mapping
+  mapping_error <- list(spp_col = "species",
+                        obstype_col = "type",
+                        foo = "foo")
+  expect_error(remove_rows_with_NA(df, mapping_error),
+               "mapping[3] (value: foo) is not in the column names of df",
+               fixed = TRUE)
+  
+  # Success
+  res <- remove_rows_with_NA(df, mapping)
+  
+  expected <- df[1:3, ]
+  expect_equal(res, expected)
+})

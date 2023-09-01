@@ -10,7 +10,7 @@ clean_data(
   rec_type = NULL,
   only_shared_cam = FALSE,
   cam_col_dfrec = NULL,
-  cam_col_dfcam = NULL,
+  cam_col_dfcam = ifelse(only_shared_cam, cam_col_dfrec, NULL),
   split = FALSE,
   cam_cols = ifelse(split, cam_col_dfrec, NULL),
   reorder = FALSE,
@@ -54,7 +54,8 @@ that are in \code{dat$data$deployments} and in \code{dat$data$observations}?}
 records (needed only if \code{split} or \code{only_shared_cam} are \code{TRUE})}
 
 \item{cam_col_dfcam}{Name of the column with cameras names in
-cameras (needed only if \code{only_shared_cam} is \code{TRUE}).
+cameras (needed only if \code{only_shared_cam} is \code{TRUE}). Defaults
+to \code{cam_col_dfrec} if \code{only_shared_cam} is \code{TRUE}.
 If \code{NULL} will be assumed to be the same as \code{cam_col_dfrec}.}
 
 \item{split}{Logical; should the camera data be extracted from the
@@ -104,7 +105,7 @@ dat <- list(data = list(observations = records,
                         
 # Clean data
 rec_type <- list(date = list("as.Date",
-                                 format = "\%Y-\%m-\%d"),
+                             format = "\%Y-\%m-\%d"),
                  time = "times")
 cam_type <- list(lat = "as.numeric",
                  lon = "as.numeric")

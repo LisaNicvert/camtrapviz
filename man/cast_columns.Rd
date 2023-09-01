@@ -4,7 +4,12 @@
 \alias{cast_columns}
 \title{Cast columns types}
 \usage{
-cast_columns(df, cast_type)
+cast_columns(
+  df,
+  cast_type,
+  dfname = substitute(df),
+  vec_name = substitute(cast_type)
+)
 }
 \arguments{
 \item{df}{A dataframe containing the columns specified in
@@ -20,6 +25,14 @@ Elements of this list can be:
 and additional arguments to the function call (that can be named as
 the names of the functions' arguments).
 }}
+
+\item{dfname}{Name of the dataframe to display in the error message.
+It is useful when this function is used inside other functions
+for a better error message.}
+
+\item{vec_name}{Name of the vector of columns to display in the error message.
+It is useful when this function is used inside other functions
+for a better error message.}
 }
 \value{
 the original dataframe with the specified columns

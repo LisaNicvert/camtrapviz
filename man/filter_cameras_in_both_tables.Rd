@@ -8,7 +8,7 @@ filter_cameras_in_both_tables(
   dfrec,
   dfcam,
   cam_col_dfrec,
-  cam_col_dfcam = NULL
+  cam_col_dfcam = cam_col_dfrec
 )
 }
 \arguments{
