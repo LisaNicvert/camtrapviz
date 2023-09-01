@@ -62,15 +62,15 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">summarize_cameras</span><span class="op">(</span></span>
 <span>  <span class="va">dfrec</span>,</span>
 <span>  <span class="va">cam_col</span>,</span>
-<span>  <span class="va">datetime_col</span>,</span>
+<span>  datetime_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  date_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  dfcam <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cam_col_dfcam <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  setup_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  retrieval_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  spp_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  obstype_col <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  obstype_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  dfcam <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cam_col_dfcam <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">dfcam</span><span class="op">)</span>, <span class="cn">NULL</span>, <span class="va">cam_col</span><span class="op">)</span>,</span>
+<span>  setup_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  retrieval_col <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -98,6 +98,15 @@ infortmation on the pictures sampling time (date and time or datetime).</p></dd>
 <dd><p>name of the column containing time (optional if <code>datetime_col</code> is provided)</p></dd>
 
 
+<dt>spp_col</dt>
+<dd><p>name of the species column (optional). If present,
+the summarry will include the number of species seen on each camera.</p></dd>
+
+
+<dt>obstype_col</dt>
+<dd><p>name of the observation type column</p></dd>
+
+
 <dt>dfcam</dt>
 <dd><p>the dataframe of cameras deployments (optional).</p></dd>
 
@@ -115,15 +124,6 @@ in <code>dfcam</code> (optional)</p></dd>
 <dt>retrieval_col</dt>
 <dd><p>name of the column containing retrieval date or datetime
 in <code>dfcam</code> (optional)</p></dd>
-
-
-<dt>spp_col</dt>
-<dd><p>name of the species column (optional). If present,
-the summarry will include the number of species seen on each camera.</p></dd>
-
-
-<dt>obstype_col</dt>
-<dd><p>name of the observation type column</p></dd>
 
 </dl></div>
     <div class="section level2">
