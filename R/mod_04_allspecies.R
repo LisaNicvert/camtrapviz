@@ -46,7 +46,7 @@ allspeciesUI <- function(id) {
                               outputCodeButton(leafletOutput(NS(id, "plot_diversity_map"),
                                                              height = "400px"))
                               ),
-             conditionalPanel("input.plot_type === 'bar' || !output.lonlat", 
+             conditionalPanel("!output.lonlat || input.plot_type === 'bar'", 
                               ns = NS(id),
                               outputCodeButton(girafeOutput(NS(id, "plot_diversity"),
                                                             height = "500px"))
@@ -275,9 +275,18 @@ allspeciesServer <- function(id,
     })
     
 # Return values -----------------------------------------------------------
+    
+    div_plot <- reactive({
+      if (input$plot_type == 'map' && output$lonlat()) {
+        return(output$plot_diversity_map())
+      } else {
+        return(output$plot_diversity())
+      }
+    })
+    
     return(list(diversity_table = diversity_table,
                 sppcam_summary = sppcam_summary,
-                diversity_map = output$plot_diversity_map,
+                diversity_plot = div_plot,
                 species_bars = output$plot_species))
     
   })

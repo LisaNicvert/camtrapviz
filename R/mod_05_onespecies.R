@@ -347,10 +347,19 @@ onespeciesServer <- function(id,
     })
 
     # Return values -----------------------------------------------------------
+    
+    abd_plot <- reactive({
+      if (input$plot_type == 'map' && output$lonlat()) {
+        return(output$plot_abundance_map())
+      } else {
+        return(output$plot_abundance())
+      }
+    })
+    
 
     return(list(focus_spp_records = focus_spp_records_table,
                 density_plot = output$density_plot,
-                abundance_map = output$plot_abundance_map))
+                abundance_plot = abd_plot))
       
     
   })

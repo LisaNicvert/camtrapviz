@@ -56,7 +56,7 @@ server <- function(input, output, session) {
                                      mapping_cameras = import_val$mapping_cameras,
                                      sppcam_summary = allspecies_val$sppcam_summary,
                                      crs = import_val$crs) 
-  
+
   # Download handler --------------------------------------------------------
   
   output$download_script <- downloadHandler(
@@ -75,21 +75,22 @@ server <- function(input, output, session) {
                                            .expansionContext = ec),
                     spptable = expandChain(summary_val$spptable(),
                                            .expansionContext = ec),
-                    plot_map = expandChain(summary_val$plot_map(),
-                                           .expansionContext = ec),
+                    has_lonlat = summary_val$has_lonlat(),
+                    plot_map_all = expandChain(summary_val$plot_map(),
+                                               .expansionContext = ec),
                     plot_occurrences = expandChain(summary_val$plot_occurrences(),
                                 .expansionContext = ec),
                     plot_species_bars = expandChain(allspecies_val$species_bars(),
                                                     .expansionContext = ec),
                     diversity_table = expandChain(allspecies_val$diversity_table(),
                                                   .expansionContext = ec),
-                    plot_diversity = expandChain(allspecies_val$diversity_map(),
+                    plot_diversity = expandChain(allspecies_val$diversity_plot(),
                                                   .expansionContext = ec),
                     focus_spp_records = expandChain(onespecies_val$focus_spp_records(),
                                                     .expansionContext = ec),
                     density_plot = expandChain(onespecies_val$density_plot(),
                                                .expansionContext = ec),
-                    abundance_map = expandChain(onespecies_val$abundance_map(),
+                    abundance_plot = expandChain(onespecies_val$abundance_plot(),
                                                 .expansionContext = ec)
                     ),
         render_args = list(output_format = "html_document")

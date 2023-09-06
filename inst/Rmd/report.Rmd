@@ -8,6 +8,7 @@ knitr::opts_chunk$set(
   out.width = "100%", 
   tidy = TRUE
 )
+has_lonlat <- {{has_lonlat}}
 ```
 
 ```{r libraries}
@@ -41,13 +42,14 @@ Here is a summary table per species:
 {{spptable}}
 ```
 
-### Map
+`r if(has_lonlat){"### Map\nThis map shows the cameras of this project that have spatial coordinates."}`
 
-This map shows the cameras of this project that have spatial coordinates.
 
-```{r plot_map, echo = FALSE}
-{{plot_map}}
+```{r plot_map_all, echo = FALSE, eval = has_lonlat}
+{{plot_map_all}}
 ```
+
+
 
 ### Species occurrences
 
@@ -92,8 +94,8 @@ Below is the activity curve of the species, estimated with a mixture of von Mise
 {{density_plot}}
 ```
 
-And here is a map summarizing the abundance of this species at each camera:
+And here is a plot summarizing the abundance of this species at each camera:
 
 ```{r, echo = FALSE}
-{{abundance_map}}
+{{abundance_plot}}
 ```
