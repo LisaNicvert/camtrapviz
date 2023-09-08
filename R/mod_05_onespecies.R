@@ -31,12 +31,7 @@ onespeciesUI <- function(id) {
                column(width = 6, 
                       selectInput(NS(id, "value"),
                                   label = "Plotted value",
-                                  choices = c("Abundance" = "individuals",
-                                              "Sightings" = "sightings",
-                                              "Proportion of individuals" = "sightings_prop",
-                                              "Proportion of sightings" = "individuals_prop",
-                                              "Relative abundance index (individuals)" = "individuals_RAI",
-                                              "Relative abundance index (sightings)" = "sightings_RAI"))
+                                  choices = NULL)
                ),
                column(width = 6,
                       conditionalPanel("output.lonlat", 
@@ -143,19 +138,23 @@ onespeciesServer <- function(id,
 
 
     ## Get filtered data ------------------------------------------------------
-
-    focus_spp_records <- metaReactive2({
-      # Get values to filter on ---
-
+    
+    focus_spp <- reactive({
+      # Get the focus species ---
+      
       # Get subset of the df with selected values
-      all_filter <- species_df()[species_df()$ID %in% input$species, ]
+      selected <- species_df()[species_df()$ID %in% input$species, ]
       
       # Separate spp and obstype filters
-      filters <- get_obs_spp(all_filter,
-                             spp_col = spp_col(),
-                             obstype_col = obstype_col())
-      spp_filter <- filters$spp
-      obstype_filter <- filters$obstype
+      get_obs_spp(selected,
+                  spp_col = spp_col(),
+                  obstype_col = obstype_col())
+    })
+
+    focus_spp_records <- metaReactive2({
+      
+      spp_filter <- focus_spp()$spp
+      obstype_filter <- focus_spp()$obstype
       
       # Separate the code in 2 for lisibility
       if (!is.null(spp_filter)) {
@@ -255,6 +254,17 @@ onespeciesServer <- function(id,
     })
     
     # Abundance plot ----------------------------------------------------------- 
+    
+    abundance_list <- c("Abundance" = "individuals",
+                        "Sightings" = "sightings",
+                        "Proportion of individuals" = "sightings_prop",
+                        "Proportion of sightings" = "individuals_prop",
+                        "Relative abundance index (individuals)" = "individuals_RAI",
+                        "Relative abundance index (sightings)" = "sightings_RAI")
+    
+    updateSelectInput(session = session,
+                      "value",
+                      choices = abundance_list)
   
     focus_spp_summary <- metaReactive2({
       # Get subset of the df with selected values
@@ -321,7 +331,7 @@ onespeciesServer <- function(id,
                              div_col = ..(input$value), 
                              cam_col = ..(cam_col_rec()),
                              interactive = TRUE) +
-          ylab("Count") +
+          ylab(..(names(abundance_list[abundance_list == input$value]))) +
           xlab("Cameras")
         
         "# ggiraph plot (interactive)"
@@ -356,11 +366,26 @@ onespeciesServer <- function(id,
       }
     })
     
-
-    return(list(focus_spp_records = focus_spp_records_table,
-                density_plot = output$density_plot,
-                abundance_plot = abd_plot))
+    focus_spp_name <- reactive({
+      spp <- focus_spp()
       
+      if (!is.null(spp$obstype)) {
+        spp$obstype
+      } else {
+        spp$spp
+      }
+      
+    })
+    
+    abundance_value <- reactive({
+      names(abundance_list[abundance_list == input$value])
+    })
+
+    return(list(focus_spp = focus_spp_name,
+                focus_spp_records = focus_spp_records,
+                density_plot = output$density_plot,
+                abundance_value = abundance_value,
+                abundance_plot = abd_plot))
     
   })
 }

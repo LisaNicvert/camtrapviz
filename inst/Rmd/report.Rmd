@@ -1,20 +1,55 @@
 ---
 title: "Camera trap data analysis"
-output: pdf_document
+output: 
+  html_document: 
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float: true
 ---
+
+<style type="text/css">
+  body{
+    font-family: 'Ubuntu', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+  .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+    z-index: 2;
+    color: #fff;
+    background-color: #006d77 !important;
+    border-color: #006d77 !important;
+  }
+  
+  .btn {
+    font-family: inherit !important;
+    color: #adadad !important;
+    background-color: #f5f5f5 !important;
+    border-color: #ccc !important;
+    padding: 2px 3px 2px 3px !important;
+    font-size: 13px !important;
+  }
+  
+  .btn:hover {
+    color: #fff !important;
+    background-color: #798d8f !important;
+    border-color: #798d8f !important;
+  }
+</style>
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   out.width = "100%", 
-  tidy = TRUE
+  tidy = TRUE,
+  class.source='fold-show'
 )
 has_lonlat <- {{has_lonlat}}
 ```
 
-```{r libraries}
+```{r libraries, message=FALSE, results='hide'}
 library(camtrapviz)
 library(ggiraph)
 library(ggplot2)
+library(dplyr)
 ```
 
 ## Data import
@@ -24,11 +59,29 @@ library(ggplot2)
 ```
 
 ## Data filtering
+
 ```{r data_filtering}
 {{data_filtering}}
 ```
 
+Below is a plot with the filtered out data in grey and the kept data in black.
+
+```{r filtering_plot, class.source = NULL}
+{{filtering_plot}}
+```
+
 ## Data summary
+
+### Some statistics
+
+Some statistics on the project: 
+
++ Number of cameras: {{ncameras}}
++ Number of species: {{nspecies}}
++ Trapping nights: {{sampling_length}}
++ Active from {{daterange}}
+
+### Summary  tables
 
 Here is a summary table per camera:
 
@@ -44,29 +97,28 @@ Here is a summary table per species:
 
 `r if(has_lonlat){"### Map\nThis map shows the cameras of this project that have spatial coordinates."}`
 
-
-```{r plot_map_all, echo = FALSE, eval = has_lonlat}
+```{r plot_map_all, class.source = NULL, eval = has_lonlat}
 {{plot_map_all}}
 ```
 
-
-
-### Species occurrences
+### Species occurrences plot
 
 This plot shows the occurrences of species on the different cameras.
 
-```{r plot_occurrences, echo = FALSE}
+```{r plot_occurrences, class.source = NULL}
 {{plot_occurrences}}
 ```
 
 ## Community analyses
 
-This graph shows the how many individuals of each species were seen.
+### Species {{count_unit}} count
+This graph shows the {{count_unit}} count for each species.
 
-```{r, echo = FALSE}
+```{r, class.source = NULL}
 {{plot_species_bars}}
 ```
 
+### Diversity analyses
 
 The table below summarizes diversity indices for each camera.
 
@@ -74,28 +126,32 @@ The table below summarizes diversity indices for each camera.
 {{diversity_table}}
 ```
 
-Below is the plot representing the chosen index:
+{{diversity_index}} is shown on the plot below:
 
-```{r, echo = FALSE}
+```{r, class.source = NULL}
 {{plot_diversity}}
 ```
 
 ## Unispecific analyses
 
-Now the analyses will concentrate on a single species.
+Now the analyses will concentrate on {{focus_spp}}. We filter the subset of the data for this species:
 
 ```{r}
 {{focus_spp_records}}
 ```
 
-Below is the activity curve of the species, estimated with a mixture of von Mises distributions, along with the histogram of the observed activity times.
+### Activity
 
-```{r, echo = FALSE}
+Below is the activity curve of {{focus_spp}}, estimated using a von Mises kernel probability density, along with the histogram of the observed activity times.
+
+```{r, class.source = NULL}
 {{density_plot}}
 ```
 
-And here is a plot summarizing the abundance of this species at each camera:
+### {{abundance_value}} per camera
 
-```{r, echo = FALSE}
+{{abundance_value}} of {{focus_spp}} at each camera is summarized in the plot below:
+
+```{r, class.source = NULL}
 {{abundance_plot}}
 ```

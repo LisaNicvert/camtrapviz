@@ -43,7 +43,8 @@ selectUI <- function(id) {
            actionButton(NS(id, "code_filter"), 
                         "Show data filtering code", icon("code"),
                         style = "margin-top: 25px; margin-bottom: 15px;")
-    )
+    ),
+    shiny::verbatimTextOutput(NS(id, "code_test"))
     
   )
 }
@@ -399,7 +400,7 @@ selectServer <- function(id,
       }, varname = "dat_filtered")
       
       # Plot preview ------------------------------------------------------------
-      output$plot_preview <- renderGirafe({
+      output$plot_preview <- metaRender2(renderGirafe, {
         
         # Get plot width and height
         hw <- get_hw(length(cameras()), 
@@ -407,59 +408,71 @@ selectServer <- function(id,
         height <- hw$height
         width <- hw$width
         
-        # Initialize plot data
-        dfplot <- camtrap_data()$data$observations
+        # Get default daterange
+        datemin <- default_daterange()[1]
+        datemax <- default_daterange()[2]
         
-        dffil <- dat_filtered()$data$observations
-        
-        kept <- rownames(dfplot) %in% rownames(dffil)
-        dfplot$kept <- kept
-        
-        # Add species column 
-        dfplot <- dfplot |> 
-          mutate(spp_col = get_all_species(dfplot,
-                                           spp_col = spp_col(),
-                                           obstype_col =  mapping_records()$obstype_col,
-                                           return_df = FALSE))
-        
-        cols <- c("black", "grey")
-        names(cols) <- c("TRUE", "FALSE")
-        
-        gg <- plot_points(dfplot,
-                          cam_col = cam_col_rec(),
-                          points_col = "kept",
-                          datetime_col = mapping_records()$datetime_col,
-                          time_col = mapping_records()$time_col,
-                          date_col = mapping_records()$date_col, 
-                          tooltip_info = "spp_col",
-                          date_format = "%d-%b-%Y",
-                          date_limits = as.POSIXct(default_daterange(),
-                                                   tz = tz()), 
-                          cols = cols,
-                          tz = tz(),
-                          interactive = TRUE)
+        metaExpr({
+          "# Plot filtered vs all data ---"
+          # Initialize plot data
+          "# Create plot dataframe"
+          dfplot <- ..(camtrap_data())$data$observations
+          dffil <- ..(dat_filtered())$data$observations
+          kept <- rownames(dfplot) %in% rownames(dffil)
+          dfplot$kept <- kept
           
-        # Add vertical lines
-        if (input$daterange_manually == "manually") {
-          gg <- gg + 
-            ggplot2::geom_vline(xintercept = as.POSIXct(input$daterange_select,
-                                                        tz = tz()), 
-                                linetype = "dashed")
-        }
+          # Add species column 
+          dfplot <- dfplot |> 
+            dplyr::mutate(spp_col = get_all_species(dfplot,
+                                                    spp_col = ..(spp_col()),
+                                                    obstype_col =  ..(mapping_records()$obstype_col),
+                                                    return_df = FALSE))
+          
+          "# Colors"
+          cols <- c("black", "grey")
+          names(cols) <- c("TRUE", "FALSE")
+          
+          "# Plot"
+          gg <- plot_points(dfplot,
+                            cam_col = ..(cam_col_rec()),
+                            points_col = "kept",
+                            datetime_col = ..(mapping_records()$datetime_col),
+                            time_col = ..(mapping_records()$time_col),
+                            date_col = ..(mapping_records()$date_col), 
+                            tooltip_info = "spp_col",
+                            date_format = "%d-%b-%Y",
+                            date_limits = as.POSIXct(c(..(datemin), ..(datemax)),
+                                                     tz = ..(tz())), 
+                            cols = cols,
+                            tz = ..(tz()),
+                            interactive = TRUE)
+          
+          # Add vertical lines
+          if (..(input$daterange_manually == "manually")) {
+            gg <- gg + 
+              ggplot2::geom_vline(xintercept = as.POSIXct(..(input$daterange_select),
+                                                          tz = ..(tz())), 
+                                  linetype = "dashed")
+          }
+          
+          gi <- ggiraph::girafe(ggobj = gg, 
+                                width_svg = ..(width),
+                                height_svg = ..(height))
+          
+          ggiraph::girafe_options(gi,
+                                  opts_zoom(min = 0.5, max = 10),
+                                  opts_hover_inv(css = "opacity:0.3"),
+                                  opts_selection_inv(css = "opacity:0.3"),
+                                  opts_selection(type = "none"),
+                                  opts_hover(css = ""))
+        }, bindToReturn = TRUE)
         
-        gi <- ggiraph::girafe(ggobj = gg, 
-                              width_svg = width,
-                              height_svg = height)
-        
-        gi <- ggiraph::girafe_options(gi,
-                                      opts_zoom(min = 0.5, max = 10),
-                                      opts_hover_inv(css = "opacity:0.3"),
-                                      opts_selection_inv(css = "opacity:0.3"),
-                                      opts_selection(type = "none"),
-                                      opts_hover(css = ""))
       })
       
       # Print code --------------------------------------------------------------
+      output$code_test <- renderPrint({
+        expandChain(output$plot_preview())
+      })
       
       observeEvent(input$code_filter, {
         code <- expandChain(dat_filtered())
@@ -468,7 +481,8 @@ selectServer <- function(id,
       })
       
       # Return values -----------------------------------------------------------
-      return(list(camtrap_data = dat_filtered))
+      return(list(camtrap_data = dat_filtered,
+                  filtering_plot = output$plot_preview))
     }
   )
 }

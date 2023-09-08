@@ -284,9 +284,23 @@ allspeciesServer <- function(id,
       }
     })
     
+    count_unit <- reactive({
+      if (input$bars_count == "npic") {
+        return("capture events")
+      } else if (input$bars_count == "nindiv") {
+        return("individuals")
+      }
+    })
+    
+    diversity_index <- reactive({
+      names(diversity_list[diversity_list == input$divtype])
+    })
+    
     return(list(diversity_table = diversity_table,
                 sppcam_summary = sppcam_summary,
+                diversity_index = diversity_index,
                 diversity_plot = div_plot,
+                count_unit = count_unit,
                 species_bars = output$plot_species))
     
   })

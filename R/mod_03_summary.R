@@ -423,9 +423,13 @@ summaryServer <- function(id,
     })
     
 # Return values -----------------------------------------------------------
-    
+
   list(camtable = output$cameras_table,
        cam_summary = cameras_values,
+       ncameras = output$ncameras,
+       nspecies = output$nspecies,
+       sampling_length = output$sampling_length,
+       daterange = output$daterange,
        spptable = output$species_table,
        has_lonlat = output$lonlat,
        plot_map = output$plot_map,
