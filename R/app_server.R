@@ -59,15 +59,65 @@ server <- function(input, output, session) {
 
   # Download handler --------------------------------------------------------
   
+  # Get raw data
+  raw_data <- reactive({
+    res <- import_val$raw_data_info()
+    res <- res[c("rec_path", "cam_path")]
+    
+    if (!is.null(res$rec_path)) { # Data was imported
+      # Get extension
+      ext <- tools::file_ext(res$rec_path)
+      
+      if (ext == "json") {
+        # If it is a datapackage, return empty list
+        res <- list()
+      } else { 
+        # Else if not a datapackage
+        if (is.null(res$cam_path)) {
+          # If there is no camera file
+          res <- res[1]
+          names(res) <- c("raw_records.csv")
+        } else {
+          # There is a camera and a records file
+          names(res) <- c("raw_records.csv", "raw_cameras.csv")
+        }
+      }
+    } else { # Data imported via R
+      res = list()
+    }
+    res
+  })
+  
+  
   output$download_script <- downloadHandler(
     filename = "camtrapviz.zip", 
     content = function(file) {
       ec <- shinymeta::newExpansionContext()
+      
+      # Replace files names in expression when source files are included in the zip folder
+      if (length(raw_data() != 0)) { # Case csv file(s) were imported
+        if (length(raw_data()) == 2) { # Records AND cameras imported
+          ec$substituteMetaReactive(import_val$read_data, function() {
+            metaExpr(read_data("raw_records.csv", 
+                               sep_rec = ..(import_val$raw_data_info()$rec_sep),
+                               "raw_cameras.csv",
+                               sep_cam = ..(import_val$raw_data_info()$cam_sep)))
+          })
+        } else if (length(raw_data()) == 1) { # Only records imported
+          ec$substituteMetaReactive(import_val$read_data, function() {
+            metaExpr(read_data("raw_records.csv", 
+                               sep_rec = ..(import_val$raw_data_info()$rec_sep)))
+          })
+        }
+      }
+      
       shinymeta::buildRmdBundle(
         report_template = system.file("Rmd/report.Rmd",
                                       package = "camtrapviz"),
         output_zip_path = file, 
-        vars = list(data_cleaning = expandChain(invisible(import_val$camtrap_data()), 
+        vars = list(data_reading = expandChain(invisible(import_val$read_data()), 
+                                                .expansionContext = ec),
+                    data_cleaning = expandChain(invisible(import_val$camtrap_data()), 
                                                 .expansionContext = ec),
                     data_filtering = expandChain(invisible(select_val$camtrap_data()),
                                                  .expansionContext = ec),
@@ -103,7 +153,8 @@ server <- function(input, output, session) {
                     abundance_plot = expandChain(onespecies_val$abundance_plot(),
                                                 .expansionContext = ec)
                     ),
-        render_args = list(output_format = "html_document")
+        render_args = list(output_format = "html_document"),
+        include_files = raw_data()
       )
     }
   )

@@ -54,6 +54,10 @@ library(dplyr)
 
 ## Data import
 
+```{r data_reading}
+{{data_reading}}
+```
+
 ```{r data_cleaning}
 {{data_cleaning}}
 ```

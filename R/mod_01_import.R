@@ -481,36 +481,69 @@ importServer <- function(id) {
                     root = c("home" = fs::path_home()),
                     filetypes = 'csv')
     
-## Get imported file extension ---------------------------------------------
-
-    records_extension <- reactive({
-      # Get file
-      file <- shinyFiles::parseFilePaths(roots,
-                                         input$records_input)
-      
-      # Ensure file is loaded
-      file_path <- file$datapath
-      validate(need(file_path != '', "Please upload file"))
-      
-      # Get file extension
-      ext <- tools::file_ext(file_path)
-      ext
-    })
-    
-    output$records_extension <- reactive({
-      records_extension()
-    })
-    outputOptions(output, 'records_extension', 
-                  suspendWhenHidden = FALSE)
-    
-  
   ## Get raw data ------------------------------------------------------------
+    
+    # Get imported files paths
+    files_paths <- reactive({
+      
+      if (input$input_type == 2) {
+        # Get file
+        rec_file <- shinyFiles::parseFilePaths(roots,
+                                               input$records_input)
+        # Ensure file is loaded before continuing
+        req(rec_file)
+        
+        # Get rec_path
+        rec_path <- unname(rec_file$datapath)
+        validate(need(rec_path != '', "Please upload records file"))
+        
+        # Get rec_sep
+        L <- readLines(rec_path, n = 1)
+        rec_sep <- get_separator(L)
+        
+        # User wants to import a camera file?
+        if (input$import_cameras) {
+          # Get file
+          cam_file <- shinyFiles::parseFilePaths(roots,
+                                                 input$cameras_input)
+          
+          # Ensure file is loaded before continuing
+          req(cam_file)
+          
+          # Get camera_path
+          cam_path <- unname(cam_file$datapath)
+          validate(need(cam_path != '', "Please upload camera file"))
+          
+          # Get sep_cam
+          L <- readLines(cam_path, n = 1)
+          cam_sep <- get_separator(L)
+          
+        } else {
+          cam_path <- NULL
+          cam_sep <- NULL
+        }
+        
+        res <- list("rec_path" = rec_path, 
+                    "rec_sep" = rec_sep,
+                    "cam_path" = cam_path,
+                    "cam_sep" = cam_sep)
+        
+      } else {
+        res <- list("rec_path" = NULL, 
+                    "rec_sep" = NULL,
+                    "cam_path" = NULL,
+                    "cam_sep" = NULL)
+      }
+      
+      res
+    })
     
     dat_raw <- metaReactive2({
       if (input$input_type == 1) { # Example dataset
         if(input$example_file == "mica") {
           
           metaExpr({
+            "# Read data ---"
             utils::data(mica, package = "camtraptor")
             
             mica
@@ -518,6 +551,7 @@ importServer <- function(id) {
         } else {
           
           metaExpr({
+            "# Read data ---"
             utils::data(recordTableSample, package = "camtrapR")
             utils::data(camtraps, package = "camtrapR")
             
@@ -527,69 +561,46 @@ importServer <- function(id) {
           
         }
       } else if (input$input_type == 2) { # Uploaded dataset
-        # Get file
-        file <- shinyFiles::parseFilePaths(roots,
-                                           input$records_input)
-        # Ensure file is loaded before continuing
-        req(file)
+        # Get paths
+        rec_path <- files_paths()$rec_path
+        cam_path <- files_paths()$cam_path
         
-        # Get file_path
-        file_path <- unname(file$datapath)
-
-        validate(need(file_path != '', "Please upload a records file"))
-        
-        # Get input separator values
-        sep_rec <- input$records_sep
-        sep_cam <- input$cameras_sep
-        
-        # User wants to import a camera file?
-        if (input$import_cameras) {
-          # Get file
-          camera_file <- shinyFiles::parseFilePaths(roots,
-                                                    input$cameras_input)
-          
-          # Ensure file is loaded before continuing
-          req(camera_file)
-          
-          # Get camera_path
-          path_cam <- unname(camera_file$datapath)
-          validate(need(path_cam != '', "Please upload camera file"))
-          
-        } else {
-          path_cam <- NULL
-        }
-        
-        # Try to automate separator values
-        if (is.null(sep_rec)) {
-          L <- readLines(file_path, n = 1)
-          sep_rec <- get_separator(L)
-        }
-        
-        if (!is.null(path_cam)) {
-          if (is.null(sep_cam)) {
-            L <- readLines(path_cam, n = 1)
-            sep_cam <- get_separator(L)
-          }
-        }
-        
-        # Update records separator
-        updateRadioButtons(inputId = "records_sep",
-                           selected = sep_rec)
-        
-        # Update camera separator
-        updateRadioButtons(inputId = "cameras_sep",
-                           selected = sep_cam)
+        # Get separators
+        rec_sep <- files_paths()$rec_sep
+        cam_sep <- files_paths()$cam_sep
         
         # Read data
         metaExpr({
-          read_data(..(file_path), 
-                    ..(sep_rec),
-                    ..(path_cam),
-                    ..(sep_cam))
+          "# Read data ---"
+          read_data(..(rec_path), 
+                    ..(rec_sep),
+                    ..(cam_path),
+                    ..(cam_sep))
         }, bindToReturn = TRUE)
       }
     }, varname = "dat_raw")
 
+    
+    ## Get imported file extension ---------------------------------------------
+    
+    records_extension <- reactive({
+      rec_path <- files_paths()$rec_path
+      
+      # Get file extension
+      if (is.null(rec_path)) {
+        res <- "imported"
+      } else {
+        res <- tools::file_ext(rec_path)
+      }
+      res
+    })
+    
+    output$records_extension <- reactive({
+      records_extension()
+    })
+    outputOptions(output, 'records_extension', 
+                  suspendWhenHidden = FALSE)
+    
 # UI settings -------------------------------------------------------------
   
     observe({
@@ -1190,8 +1201,11 @@ importServer <- function(id) {
     )
 
 # Return values -----------------------------------------------------------
+    
     return(
       list(camtrap_data = dat,
+           raw_data_info = files_paths,
+           read_data = dat_raw,
            mapping_records = reactive(mapping_records()),
            mapping_cameras = reactive(mapping_cameras()$mapping),
            crs = reactive(crs()),

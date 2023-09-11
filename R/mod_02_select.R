@@ -43,9 +43,7 @@ selectUI <- function(id) {
            actionButton(NS(id, "code_filter"), 
                         "Show data filtering code", icon("code"),
                         style = "margin-top: 25px; margin-bottom: 15px;")
-    ),
-    shiny::verbatimTextOutput(NS(id, "code_test"))
-    
+    )
   )
 }
 
@@ -110,6 +108,8 @@ selectServer <- function(id,
       stopifnot(is.reactive(mapping_records))
       stopifnot(is.reactive(mapping_cameras))
       stopifnot(is.reactive(tz))
+      
+      req(camtrap_data)
 
       # Create column names reactives -------------------------------------------
     
@@ -470,9 +470,6 @@ selectServer <- function(id,
       })
       
       # Print code --------------------------------------------------------------
-      output$code_test <- renderPrint({
-        expandChain(output$plot_preview())
-      })
       
       observeEvent(input$code_filter, {
         code <- expandChain(dat_filtered())
