@@ -170,7 +170,7 @@ plot_map(df_sf,
          cam_col = "camera",
          lat_col = "y", 
          lon_col = "x", 
-         circle_radii = 5) 
+         radius = 5) 
 ```
 
 ```{r, echo = FALSE, fig.width=6, fig.height=4}
