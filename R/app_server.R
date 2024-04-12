@@ -56,6 +56,9 @@ server <- function(input, output, session) {
                                      mapping_cameras = import_val$mapping_cameras,
                                      sppcam_summary = allspecies_val$sppcam_summary,
                                      crs = import_val$crs) 
+  
+  # One species -------------------------------------------------------------
+  aboutServer("about") 
 
   # Download handler --------------------------------------------------------
   

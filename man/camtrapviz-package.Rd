@@ -4,9 +4,9 @@
 \name{camtrapviz-package}
 \alias{camtrapviz}
 \alias{camtrapviz-package}
-\title{camtrapviz: Vizualise Camera Trap Data}
+\title{camtrapviz: Visualize Camera Trap Data}
 \description{
-Compute and visualize common descriptors for camera trap data. A Shiny app allowing to do so interactively and without any code is also implemented.
+Compute and visualize common descriptors for camera trap data. A Shiny app allowing to do so interactively is also implemented.
 }
 \seealso{
 Useful links:

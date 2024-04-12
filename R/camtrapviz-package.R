@@ -43,6 +43,7 @@
 #' @importFrom ggplot2 theme_linedraw
 #' @importFrom ggplot2 xlab
 #' @importFrom ggplot2 ylab
+#' @importFrom htmltools a
 #' @importFrom leaflet addCircleMarkers
 #' @importFrom leaflet addLabelOnlyMarkers
 #' @importFrom leaflet addTiles
@@ -136,5 +137,6 @@
 #' @importFrom tibble column_to_rownames
 #' @importFrom tidyselect all_of
 #' @importFrom tidyselect everything
+#' @importFrom utils citation
 ## usethis namespace: end
 NULL

@@ -27,7 +27,9 @@ ui <- function() {
         menuItem("All species", tabName = "all",
                  icon = icon("dice-five")),
         menuItem("One species", tabName = "one",
-                 icon = icon("dice-one"))
+                 icon = icon("dice-one")),
+        menuItem("About", tabName = "about",
+                 icon = icon("circle-info"))
       )
     ),
 
@@ -114,6 +116,18 @@ ui <- function() {
                                             "Download script")
                              )
                       )
+                )
+        ),
+
+# About -------------------------------------------------------------
+
+        tabItem(tabName = "about",
+                fluidRow(
+                  box(width = 12,
+                      h2("About"),
+                      htmltools::hr(),
+                      aboutUI("about")
+                  )
                 )
         )
       ) # End tabItems
