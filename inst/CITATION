@@ -1,0 +1,10 @@
+bibentry(
+  bibtype  = "Manual",
+  title    = "camtrapviz: Visualize Camera Trap Data",
+  author   = person("Lisa", "Nicvert", 
+    email = "lisa.nicvert@univ-lyon1.fr", role = c("aut", "cre"),
+    comment = c(ORCID = "0009-0006-5763-0865")),
+  year     = "2024",
+  note = "R package version 0.0.0.9000",
+  url = "https://lisanicvert.github.io/camtrapviz/",
+)
