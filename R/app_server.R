@@ -9,9 +9,6 @@
 #' @return The server generating functions for Shiny
 server <- function(input, output, session) {
   
-  # About -------------------------------------------------------------
-  homeServer("home") 
-  
   # Import reactives --------------------------------------------------------
   import_val <- importServer("import")
   

@@ -970,6 +970,7 @@ importServer <- function(id) {
     dat <- metaReactive2({
       
       # Ensure data is available
+      req(dat_raw())
       req(mapping_records())
       req(mapping_cameras())
       
