@@ -18,6 +18,8 @@ ui <- function() {
 
 
       sidebarMenu(
+        menuItem("Home", tabName = "home",
+                 icon = icon("house")),
         menuItem("Data import", tabName = "dataimport",
                  icon = icon("th-list")),
         menuItem("Select data", tabName = "selectdata",
@@ -40,6 +42,17 @@ ui <- function() {
         css_dep()
       ),
       tabItems(
+# Home -------------------------------------------------------------
+        
+        tabItem(tabName = "home",
+                fluidRow(
+                  box(width = 12,
+                      h2("Home"),
+                      htmltools::hr(),
+                      homeUI("home")
+                  )
+                )
+        ),
 
 # Data import -------------------------------------------------------------
 

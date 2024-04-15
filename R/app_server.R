@@ -9,6 +9,9 @@
 #' @return The server generating functions for Shiny
 server <- function(input, output, session) {
   
+  # About -------------------------------------------------------------
+  homeServer("home") 
+  
   # Import reactives --------------------------------------------------------
   import_val <- importServer("import")
   
@@ -57,7 +60,7 @@ server <- function(input, output, session) {
                                      sppcam_summary = allspecies_val$sppcam_summary,
                                      crs = import_val$crs) 
   
-  # One species -------------------------------------------------------------
+  # About -------------------------------------------------------------
   aboutServer("about") 
 
   # Download handler --------------------------------------------------------
