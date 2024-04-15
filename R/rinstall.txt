@@ -1,0 +1,42 @@
+# Dependencies files for LBBE Shiny server
+
+# Update all packages ------------------------
+update.packages(repos = "http://cran.univ-lyon1.fr", ask = FALSE, checkBuild = TRUE)
+
+# Packages on CRAN ------------------------
+if(!requireNamespace("camtrapR", quietly = TRUE)) install.packages("camtrapR", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("circular", quietly = TRUE)) install.packages("circular", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("chron", quietly = TRUE)) install.packages("chron", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("DT", quietly = TRUE)) install.packages("DT", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("fs", quietly = TRUE)) install.packages("fs", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("ggiraph", quietly = TRUE)) install.packages("ggiraph", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("ggplot2", quietly = TRUE)) install.packages("ggplot2", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("htmltools", quietly = TRUE)) install.packages("htmltools", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("lubridate", quietly = TRUE)) install.packages("lubridate", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("shinyAce", quietly = TRUE)) install.packages("shinyAce", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr") # Indirect dependency of shinymeta
+if(!requireNamespace("shinymeta", quietly = TRUE)) install.packages("shinymeta", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("shiny", quietly = TRUE)) install.packages("shiny", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr") # this one is probably installed already
+if(!requireNamespace("shinydashboard", quietly = TRUE)) install.packages("shinydashboard", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("shinyFiles", quietly = TRUE)) install.packages("shinyFiles", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("shinyWidgets", quietly = TRUE)) install.packages("shinyWidgets", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("tibble", quietly = TRUE)) install.packages("tibble", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("tidyselect", quietly = TRUE)) install.packages("tidyselect", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("tidyr", quietly = TRUE)) install.packages("tidyr", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("utils", quietly = TRUE)) install.packages("utils", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+
+# Spatial packages ------------------------
+if(!requireNamespace("leaflet", quietly = TRUE)) install.packages("leaflet", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+if(!requireNamespace("sf", quietly = TRUE)) install.packages("sf", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+
+# Required for vignettes only ------------------------
+if(!requireNamespace("knitr", quietly = TRUE)) install.packages("knitr", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr") # I think this one is not needed
+if(!requireNamespace("rmarkdown", quietly = TRUE)) install.packages("rmarkdown", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr") # I think this one is not needed
+if(!requireNamespace("RColorBrewer", quietly = TRUE)) install.packages("RColorBrewer", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr") # I think this one is not needed
+if(!requireNamespace("activity", quietly = TRUE)) install.packages("activity", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr") # I think this one is not needed
+
+
+# Packages on GitHub ------------------------
+if(!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
+remotes::install_github("inbo/camtraptor")
+remotes::install_github("LisaNicvert/camtrapviz") # My package

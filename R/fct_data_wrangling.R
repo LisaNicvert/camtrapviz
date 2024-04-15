@@ -1222,43 +1222,6 @@ time_to_circular <- function(time,
   return(timenum)
 }
 
-#' Fit a von Mises distribution
-#'
-#' @param time The time of the day (must be an object of class
-#' `times` from the `chron` package)
-#' @param k Number of mixture components (number of modes
-#' in the final distribution)
-#'
-#' @return A mixture model of von Mises distributions of class
-#' `movMF`.
-#' 
-#' @noRd
-#' 
-#' @seealso [\code{vignette("activity-patterns", package = "camtrapviz")}](https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html)
-#' 
-#' @examples
-#' data("recordTableSample", package = "camtrapR")
-#' recordTableSample <- recordTableSample[recordTableSample$Species == "PBE", ]
-#' recordTableSample$Time <- chron::times(recordTableSample$Time)
-#' fit_vonMises(recordTableSample$Time, k = 3)
-fit_vonMises <- function(time, k) {
-  
-  if (length(units) > 1) {
-    units <- units[1]
-  }
-  
-  circular <- time_to_circular(time, units = "radians")
-  
-  # Convert angular coordinates to cartesian coordinates 
-  # on the unit circle
-  x <- cos(circular)
-  y <- sin(circular)
-  
-  mod <- movMF::movMF(cbind(x, y), k)
-  
-  return(mod)
-}
-
 #' von Mises density
 #'
 #' Get the density of a von Mises mixture model.

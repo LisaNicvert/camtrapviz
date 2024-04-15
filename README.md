@@ -1,4 +1,4 @@
-# camtrapviz <img src="man/figures/logo.png" align="right" />
+# camtrapviz <img src="man/figures/logo.png" width="100px" align="right" />
 
 <!-- badges: start -->
 

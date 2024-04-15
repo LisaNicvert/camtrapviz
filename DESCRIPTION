@@ -16,32 +16,32 @@ Remotes: github::inbo/camtraptor
 Imports: 
     camtrapR,
     camtraptor,
+    circular,
     chron,
     dplyr,
     DT,
-    ggplot2,
     fs,
+    ggiraph,
+    ggplot2,
+    htmltools,
+    leaflet,
+    lubridate,
+    sf,
+    shinyAce,
+    shinymeta,
     shiny,
     shinydashboard,
     shinyFiles,
-    utils,
-    lubridate,
+    shinyWidgets,
+    tibble,
     tidyselect,
     tidyr,
-    ggiraph,
-    shinymeta,
-    tibble,
-    leaflet,
-    sf,
-    shinyWidgets,
-    htmltools,
-    circular,
-    movMF
+    utils
 Suggests: 
+    activity,
     knitr,
-    rmarkdown,
     RColorBrewer,
-    activity
+    rmarkdown
 VignetteBuilder: knitr
 URL: https://lisanicvert.github.io/camtrapviz/, https://github.com/LisaNicvert/camtrapviz
 Depends: 

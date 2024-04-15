@@ -1226,21 +1226,6 @@ test_that("Time to circular", {
   expect_equal(res[[3]], 8.5)
   
 })
-
-test_that("Fit von Mises", {
-  # Prepare test data ---
-  testdat <- kga |> dplyr::select(snapshotName, eventTime) |> 
-    filter(snapshotName == "gemsbok")
-  
-  # Check with radians ---
-  # Fit model
-  mod <- fit_vonMises(testdat$eventTime, k = 3)
-  # Get density
-  dt <- vonMises_density(mod, unit = "radians")
-  
-  # Check
-  expect_equal(nrow(dt), length(seq(0, 2*pi, by = 0.01)))
-})
     
 
 # Helpers -----------------------------------------------------------------

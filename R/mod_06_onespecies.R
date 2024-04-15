@@ -191,7 +191,7 @@ onespeciesServer <- function(id,
       # Get time
       if (!is.null(datetime_col())) {
         metaExpr({
-          "# Get von Mises density ---"
+          "# Get density ---"
           datetime <- ..(focus_spp_records())[[..(datetime_col())]]
           time <- format(datetime, format = "%H:%M:%S")
           time <- chron::times(time)
@@ -202,7 +202,7 @@ onespeciesServer <- function(id,
 
       } else {
         metaExpr({
-          "# Get von Mises density ---"
+          "# Get density ---"
           time <- ..(focus_spp_records())[[..(time_col())]]
 
           time_rad <- as.numeric(time)*2*pi
