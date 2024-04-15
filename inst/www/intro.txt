@@ -1,0 +1,1 @@
+Visualize tabulated camera trap data (annotated records). This app allows to filter, summarize and visualize camera trap data interactively and to export the R code to reproduce the analyses.
