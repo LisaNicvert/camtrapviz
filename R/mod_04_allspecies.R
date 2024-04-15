@@ -14,11 +14,11 @@ allspeciesUI <- function(id) {
                                            label = "Show count of:",
                                            choices = list("Capture events" = "npic",
                                                           "Individuals" = "nindiv"))
-                              ),
+                              )
              # textOutput(NS(id, "count")),
-             selectInput(NS(id, "facet"), 
-                         label = "Facetting variable",
-                         choices = NULL)
+             # selectInput(NS(id, "facet"), 
+             #             label = "Facetting variable",
+             #             choices = NULL)
       ),
       column(width = 8,
              outputCodeButton(girafeOutput(NS(id, "plot_species")))
