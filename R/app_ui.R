@@ -55,16 +55,7 @@ ui <- function() {
                 fluidRow(
                   box(width = 12,
                       h2("Data import"),
-                      # h2("Module"),
                       htmltools::hr(),
-                      # p("Contenu du module"),
-                      # br(),
-                      # br(),
-                      # br(),
-                      # br(),
-                      # br()
-                      # tags$img(src='images/photo.png',
-                      #          height = "30px",width = "30px"),
                       importUI("import")
                       )
                 )
@@ -77,7 +68,6 @@ ui <- function() {
                   box(width = 12,
                       h2("Select data"),
                       htmltools::hr(),
-                      # importUI("import"),
                       selectUI("select")
                   )
                 )
