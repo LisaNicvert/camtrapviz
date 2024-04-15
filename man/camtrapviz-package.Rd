@@ -6,6 +6,8 @@
 \alias{camtrapviz-package}
 \title{camtrapviz: Visualize Camera Trap Data}
 \description{
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
 Compute and visualize common descriptors for camera trap data. A Shiny app allowing to do so interactively is also implemented.
 }
 \seealso{

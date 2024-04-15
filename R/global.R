@@ -9,8 +9,6 @@
 
 
 # Resource path -----------------------------------------------------------
-# shiny::addResourcePath("images", system.file("images",
-#                                              package = "camtrapviz"))
 css_dep <- function() {
   htmltools::htmlDependency(
     name = "css_dep",

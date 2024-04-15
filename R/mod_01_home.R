@@ -2,7 +2,10 @@
 
 homeUI <- function(id) {
   tagList(
-    p("Home tab")
+    tags$img(src='www/logo.png', height = "150px",width = "129.75px"), # w = h*0.865
+    p("camtrapviz is an application to visualize camera trap data."),
+    br(),
+    tags$img(src="www/LBBE-Logotype-Version-baseline-CMJN.png", height = "40px")
   )
 }
 

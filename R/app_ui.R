@@ -4,14 +4,8 @@
 #' @return The UI (HTML code)
 ui <- function() {
   dashboardPage(
-    # title = "camtrapviz",
     dashboardHeader(
-      title = "Camtrapviz"
-      # title = box(
-      #   tags$p("Camtrapviz"),
-      #   tags$img(src='img/photo.png', height = "20px",width = "20px")
-      # )
-      ),
+      title = "Camtrapviz"),
     dashboardSidebar(
 
 # Sidebar -----------------------------------------------------------------

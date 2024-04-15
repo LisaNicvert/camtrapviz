@@ -10,3 +10,4 @@
 ^\.github$
 ^docs$
 man/figures/*
+^R/rinstall.txt$
