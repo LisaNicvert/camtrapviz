@@ -231,7 +231,13 @@ Then, we see how data import and cleaning is performed with a dataset in [camtra
 The `read_data` function can also read json files corresponding to the camtrapDP datapackage.
 
 ```{r}
-dat <- read_data(path_rec = "https://raw.githubusercontent.com/tdwg/camtrap-dp/main/example/datapackage.json")
+camtrap_dp_file <- system.file(
+  "extdata", "mica", "datapackage.json", 
+  package = "camtraptor"
+)
+dat <- read_data(path_rec = camtrap_dp_file)
+
+# dat <- read_data(path_rec = "https://raw.githubusercontent.com/tdwg/camtrap-dp/main/example/datapackage.json")
 ```
 
 Internally, we use the function `read_camtrap_dp` from the `camtraptor` package (here, it would give the same result to use use directly this function). 
