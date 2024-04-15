@@ -41,8 +41,12 @@ ui <- function() {
         tabItem(tabName = "home",
                 fluidRow(
                   box(width = 12,
-                      h2("Home"),
-                      htmltools::hr(),
+                      div(tagList(div(img(src='www/logo.png', width = "100%"), # w = h*0.865
+                                      style = "width: 15%"),  
+                                  div(tagList(h2("Camtrapviz"),
+                                              htmltools::hr()), style = "width: 82%")
+                                  ),
+                          style = "display: flex; align-items: center; justify-content: space-between;"),
                       homeUI("home")
                   )
                 )

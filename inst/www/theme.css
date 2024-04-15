@@ -72,6 +72,11 @@ hr {
   background-color: #006d77 !important;
 }
 
+.hrthin {
+  margin-bottom: 10px !important;
+  height: 1px !important;
+}
+
 /* Navbar ------------------------------------------- */
 .skin-blue .main-header .navbar {
   background-color: #006d77 !important;

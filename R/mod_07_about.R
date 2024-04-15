@@ -1,7 +1,7 @@
 # UI ------------------------------------------------------------------
 aboutUI <- function(id) {
   tagList(
-    p("{camtrapviz} is a free and open-source web application and 
+    p("Camtrapviz is a free and open-source web application and 
       R package that I developed during my PhD (between 2023 and 2024)
       using R Shiny."),
     p(tagList("The source code is available at",
