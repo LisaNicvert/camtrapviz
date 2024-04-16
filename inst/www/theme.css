@@ -10,6 +10,11 @@ body {
   font-family: inherit !important;
 }
 
+.pdesc {
+  font-size: 0.9em;
+  color: #93939f;
+}
+
 /* Format logo */
 .skin-blue .main-header .logo {
   background-color: #006d77 !important;
@@ -72,6 +77,7 @@ hr {
   background-color: #006d77 !important;
 }
 
+/* Class for thin horizontal line */
 .hrthin {
   margin-bottom: 10px !important;
   height: 1px !important;

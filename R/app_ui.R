@@ -14,11 +14,11 @@ ui <- function() {
       sidebarMenu(
         menuItem("Home", tabName = "home",
                  icon = icon("house")),
-        menuItem("Data import", tabName = "dataimport",
+        menuItem("Import", tabName = "dataimport",
                  icon = icon("th-list")),
-        menuItem("Select data", tabName = "selectdata",
+        menuItem("Filter", tabName = "selectdata",
                  icon = icon("filter")),
-        menuItem("Data overview", tabName = "summary",
+        menuItem("Overview", tabName = "summary",
                  icon = icon("dashboard")),
         menuItem("All species", tabName = "all",
                  icon = icon("dice-five")),
@@ -52,25 +52,25 @@ ui <- function() {
                 )
         ),
 
-# Data import -------------------------------------------------------------
+# Import -------------------------------------------------------------
 
 
         tabItem(tabName = "dataimport",
                 fluidRow(
                   box(width = 12,
-                      h2("Data import"),
+                      h2("Import"),
                       htmltools::hr(),
                       importUI("import")
                       )
                 )
         ),
 
-# Select data -------------------------------------------------------------
+# Filter -------------------------------------------------------------
 
         tabItem(tabName = "selectdata",
                 fluidRow(
                   box(width = 12,
-                      h2("Select data"),
+                      h2("Filter"),
                       htmltools::hr(),
                       selectUI("select")
                   )
@@ -82,7 +82,7 @@ ui <- function() {
         tabItem(tabName = "summary",
                 fluidRow(
                   box(width = 12,
-                      h2("Data overview"),
+                      h2("Overview"),
                       htmltools::hr(),
                       summaryUI("summary"),
                   )
@@ -94,7 +94,7 @@ ui <- function() {
         tabItem(tabName = "all",
                 fluidRow(
                   box(width = 12,
-                      h2("All species analyses"),
+                      h2("All species"),
                       htmltools::hr(),
                       allspeciesUI("allspecies")
                       )
@@ -106,7 +106,7 @@ ui <- function() {
         tabItem(tabName = "one",
                 fluidRow(
                   box(width = 12,
-                      h2("One species analyses"),
+                      h2("One species"),
                       htmltools::hr(),
                       onespeciesUI("onespecies"),
                       # Download

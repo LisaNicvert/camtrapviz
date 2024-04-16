@@ -11,93 +11,99 @@ importUI <- function(id) {
                                 "Upload file" = 2),
                  inline = TRUE,
                  selected = 1),
+    
+    # Description for user import ---------------------------------------------------
+    conditionalPanel(condition = "input.input_type == 2", ns = ns,
+                     p("You can import data as CSV file(s) (records and, 
+                     optionnally, cameras information) or as a JSON descriptor 
+                       file for the camtrap DP format.", class = "pdesc")
+                     ),
     br(),
 
-# Example files widgets ---------------------------------------------------
-
+    # Example files widgets ---------------------------------------------------
     conditionalPanel(condition = "input.input_type == 1", ns = ns,
                      fluidRow(column(4,
                                      selectInput(NS(id, "example_file"), "Dataset",
                                                  choices = c("mica", "recordTableSample"))),
                               column(8,
                                      style = "margin-top: 30px;", # To align with selectInput
-                                     textOutput(NS(id, "dyntext"))),
+                                     textOutput(NS(id, "dyntext")))
                      ),
                      br()
     ),
 
-# Upload files widgets ----------------------------------------------------
+    # Upload files widgets ----------------------------------------------------
 
-conditionalPanel(condition = "input.input_type == 2", ns = ns,
-                 fluidRow(column(6,
+    conditionalPanel(condition = "input.input_type == 2", ns = ns,
+                     fluidRow(column(6,
+                                     h4("Records table"),
+                                     htmltools::div(
+                                       class = "upload_head",
+                                       shinyFilesButton(NS(id, 'records_input'), 
+                                                        style = "margin-bottom: 25px",
+                                                        label = 'Choose records table', 
+                                                        title = 'Choose file',
+                                                        multiple = FALSE)
+                                     ),
+                                     uiOutput(NS(id, "records_col"))
+                                     ),
+                              column(6,
+                                     h4("Cameras table"),
+                                     htmltools::div(
+                                       class = "upload_head",
+                                       conditionalPanel(condition = "output.records_extension !== 'json'",
+                                                        ns = ns,
+                                                        # Display only if it is not a JSON file
+                                                        checkboxInput(NS(id, "import_cameras"),
+                                                                      "Import cameras table"),
+                                                        
+                                       ),
+                                       conditionalPanel(condition = "input.import_cameras && output.records_extension !== 'json'",
+                                                        ns = ns,
+                                                        # Display only if it is not a JSON file and user wants to import a camera
+                                                        shinyFilesButton(NS(id, "cameras_input"), 
+                                                                         style = "margin-bottom: 25px",
+                                                                         label = 'Choose cameras table', 
+                                                                         title = 'Choose file',
+                                                                         multiple = FALSE))
+                                       ),
+                                       conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
+                                                        ns = ns,
+                                                        # Display if user wants to import a camera or if it is a json file
+                                                        uiOutput(NS(id, "cameras_col"))
+                                       )
+                                       ) # Cameras column
+                              ),
+                     br()
+                     ), # conditionalPanel upload file widgets
+    
+    # File previews -----------------------------------------------------------
+    conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
+                     ns = ns,
+                     tabsetPanel(
+                       tabPanel("Raw data preview",
                                  h4("Records table"),
-                                 htmltools::div(
-                                   class = "upload_head",
-                                   shinyFilesButton(NS(id, 'records_input'), 
-                                                    style = "margin-bottom: 25px",
-                                                    label = 'Choose records table', 
-                                                    title = 'Choose file',
-                                                    multiple = FALSE)
-                                 ),
-                                 uiOutput(NS(id, "records_col"))
-                                 ),
-                          column(6,
-                                 h4("Cameras table"),
-                                 htmltools::div(
-                                   class = "upload_head",
-                                   conditionalPanel(condition = "output.records_extension !== 'json'",
-                                                    ns = ns,
-                                                    # Display only if it is not a JSON file
-                                                    checkboxInput(NS(id, "import_cameras"),
-                                                                  "Import cameras table"),
-                                                    
-                                   ),
-                                   conditionalPanel(condition = "input.import_cameras && output.records_extension !== 'json'",
-                                                    ns = ns,
-                                                    # Display only if it is not a JSON file and user wants to import a camera
-                                                    shinyFilesButton(NS(id, "cameras_input"), 
-                                                                     style = "margin-bottom: 25px",
-                                                                     label = 'Choose cameras table', 
-                                                                     title = 'Choose file',
-                                                                     multiple = FALSE))
-                                   ),
-                                 conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
+                                 dataTableOutput(NS(id, "raw_records")),
+                                 conditionalPanel(condition = "input.input_type == 1 || input.import_cameras || output.records_extension === 'json'",
                                                   ns = ns,
-                                                  # Display if user wants to import a camera or if it is a json file
-                                                  uiOutput(NS(id, "cameras_col"))
+                                                  h4("Cameras table"),
+                                                  dataTableOutput(NS(id, "raw_cameras"))
                                  )
-                                 ) # Cameras column
-                          ),
-                 br()
-                 ), # conditionalPanel upload file widgets
-
-# File previews -----------------------------------------------------------
-                 conditionalPanel(condition = "input.input_type == 1 || input.records_input !== 0",
-                                  ns = ns,
-                                  tabsetPanel(
-                                    tabPanel("Raw data preview",
-                                              h4("Records table"),
-                                              dataTableOutput(NS(id, "raw_records")),
-                                              conditionalPanel(condition = "input.input_type == 1 || input.import_cameras || output.records_extension === 'json'",
-                                                               ns = ns,
-                                                               h4("Cameras table"),
-                                                               dataTableOutput(NS(id, "raw_cameras"))
-                                              )
-                                            
-                                    ),
-                                    tabPanel("Cleaned data preview",
-                                             actionButton(NS(id, "code_import"), 
-                                                          "Show data cleaning code", icon("code"),
-                                                          style = "margin-top: 25px; margin-bottom: 15px;"),
-                                             h4("Records table"),
-                                             dataTableOutput(NS(id, "records")),
-                                             h4("Cameras table"),
-                                             dataTableOutput(NS(id, "cameras")),
-                                             downloadButton(NS(id, "downolad_cleaned_data"),
-                                                            label = "Downolad cleaned data")
-                                    )
-                                 ) # End tabsetPanel
-                 ) # End conditional panel
+                              
+                       ),
+                       tabPanel("Cleaned data preview",
+                                actionButton(NS(id, "code_import"), 
+                                            "Show data cleaning code", icon("code"),
+                                            style = "margin-top: 25px; margin-bottom: 15px;"),
+                                h4("Records table"),
+                                dataTableOutput(NS(id, "records")),
+                                h4("Cameras table"),
+                                dataTableOutput(NS(id, "cameras")),
+                                downloadButton(NS(id, "downolad_cleaned_data"),
+                                              label = "Downolad cleaned data")
+                       )
+                       ) # End tabsetPanel
+                     ) # End conditional panel
     ) # End taglist
 }
 
@@ -712,6 +718,13 @@ importServer <- function(id) {
     
     # Raw mapping values
     mapping_records_raw <- reactive({
+      
+      if (input$input_type == 2) { # Manual import file
+        # Ensure records table was imported and is available 
+        #   (i.e. no example data and data correctly loaded)
+        req(input$records_input)
+      }
+      
       # Initialize NULL list
       res <- vector(mode = "list",
                     length = nrow(records_widgets))
@@ -727,6 +740,7 @@ importServer <- function(id) {
     
     # Mapping value for records columns
     mapping_records <- reactive({
+      
       # Get raw mapping
       res <- mapping_records_raw()
       
@@ -802,6 +816,13 @@ importServer <- function(id) {
 ## Mapping -----------------------------------------------------------------
     
     mapping_cameras_raw <- reactive({
+      
+      if (input$input_type == 2) { # Manual import file
+        # Ensure records table was imported and is available 
+        #   (i.e. no example data and data correctly loaded)
+        req(input$records_input)
+      }
+      
       # Initialize NULL list
       res <- vector(mode = "list",
                     length = length(all_cameras_widgets))
