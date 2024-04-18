@@ -8,3 +8,4 @@ tests/testthat/Rplots.pdf
 docs/*
 other/logo
 other/camtrapR.R
+*.Rproj
