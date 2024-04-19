@@ -5,7 +5,8 @@ aboutUI <- function(id) {
       R package that I developed during my PhD (between 2023 and 2024)
       using R Shiny."),
     p(tagList("The source code is available at",
-              a("https://github.com/LisaNicvert/camtrapviz"),
+              a("https://github.com/LisaNicvert/camtrapviz",
+                href = "https://github.com/LisaNicvert/camtrapviz"),
               "and documentation for the package is available",
               a("here", href="https://lisanicvert.github.io/camtrapviz/"), 
             "(created with pkgdown).")),
