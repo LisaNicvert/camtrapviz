@@ -9,5 +9,5 @@
 
 .onAttach <- function(libname, pkgname) {
   # https://stackoverflow.com/questions/38791613/including-an-image-in-a-shiny-app-package
-  shiny::addResourcePath('www', system.file("www", package = "camtrapviz"))
+  shiny::addResourcePath('www', system.file("app/www", package = "camtrapviz"))
 }

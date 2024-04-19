@@ -10,5 +10,6 @@
 ^\.github$
 ^docs$
 man/figures/*
-^rinstall.txt$
+rinstall\.txt$
 ^www$
+^app\.R$

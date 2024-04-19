@@ -14,7 +14,7 @@ css_dep <- function() {
     name = "css_dep",
     version = utils::packageVersion("camtrapviz"),
     package = "camtrapviz",
-    src = "www",
+    src = c(file = "app/www"),
     stylesheet = "theme.css"
   )
 }
