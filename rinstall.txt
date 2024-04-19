@@ -20,7 +20,6 @@ if(!requireNamespace("shiny", quietly = TRUE)) install.packages("shiny", depende
 if(!requireNamespace("shinyAce", quietly = TRUE)) install.packages("shinyAce", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr") # Indirect dependency of shinymeta
 if(!requireNamespace("shinymeta", quietly = TRUE)) install.packages("shinymeta", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
 if(!requireNamespace("shinydashboard", quietly = TRUE)) install.packages("shinydashboard", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
-if(!requireNamespace("shinyFiles", quietly = TRUE)) install.packages("shinyFiles", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
 if(!requireNamespace("shinyWidgets", quietly = TRUE)) install.packages("shinyWidgets", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
 if(!requireNamespace("tibble", quietly = TRUE)) install.packages("tibble", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
 if(!requireNamespace("tidyselect", quietly = TRUE)) install.packages("tidyselect", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")

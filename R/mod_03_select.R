@@ -111,6 +111,17 @@ selectServer <- function(id,
       
       req(camtrap_data)
 
+      # # Camtrap data reactive ---
+      # camtrap_data <- reactive({
+      #   
+      #   validate(need(all(unname(unlist(mapping_records())) %in% colnames(cam_data()$data$observations)),
+      #                 "wait 1"))
+      #   validate(need(all(unname(unlist(mapping_cameras()$mapping)) %in% colnames(cam_data()$data$deployments)),
+      #                 "wait 2"))
+      #   
+      #   cam_data()
+      # })
+      
       # Create column names reactives -------------------------------------------
     
       obstype_col <- reactive({
@@ -132,6 +143,7 @@ selectServer <- function(id,
       # Create daterange widget -------------------------------------------------
       
       default_daterange <- reactive({
+        
         # Define default range from records
         if (!is.null(mapping_records()$datetime_col)) {
           data_dates <- camtrap_data()$data$observations[[mapping_records()$datetime_col]]

@@ -39,7 +39,7 @@ server <- function(input, output, session) {
                                mapping_cameras = import_val$mapping_cameras,
                                crs = import_val$crs,
                                tz = import_val$tz)
-  
+
 
   # All species -------------------------------------------------------------
   allspecies_val <- allspeciesServer("allspecies",
@@ -47,7 +47,7 @@ server <- function(input, output, session) {
                                      mapping_records = import_val$mapping_records,
                                      mapping_cameras = import_val$mapping_cameras,
                                      cam_summary = summary_val$cam_summary,
-                                     crs = import_val$crs) 
+                                     crs = import_val$crs)
 
   # One species -------------------------------------------------------------
   onespecies_val <- onespeciesServer("onespecies",
@@ -55,7 +55,7 @@ server <- function(input, output, session) {
                                      mapping_records = import_val$mapping_records,
                                      mapping_cameras = import_val$mapping_cameras,
                                      sppcam_summary = allspecies_val$sppcam_summary,
-                                     crs = import_val$crs) 
+                                     crs = import_val$crs)
   
   # About -------------------------------------------------------------
   aboutServer("about") 

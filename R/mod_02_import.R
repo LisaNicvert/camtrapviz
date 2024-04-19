@@ -37,19 +37,19 @@ importUI <- function(id) {
     conditionalPanel(condition = "input.input_type == 2", ns = ns,
                      fluidRow(column(6,
                                      h4("Records table"),
-                                     htmltools::div(
+                                     div(
                                        class = "upload_head",
-                                       shinyFilesButton(NS(id, 'records_input'), 
-                                                        style = "margin-bottom: 25px",
+                                       shiny::fileInput(NS(id, 'records_input'), 
+                                                        # style = "margin-bottom: 25px",
                                                         label = 'Choose records table', 
-                                                        title = 'Choose file',
-                                                        multiple = FALSE)
+                                                        multiple = FALSE,
+                                                        accept = ".csv"), # accept = c(".csv", ".json"))
                                      ),
                                      uiOutput(NS(id, "records_col"))
                                      ),
                               column(6,
                                      h4("Cameras table"),
-                                     htmltools::div(
+                                     div(
                                        class = "upload_head",
                                        conditionalPanel(condition = "output.records_extension !== 'json'",
                                                         ns = ns,
@@ -61,11 +61,13 @@ importUI <- function(id) {
                                        conditionalPanel(condition = "input.import_cameras && output.records_extension !== 'json'",
                                                         ns = ns,
                                                         # Display only if it is not a JSON file and user wants to import a camera
-                                                        shinyFilesButton(NS(id, "cameras_input"), 
-                                                                         style = "margin-bottom: 25px",
+                                                        shiny::fileInput(NS(id, "cameras_input"), 
+                                                                         # style = "margin-bottom: 25px",
                                                                          label = 'Choose cameras table', 
-                                                                         title = 'Choose file',
-                                                                         multiple = FALSE))
+                                                                         multiple = FALSE, 
+                                                                         accept = ".csv"
+                                                                         )
+                                                        )
                                        ),
                                        conditionalPanel(condition = "input.import_cameras || output.records_extension === 'json'",
                                                         ns = ns,
@@ -282,9 +284,6 @@ importServer <- function(id) {
     
 # Setup variables ---------------------------------------------------------
     
-    # Define roots for ShinyFiles 
-    roots <- c("home" = fs::path_home())
-    
     # Define placeholder for optional columns
     nullval <- "Not present in data"
     
@@ -475,17 +474,6 @@ importServer <- function(id) {
     
     
 # Read files --------------------------------------------------------------
-
-
-## Shiny file listener -----------------------------------------------------
-
-    shinyFileChoose(input, 'records_input', 
-                    root = c("home" = fs::path_home()),
-                    filetypes = c('csv', 'json'))
-    
-    shinyFileChoose(input, 'cameras_input', 
-                    root = c("home" = fs::path_home()),
-                    filetypes = 'csv')
     
   ## Get raw data ------------------------------------------------------------
     
@@ -494,13 +482,14 @@ importServer <- function(id) {
       
       if (input$input_type == 2) {
         # Get file
-        rec_file <- shinyFiles::parseFilePaths(roots,
-                                               input$records_input)
+        rec_file <- input$records_input
+        
         # Ensure file is loaded before continuing
         req(rec_file)
         
         # Get rec_path
         rec_path <- unname(rec_file$datapath)
+        
         validate(need(rec_path != '', "Please upload records file"))
         
         # Get rec_sep
@@ -510,8 +499,7 @@ importServer <- function(id) {
         # User wants to import a camera file?
         if (input$import_cameras) {
           # Get file
-          cam_file <- shinyFiles::parseFilePaths(roots,
-                                                 input$cameras_input)
+          cam_file <- input$cameras_input
           
           # Ensure file is loaded before continuing
           req(cam_file)
@@ -574,6 +562,27 @@ importServer <- function(id) {
         # Get separators
         rec_sep <- files_paths()$rec_sep
         cam_sep <- files_paths()$cam_sep
+        
+        # If JSON
+        if (records_extension() == "json") {
+          # Get files paths associated to camtrap DP
+          # jfile <- jsonlite::fromJSON(rec_path)
+          # resources_paths <- jfile$resources$schema
+          # 
+          # # Check they exist
+          # validate(need(!is.null(resources_paths), 
+          #               "Please upload a valid Camera Trap Data Package"))
+          # 
+          # # Remove NA
+          # resources_paths <- resources_paths[!is.na(resources_paths)]
+          # 
+          # # Copy to R tempdir
+          # copy_dir <- dirname(rec_path)
+          # copy_success <- file.copy(resources_paths, 
+          #                           file.path(copy_dir, basename(resources_paths)))
+          # 
+          # validate(need(all(copy_success), "Wait for files copy"))
+        }
         
         # Read data
         metaExpr({
@@ -997,7 +1006,7 @@ importServer <- function(id) {
       
       validate(need(all(unname(unlist(mapping_records())) %in% colnames(dat_raw()$data$observations)),
                     "Wait a minute for the records :)"))
-      if( mapping_cameras()$source != "records") {
+      if( mapping_cameras()$source == "cameras") {
         # If a file was imported
         validate(need(all(unname(unlist(mapping_cameras()$mapping)) %in% colnames(dat_raw()$data$deployments)),
                       "Wait a minute for the cameras :)"))
@@ -1118,6 +1127,7 @@ importServer <- function(id) {
         # Set cam_cols to NULL
         cam_cols <- NULL
       }
+      
       
       metaExpr({
         "# Clean data ---"
