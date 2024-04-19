@@ -178,31 +178,31 @@ records_widgets <- data.frame(
 
 cameras_widgets <- records_widgets |> 
   dplyr::filter(widget == "cam_col" | type == "cameras") |>
-  mutate(widget = paste(widget, "cov", sep = "_"))
+  dplyr::mutate(widget = paste(widget, "cov", sep = "_"))
 
 # Set default camera columns for mica
 cameras_widgets <- cameras_widgets |>
-  mutate(mica = ifelse(widget == "crs_col_cov", 
+  dplyr::mutate(mica = ifelse(widget == "crs_col_cov", 
                        4326, mica)) |>
-  mutate(mica = ifelse(widget == "lat_col_cov", 
+  dplyr::mutate(mica = ifelse(widget == "lat_col_cov", 
                        "latitude", mica)) |>
-  mutate(mica = ifelse(widget == "lon_col_cov", 
+  dplyr::mutate(mica = ifelse(widget == "lon_col_cov", 
                        "longitude", mica)) |>
-  mutate(mica = ifelse(widget == "setup_col_cov", 
+  dplyr::mutate(mica = ifelse(widget == "setup_col_cov", 
                        "start", mica)) |>
-  mutate(mica = ifelse(widget == "retrieval_col_cov", 
+  dplyr::mutate(mica = ifelse(widget == "retrieval_col_cov", 
                        "end", mica))
 # Set default camera columns for recordTableSample
 cameras_widgets <- cameras_widgets |>
-  mutate(recordTableSample = ifelse(widget == "crs_col_cov", 
+  dplyr::mutate(recordTableSample = ifelse(widget == "crs_col_cov", 
                                     32650, recordTableSample)) |>
-  mutate(recordTableSample = ifelse(widget == "lat_col_cov", 
+  dplyr::mutate(recordTableSample = ifelse(widget == "lat_col_cov", 
                                     "utm_y", recordTableSample)) |>
-  mutate(recordTableSample = ifelse(widget == "lon_col_cov", 
+  dplyr::mutate(recordTableSample = ifelse(widget == "lon_col_cov", 
                                     "utm_x", recordTableSample)) |>
-  mutate(recordTableSample = ifelse(widget == "setup_col_cov", 
+  dplyr::mutate(recordTableSample = ifelse(widget == "setup_col_cov", 
                                     "Setup_date", recordTableSample)) |>
-  mutate(recordTableSample = ifelse(widget == "retrieval_col_cov", 
+  dplyr::mutate(recordTableSample = ifelse(widget == "retrieval_col_cov", 
                                     "Retrieval_date", recordTableSample))
 
 
