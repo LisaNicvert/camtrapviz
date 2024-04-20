@@ -108,7 +108,12 @@ ui <- function() {
                   box(width = 12,
                       h2("One species"),
                       htmltools::hr(),
-                      onespeciesUI("onespecies"),
+                      # Add species sliding list
+                      fluidRow(column(width = 12,
+                                      uiOutput("species_select")
+                                      )
+                      ),
+                      uiOutput("onespecies"),
                       # Download
                       column(width = 12,
                              align = "center",

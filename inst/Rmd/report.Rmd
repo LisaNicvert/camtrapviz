@@ -141,7 +141,7 @@ The table below summarizes diversity indices for each camera.
 Now the analyses will concentrate on {{focus_spp}}. We filter the subset of the data for this species:
 
 ```{r}
-{{focus_spp_records}}
+{{focus_spp_records[[1]]}}
 ```
 
 ### Activity
@@ -149,13 +149,13 @@ Now the analyses will concentrate on {{focus_spp}}. We filter the subset of the 
 Below is the activity curve of {{focus_spp}}, estimated using a von Mises kernel probability density, along with the histogram of the observed activity times.
 
 ```{r, class.source = NULL}
-{{density_plot}}
+{{density_plot[[1]]}}
 ```
 
-### {{abundance_value}} per camera
+### Abundance per camera
 
 {{abundance_value}} of {{focus_spp}} at each camera is summarized in the plot below:
 
 ```{r, class.source = NULL}
-{{abundance_plot}}
+{{abundance_plot[[1]]}}
 ```

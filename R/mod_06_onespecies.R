@@ -4,15 +4,11 @@
 onespeciesUI <- function(id) {
   tagList(
 
-# Choose species ----------------------------------------------------------
-
-    fluidRow(column(width = 12,
-                    uiOutput(NS(id, "species_select"))
-                    ),
-             ),
+    h3(textOutput(NS(id, "spp_header"))),
+    
     # Activity plot -----------------------------------------------------------
 
-    h3("Activity plot"),
+    h4("Activity plot"),
     fluidRow(column(width = 3,
                     numericInput(NS(id, "adj"),
                                  "Bandwidth adjustment",
@@ -26,7 +22,7 @@ onespeciesUI <- function(id) {
              ),
 
 # Species count ---------------------------------------------------------------------
-             h3("Species count"),
+             h4("Species count"),
              fluidRow(
                column(width = 6, 
                       selectInput(NS(id, "value"),
@@ -62,6 +58,8 @@ onespeciesUI <- function(id) {
 # Server ------------------------------------------------------------------
 
 onespeciesServer <- function(id,
+                             spp,
+                             species_df,
                              camtrap_data, 
                              mapping_records,
                              mapping_cameras,
@@ -71,9 +69,13 @@ onespeciesServer <- function(id,
     
     # Test reactive input -----------------------------------------------------
     # stopifnot(is.reactive(camtrap_data))
+    stopifnot(is.reactive(species_df))
+    stopifnot(is.reactive(spp))
     stopifnot(is.reactive(mapping_records))
     stopifnot(is.reactive(mapping_cameras))
     stopifnot(is.reactive(crs))
+    
+    req(camtrap_data)
     
     # Create column names reactives -------------------------------------------
     obstype_col <- reactive({
@@ -108,42 +110,14 @@ onespeciesServer <- function(id,
     })
     outputOptions(output, 'lonlat', 
                   suspendWhenHidden = FALSE)
-    
-    # Species selection -------------------------------------------------------
-    
-    ## Get species df ----------------------------------------------------------
-    species_df <- reactive({
-      # Validate to wait for filtering
-      validate(need(nrow(camtrap_data()$data$observations) != 0, 
-                    "Cannot analyze an empty table: plese check data filtering"))
-      
-      camtrapviz::get_unique_species(camtrap_data()$data$observations,
-                                     spp_col = spp_col(), 
-                                     obstype_col = obstype_col(),
-                                     return_df = TRUE,
-                                     add_ID = TRUE)
-    })
-    
-    ## Create selectInput ------------------------------------------------------
-    
-    output$species_select <- renderUI({
-      # Create choices df
-      choices <- as.list(species_df()$ID)
-      names(choices) <- species_df()[[spp_col()]]
-      
-      selectInput(NS(id, "species"),
-                  label = "Choose species",
-                  choices = choices)
-    })
 
-
-    ## Get filtered data ------------------------------------------------------
+    # Get focus spp data ------------------------------------------------------
     
     focus_spp <- reactive({
       # Get the focus species ---
       
       # Get subset of the df with selected values
-      selected <- species_df()[species_df()$ID %in% input$species, ]
+      selected <- species_df()[species_df()$ID %in% spp(), ]
       
       # Separate spp and obstype filters
       get_obs_spp(selected,
@@ -178,6 +152,12 @@ onespeciesServer <- function(id,
                     selection = "none",
                     options = list(scrollX = TRUE))
     }, bindToReturn = TRUE, varname = "focus_spp_records_table")
+    
+
+    # Species name header -----------------------------------------------------
+    output$spp_header <- renderText({
+      focus_spp()$spp
+    })
     
     # Density -----------------------------------------------------------------
 
@@ -268,7 +248,7 @@ onespeciesServer <- function(id,
   
     focus_spp_summary <- metaReactive2({
       # Get subset of the df with selected values
-      all_filter <- species_df()[species_df()$ID %in% input$species, ]
+      all_filter <- species_df()[species_df()$ID %in% spp(), ]
       
       # Separate spp and obstype filters
       filters <- get_obs_spp(all_filter,

@@ -50,12 +50,80 @@ server <- function(input, output, session) {
                                      crs = import_val$crs)
 
   # One species -------------------------------------------------------------
-  onespecies_val <- onespeciesServer("onespecies",
-                                     camtrap_data = select_val$camtrap_data,
-                                     mapping_records = import_val$mapping_records,
-                                     mapping_cameras = import_val$mapping_cameras,
-                                     sppcam_summary = allspecies_val$sppcam_summary,
-                                     crs = import_val$crs)
+
+  ## selectInput for species  ----------------------------------------------------------
+  # Unique species list (with ID)
+  species_df <- reactive({
+    # Validate to wait for filtering
+    validate(need(nrow(select_val$camtrap_data()$data$observations) != 0, 
+                  "Cannot analyze an empty table: plese check data filtering"))
+    
+    camtrapviz::get_unique_species(select_val$camtrap_data()$data$observations,
+                                   spp_col = unname(import_val$mapping_records()$spp_col), 
+                                   obstype_col = unname(import_val$mapping_records()$obstype_col),
+                                   return_df = TRUE,
+                                   add_ID = TRUE)
+  })
+  
+  # Widget
+  output$species_select <- renderUI({
+    # Create choices df
+    choices <- as.list(species_df()$ID)
+    names(choices) <- species_df()[[unname(import_val$mapping_records()$spp_col)]]
+    
+    selectInput("species",
+                label = "Choose species",
+                choices = choices,
+                multiple = TRUE,
+                selected = choices[[1]])
+  })
+  
+  # Get selected values
+  spp <- reactive({
+    input$species
+  })
+  
+  onespecies_val <- reactive({
+    validate(need(!is.null(spp()), "Select specie(s)"))
+    n <- length(spp())
+
+    lapply(1:n,
+           function(i) {
+             spi <- reactive(spp()[i])
+             spid <- spp()[i]
+             cat(paste("\nserver side module", spid))
+             onespeciesServer(spid,
+                              spp = spi,
+                              species_df = species_df,
+                              camtrap_data = select_val$camtrap_data,
+                              mapping_records = import_val$mapping_records,
+                              mapping_cameras = import_val$mapping_cameras,
+                              sppcam_summary = allspecies_val$sppcam_summary,
+                              crs = import_val$crs)
+    })
+    
+  }) |> bindEvent(spp())
+  
+  
+  output$onespecies <- renderUI({
+    validate(need(!is.null(spp()), "Select specie(s)"))
+    n <- length(spp())
+    lapply(1:n, 
+           function(i) {
+             spid <- spp()[i]
+             cat(paste("\nui side module", spid))
+             onespeciesUI(spid)
+             })
+  })|> bindEvent(onespecies_val())
+  
+  # onespecies_val <- onespeciesServer("onespecies",
+  #                                    spp = spp,
+  #                                    species_df = species_df,
+  #                                    camtrap_data = select_val$camtrap_data,
+  #                                    mapping_records = import_val$mapping_records,
+  #                                    mapping_cameras = import_val$mapping_cameras,
+  #                                    sppcam_summary = allspecies_val$sppcam_summary,
+  #                                    crs = import_val$crs)
   
   # About -------------------------------------------------------------
   aboutServer("about") 
@@ -147,14 +215,24 @@ server <- function(input, output, session) {
                     diversity_index = allspecies_val$diversity_index(),
                     plot_diversity = expandChain(allspecies_val$diversity_plot(),
                                                   .expansionContext = ec),
-                    focus_spp = onespecies_val$focus_spp(),
-                    focus_spp_records = expandChain(onespecies_val$focus_spp_records(),
-                                                    .expansionContext = ec),
-                    density_plot = expandChain(onespecies_val$density_plot(),
-                                               .expansionContext = ec),
-                    abundance_value = onespecies_val$abundance_value(),
-                    abundance_plot = expandChain(onespecies_val$abundance_plot(),
-                                                .expansionContext = ec)
+                    focus_spp = paste(sapply(onespecies_val(), function(l) l$focus_spp()), 
+                                      collapse = ", "),
+                    # focus_spp_records = do.call(what = "expandChain",
+                    #                             args = c(lapply(onespecies_val(), 
+                    #                                                   function(l) l$focus_spp_records()),
+                    #                                      list(.expansionContext = ec)),
+                    #                             ),
+                    focus_spp_records = lapply(onespecies_val(),
+                                               function(l) expandChain(l$focus_spp_records(),
+                                                                      .expansionContext = ec)),
+                    density_plot = lapply(onespecies_val(),
+                                          function(l) expandChain(l$density_plot(),
+                                                                  .expansionContext = ec)),
+                    abundance_value = paste(sapply(onespecies_val(), function(l) l$abundance_value()), 
+                                            collapse = ", "),
+                    abundance_plot = lapply(onespecies_val(),
+                                            function(l) expandChain(l$abundance_plot(),
+                                                                    .expansionContext = ec))
                     ),
         render_args = list(output_format = "html_document"),
         include_files = raw_data()
