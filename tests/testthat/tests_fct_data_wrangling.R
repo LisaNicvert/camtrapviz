@@ -293,6 +293,28 @@ test_that("Summarize cameras with a camera with one obs", {
                          retrieval_origin = c("picture", "picture"))
   expect_equal(res, expected)
   
+  # Two cameras treated with cameraOperation
+  df <- data.frame(species = c("cat", "cat", "cow", "dog"),
+                   stamp = as.POSIXct(c("2020-04-01 12:00:00",
+                                        "2020-04-10 12:00:00",
+                                        "2020-04-07 12:00:00",
+                                        "2020-04-12 12:00:00")),
+                   camera = c("A01", "A01", "A02", "A02"))
+  
+  res <- summarize_cameras(df, 
+                           datetime_col = "stamp",
+                           cam_col = "camera")
+  expected <- data.frame(camera = c("A01", "A02"),
+                         pictures = c(2, 2),
+                         sampling_length = c(9, 5),
+                         setup = as.POSIXct(c("2020-04-01 12:00:00",
+                                              "2020-04-07 12:00:00")),
+                         retrieval = as.POSIXct(c("2020-04-10 12:00:00",
+                                                  "2020-04-12 12:00:00")),
+                         setup_origin = c("picture", "picture"),
+                         retrieval_origin = c("picture", "picture"))
+  expect_equal(res, expected)
+  
   # Two pictures with same date
   df <- data.frame(species = c("cat", "cow"),
                    stamp = as.POSIXct(c("2020-04-01 12:00:00",

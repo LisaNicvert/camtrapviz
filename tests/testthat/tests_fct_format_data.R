@@ -44,7 +44,7 @@ test_that("Cast columns errors", {
                char = "as.factor",
                foo = "as.factor")
   expect_error(cast_columns(df, cast), 
-               "names(cast_type)[3] (value: foo) is not in the column names of df",
+               "names(cast)[3] (value: foo) is not in the column names of df",
                fixed = TRUE)
 })
 
@@ -257,7 +257,7 @@ test_that("Cameras in both table", {
 })
 
 # Final function ----------------------------------------------------------
-text_that("Chean data (errors)", {
+test_that("Clean data (errors)", {
   # Prepare data
   dat <- list(data = list(deployments = camtraps,
                           observations = recordTableSample))
@@ -283,19 +283,26 @@ text_that("Chean data (errors)", {
                fixed = TRUE)
   
   # Error in cam_cols (split)
-  clean_data(dat = dat,
-             split = TRUE,
-             cam_cols = c("Station", "foo"))
+  expect_error(clean_data(dat = dat,
+                          split = TRUE,
+                          cam_cols = c("Station", "foo")),
+               "cam_cols[2] (value: foo) is not in the column names of dat$data$observations",
+               fixed = TRUE)
   
   # Error in cam_col_dfrec (only_shared_cam)
-  clean_data(dat = dat,
-             cam_col_dfrec = "foo",
-             only_shared_cam = TRUE)
+  expect_error(clean_data(dat = dat,
+                          cam_col_dfrec = "foo",
+                          only_shared_cam = TRUE),
+               "cam_col_dfrec (value: foo) is not in the column names of dfrec",
+               fixed = TRUE)
+               
   
   # Error in cam_col_dfcam (only_shared_cam)
-  clean_data(dat = dat,
-             cam_col_dfcam = "foo",
-             only_shared_cam = TRUE)
+  expect_error(clean_data(dat = dat,
+                          cam_col_dfcam = "foo",
+                          only_shared_cam = TRUE),
+               "cam_col_dfcam (value: foo) is not in the column names of dfcam",
+               fixed = TRUE)
   
 })
 
