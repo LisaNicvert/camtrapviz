@@ -14,9 +14,8 @@ importUI <- function(id) {
     
     # Description for user import ---------------------------------------------------
     conditionalPanel(condition = "input.input_type == 2", ns = ns,
-                     p("You can import data as CSV file(s) (records and, 
-                     optionnally, cameras information) or as a JSON descriptor 
-                       file for the camtrap DP format.", class = "pdesc")
+                     p("Import data as CSV file(s): one file for records and, 
+                     optionnally, another file for cameras information.", class = "pdesc")
                      ),
     br(),
 
