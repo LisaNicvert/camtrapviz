@@ -196,9 +196,16 @@ server <- function(input, output, session) {
 
       
       # Function to transform a list of 
-      list_to_call <- function(element, context = "ec") {
+      list_to_call <- function(element, context = "ec", invisible = FALSE) {
+        if (invisible) {
+          invstart <- "invisible("
+          invend <- ")"
+        } else {
+          invstart <- ""
+          invend <- ""
+        }
         vars <- sapply(1:length(onespecies_val()), 
-                       function(i) paste0("onespecies_val()[[", i, "]]$", element, "()")) 
+                       function(i) paste0(invstart, "onespecies_val()[[", i, "]]$", element, "()", invend)) 
         varsall <- paste(vars, collapse = ", ")
         fcall <- paste0("expandChain(", varsall, ", .expansionContext = ", context, ")")
         return(fcall)
@@ -254,7 +261,8 @@ server <- function(input, output, session) {
                     plot_diversity = expandChain(allspecies_val$diversity_plot(),
                                                   .expansionContext = ec),
                     focus_spp = enumerate(sapply(onespecies_val(), function(l) l$focus_spp())),
-                    focus_spp_records = eval(parse(text = list_to_call("focus_spp_records"))),
+                    focus_spp_records = eval(parse(text = list_to_call("focus_spp_records", 
+                                                                       invisible = TRUE))),
                     density_plot = eval(parse(text = list_to_call("density_plot"))),
                     abundance_value = enumerate(sapply(onespecies_val(), function(l) l$abundance_value())),
                     abundance_plot = eval(parse(text = list_to_call("abundance_plot")))
