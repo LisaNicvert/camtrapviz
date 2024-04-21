@@ -16,11 +16,12 @@ homeUI <- function(id) {
       The overview module provides general information about the data, 
       such as the number of cameras, the survey duration or a map.
       The two last modules allow to get more information on the detected species (abundance and diversity)
-      or on a particular, user-chosen species (activity pattern, detections by camera)."),
+      or on some particular, user-chosen species (activity pattern, detections by camera)."),
     h3("Code export"),
     p("For each analysis, a button allows to show the R code to reproduce the analysis.
       The complete report with all analyses can also be exported as a R Markdown 
-      and htlm document."),
+      and htlm document. 
+      To dowload the report, use the download button at the bottom of the \"One species\" module page."),
     br(),
     htmltools::hr(class = "hrthin"),
     img(src = "www/LBBE-Logotype-Version-baseline-CMJN.png", height = "40px")
