@@ -3,8 +3,11 @@
 
 onespeciesUI <- function(id) {
   tagList(
-
-    h3(textOutput(NS(id, "spp_header"))),
+    div(
+      h3(textOutput(NS(id, "spp_header"))),
+      div(htmltools::hr(class = "hrspp"), style = "width:100%;"),
+      style = "display: flex; align-items: center; justify-content: space-between;"
+    ),
     
     # Activity plot -----------------------------------------------------------
 
@@ -40,7 +43,7 @@ onespeciesUI <- function(id) {
                column(width = 12,
                       conditionalPanel("input.plot_type === 'map' && output.lonlat", 
                                        ns = NS(id),
-                                       outputCodeButton(leafletOutput(NS(id, "plot_abundance_map")),
+                                       outputCodeButton(uiOutput(NS(id, "plot_abundance_map")),
                                                         height = "500px")
                       ),
                       conditionalPanel("input.plot_type === 'bar' || !output.lonlat", 
@@ -144,7 +147,7 @@ onespeciesServer <- function(id,
             dplyr::filter(.data[[..(obstype_col())]] == ..(obstype_filter))
         }, bindToReturn = TRUE)
       }
-    }, varname = "focus_spp_records")
+    }, varname = "records")
 
     focus_spp_records_table <- metaReactive({
       DT::datatable(..(focus_spp_records()),
@@ -219,7 +222,8 @@ onespeciesServer <- function(id,
                           time_dfrec = time_col,
                           unit = "clock",
                           freq = TRUE,
-                          interactive = TRUE)
+                          interactive = TRUE) +
+        ggtitle(..(focus_spp()$spp))
       
       gi <- ggiraph::girafe(ggobj = gg)
       gi <- ggiraph::girafe_options(gi,
@@ -277,21 +281,24 @@ onespeciesServer <- function(id,
     
     ## Abundance map ----------------------------------------------------------- 
     
-    output$plot_abundance_map <- metaRender(renderLeaflet, {
+    output$plot_abundance_map <- metaRender(renderUI, {
       "# Plot abundance map ---"
       abundance <- ..(focus_spp_summary())[[..(input$value)]]
       names(abundance) <- ..(focus_spp_summary())[[..(cam_col_rec())]]
       
-      plot_map(..(camtrap_data())$data$deployments, 
-               lat_col = ..(unname(mapping_cameras()$lat_col)),
-               lon_col = ..(unname(mapping_cameras()$lon_col)),
-               crs = ..(crs()),
-               cam_col = ..(cam_col_cam()),
-               radius = abundance,
-               color = "black",
-               label = round(abundance, 3),
-               rescale = TRUE)
-    })
+      # return as renderUI because title doesn't work with renderLeaflet
+      # see https://stackoverflow.com/questions/49072510/r-add-title-to-leaflet-map
+      htmltools::tagList(htmltools::p(..(focus_spp()$spp)),
+                         plot_map(..(camtrap_data())$data$deployments, 
+                                  lat_col = ..(unname(mapping_cameras()$lat_col)),
+                                  lon_col = ..(unname(mapping_cameras()$lon_col)),
+                                  crs = ..(crs()),
+                                  cam_col = ..(cam_col_cam()),
+                                  radius = abundance,
+                                  color = "black",
+                                  label = round(abundance, 3),
+                                  rescale = TRUE))
+      })
     
 
     ## Abundance barplot -------------------------------------------------------
@@ -312,7 +319,8 @@ onespeciesServer <- function(id,
                              cam_col = ..(cam_col_rec()),
                              interactive = TRUE) +
           ylab(..(names(abundance_list[abundance_list == input$value]))) +
-          xlab("Cameras")
+          xlab("Cameras") +
+          ggtitle(..(focus_spp()$spp))
         
         "# ggiraph plot (interactive)"
         gi <- ggiraph::girafe(ggobj = gg,

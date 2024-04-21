@@ -50,6 +50,7 @@ library(camtrapviz)
 library(ggiraph)
 library(ggplot2)
 library(dplyr)
+library(htmltools)
 ```
 
 ## Data import
@@ -138,10 +139,10 @@ The table below summarizes diversity indices for each camera.
 
 ## Unispecific analyses
 
-Now the analyses will concentrate on {{focus_spp}}. We filter the subset of the data for this species:
+Now the analyses will concentrate on {{focus_spp}}. We filter the subset of the data for the species:
 
 ```{r}
-{{focus_spp_records[[1]]}}
+{{focus_spp_records}}
 ```
 
 ### Activity
@@ -149,7 +150,7 @@ Now the analyses will concentrate on {{focus_spp}}. We filter the subset of the 
 Below is the activity curve of {{focus_spp}}, estimated using a von Mises kernel probability density, along with the histogram of the observed activity times.
 
 ```{r, class.source = NULL}
-{{density_plot[[1]]}}
+{{density_plot}}
 ```
 
 ### Abundance per camera
@@ -157,5 +158,5 @@ Below is the activity curve of {{focus_spp}}, estimated using a von Mises kernel
 {{abundance_value}} of {{focus_spp}} at each camera is summarized in the plot below:
 
 ```{r, class.source = NULL}
-{{abundance_plot[[1]]}}
+{{abundance_plot}}
 ```

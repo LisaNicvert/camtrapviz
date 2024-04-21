@@ -83,6 +83,16 @@ hr {
   height: 1px !important;
 }
 
+/* Class for horizontal line to separate species in one spp module */
+.hrspp {
+  margin-bottom: 10px !important;
+  height: 2px !important;
+  background-color: #333 !important;
+  margin-top: 20px !important;
+  margin-bottom: 10px !important;
+  margin-left: 15px;
+}
+
 /* Navbar ------------------------------------------- */
 .skin-blue .main-header .navbar {
   background-color: #006d77 !important;
@@ -147,4 +157,3 @@ hr {
   visibility: visible;
   opacity: 1;
 }
-

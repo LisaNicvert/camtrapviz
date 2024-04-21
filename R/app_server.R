@@ -83,6 +83,12 @@ server <- function(input, output, session) {
     input$species
   })
   
+  # Get name (and not ID) of selected spp (for modules IDs)
+  spp_name <- reactive({
+    spp <- species_df()[[unname(import_val$mapping_records()$spp_col)]][species_df()$ID %in% input$species]
+    gsub("\\s", "", spp) # remove spaces
+  })
+  
   onespecies_val <- reactive({
     validate(need(!is.null(spp()), "Select specie(s)"))
     n <- length(spp())
@@ -90,8 +96,7 @@ server <- function(input, output, session) {
     lapply(1:n,
            function(i) {
              spi <- reactive(spp()[i])
-             spid <- spp()[i]
-             cat(paste("\nserver side module", spid))
+             spid <- spp_name()[i]
              onespeciesServer(spid,
                               spp = spi,
                               species_df = species_df,
@@ -110,8 +115,7 @@ server <- function(input, output, session) {
     n <- length(spp())
     lapply(1:n, 
            function(i) {
-             spid <- spp()[i]
-             cat(paste("\nui side module", spid))
+             spid <- spp_name()[i]
              onespeciesUI(spid)
              })
   })|> bindEvent(onespecies_val())
@@ -129,6 +133,10 @@ server <- function(input, output, session) {
   aboutServer("about") 
 
   # Download handler --------------------------------------------------------
+  
+
+  ## Data --------------------------------------------------------------------
+
   
   # Get raw data
   raw_data <- reactive({
@@ -159,6 +167,7 @@ server <- function(input, output, session) {
     res
   })
   
+  ## Script --------------------------------------------------------------------
   
   output$download_script <- downloadHandler(
     filename = "camtrapviz.zip", 
@@ -181,6 +190,35 @@ server <- function(input, output, session) {
           })
         }
       }
+      
+
+      ### Prepare one spp outputs -------------------------------------------------
+
+      
+      # Function to transform a list of 
+      list_to_call <- function(element, context = "ec") {
+        vars <- sapply(1:length(onespecies_val()), 
+                       function(i) paste0("onespecies_val()[[", i, "]]$", element, "()")) 
+        varsall <- paste(vars, collapse = ", ")
+        fcall <- paste0("expandChain(", varsall, ", .expansionContext = ", context, ")")
+        return(fcall)
+      }
+      
+      # Function to collapse strings and add "and" between last items
+      enumerate <- function(vec) {
+        if (length(vec) > 1) {
+          vec2 <- paste(vec, collapse = ", ")
+          lastcomma <- regexpr(",[^,]*$", vec2)[1]
+          res <- paste0(substr(vec2, 1, lastcomma-1), " and", substr(vec2, lastcomma+1, nchar(vec2)))
+        } else {
+          res <- vec
+        }
+        return(res)
+      }
+      
+
+      ### Build Rmd ---------------------------------------------------------------
+
       
       shinymeta::buildRmdBundle(
         report_template = system.file("Rmd/report.Rmd",
@@ -215,24 +253,11 @@ server <- function(input, output, session) {
                     diversity_index = allspecies_val$diversity_index(),
                     plot_diversity = expandChain(allspecies_val$diversity_plot(),
                                                   .expansionContext = ec),
-                    focus_spp = paste(sapply(onespecies_val(), function(l) l$focus_spp()), 
-                                      collapse = ", "),
-                    # focus_spp_records = do.call(what = "expandChain",
-                    #                             args = c(lapply(onespecies_val(), 
-                    #                                                   function(l) l$focus_spp_records()),
-                    #                                      list(.expansionContext = ec)),
-                    #                             ),
-                    focus_spp_records = lapply(onespecies_val(),
-                                               function(l) expandChain(l$focus_spp_records(),
-                                                                      .expansionContext = ec)),
-                    density_plot = lapply(onespecies_val(),
-                                          function(l) expandChain(l$density_plot(),
-                                                                  .expansionContext = ec)),
-                    abundance_value = paste(sapply(onespecies_val(), function(l) l$abundance_value()), 
-                                            collapse = ", "),
-                    abundance_plot = lapply(onespecies_val(),
-                                            function(l) expandChain(l$abundance_plot(),
-                                                                    .expansionContext = ec))
+                    focus_spp = enumerate(sapply(onespecies_val(), function(l) l$focus_spp())),
+                    focus_spp_records = eval(parse(text = list_to_call("focus_spp_records"))),
+                    density_plot = eval(parse(text = list_to_call("density_plot"))),
+                    abundance_value = enumerate(sapply(onespecies_val(), function(l) l$abundance_value())),
+                    abundance_plot = eval(parse(text = list_to_call("abundance_plot")))
                     ),
         render_args = list(output_format = "html_document"),
         include_files = raw_data()
