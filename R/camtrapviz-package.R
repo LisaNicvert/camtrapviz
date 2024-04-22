@@ -108,6 +108,7 @@
 #' @importFrom shiny updateSelectizeInput
 #' @importFrom shiny validate
 #' @importFrom shiny verbatimTextOutput
+#' @importFrom shinycssloaders withSpinner
 #' @importFrom shinydashboard box
 #' @importFrom shinydashboard dashboardBody
 #' @importFrom shinydashboard dashboardHeader

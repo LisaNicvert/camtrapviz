@@ -4,8 +4,15 @@
 #' @return The UI (HTML code)
 ui <- function() {
   dashboardPage(
+    title = "camtrapviz",
     dashboardHeader(
-      title = "Camtrapviz"),
+      # title = "camtrapviz"
+      title = div(div(img(src='www/logo.png', height = "30px"), # w = h*0.865
+                      style = "height: 100%;"),
+                  div("camtrapviz", class = "title",
+                      style = "width: 100%"),
+                  style = "display: flex; align-items: center; justify-content: space-between;")
+      ),
     dashboardSidebar(
 
 # Sidebar -----------------------------------------------------------------
