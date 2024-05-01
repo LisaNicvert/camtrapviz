@@ -33,7 +33,7 @@ A Shiny interface run from your computer allows to analyze camera trap data inte
 run_camtrapviz()
 ```
 
-![](man/figures/shinyapp.png "Overview of the Shiny interface")
+![](man/figures/shinyapp2.png "Overview of the Shiny interface")
 
 Two example datasets are provided:
 
