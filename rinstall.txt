@@ -18,6 +18,7 @@ if(!requireNamespace("htmltools", quietly = TRUE)) install.packages("htmltools",
 if(!requireNamespace("lubridate", quietly = TRUE)) install.packages("lubridate", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
 if(!requireNamespace("shiny", quietly = TRUE)) install.packages("shiny", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr") # this one is probably installed already
 if(!requireNamespace("shinyAce", quietly = TRUE)) install.packages("shinyAce", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr") # Indirect dependency of shinymeta
+if(!requireNamespace("shinycssloaders", quietly = TRUE)) install.packages("shinycssloaders", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
 if(!requireNamespace("shinymeta", quietly = TRUE)) install.packages("shinymeta", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
 if(!requireNamespace("shinydashboard", quietly = TRUE)) install.packages("shinydashboard", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")
 if(!requireNamespace("shinyWidgets", quietly = TRUE)) install.packages("shinyWidgets", dependencies = TRUE, repos = "http://cran.univ-lyon1.fr")

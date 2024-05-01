@@ -28,6 +28,7 @@ selectUI <- function(id) {
              class = "nomarginleft",
              select_values(prefix = NS(id, "daterange"),
                            item = "pictures",
+                           label_manual = "Date range",
                            manual_widget = uiOutput(NS(id, "daterange")))
       ),
       column(width = 6,

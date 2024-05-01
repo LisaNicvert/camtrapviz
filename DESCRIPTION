@@ -35,7 +35,8 @@ Imports:
     tibble,
     tidyselect,
     tidyr,
-    utils
+    utils,
+    shinycssloaders
 Suggests:
     knitr,
     RColorBrewer,

@@ -8,26 +8,30 @@ summaryUI <- function(id) {
     fluidRow(infoBox("Cameras", 
                      icon = icon("camera"),
                      color = 'aqua',
-                     value = textOutput(NS(id, "ncameras")),
+                     value = textOutput(NS(id, "ncameras")) |> 
+                       withSpinner(proxy.height = "70px", color = "#006d77"),
                      width = 6
                      ),
              infoBox("Species", 
                      icon = icon("paw"),
                      color = 'teal',
-                     value = textOutput(NS(id, "nspecies")),
+                     value = textOutput(NS(id, "nspecies")) |> 
+                       withSpinner(proxy.height = "70px", color = "#006d77"),
                      width = 6
                      )
              ),
     fluidRow(infoBox("Trapping nights", 
                      icon = icon("clock"),
                      color = 'fuchsia',
-                     value = textOutput(NS(id, "sampling_length")),
+                     value = textOutput(NS(id, "sampling_length")) |> 
+                       withSpinner(proxy.height = "70px", color = "#006d77"),
                      width = 6
                      ),
              infoBox("Active", 
                      icon = icon("calendar"),
                      color = 'purple',
-                     value = textOutput(NS(id, "daterange")),
+                     value = textOutput(NS(id, "daterange")) |> 
+                       withSpinner(proxy.height = "70px", color = "#006d77"),
                      width = 6
                      )
              ),
@@ -42,7 +46,7 @@ summaryUI <- function(id) {
                        checkboxInput(NS(id, "display_camnames"), 
                                      label = "Show camera names on map"),
                        leafletOutput(NS(id, "plot_map"),
-                                     height = "500px")
+                                     height = "500px") |> withSpinner(color = "#006d77")
                      )
                      )),
     h3("Camera activity"),
@@ -50,7 +54,7 @@ summaryUI <- function(id) {
       checkboxInput(NS(id, "points_boxes"), 
                     "Display sampling period"), 
       girafeOutput(NS(id, "plot_occurrences"),
-                   height = "500px")
+                   height = "500px") |> withSpinner(color = "#006d77")
       )),
     br(),
 

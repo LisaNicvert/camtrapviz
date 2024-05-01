@@ -60,17 +60,23 @@ create_dashboard <- function(tagList,
 #' @param item The item name to display in the widgets labels
 #' @param manual_widget Widget to be displayed for manual choice.
 #' If not provided, will default to a pickerinput.
+#' @param label_manual label for the manual radio button
+#' @param label_other label for the othr column radio button
 #'
 #' @noRd
 #' @return A taglist of widgets
 select_values <- function(prefix, item, 
+                          label_manual = "Manually",
+                          label_other = "Based on other column",
                           manual_widget = NULL) {
+  
+  choices <- c("manually", "other_col")
+  names(choices) <- c(label_manual, label_other)
   
   tagList(
     radioButtons(paste(prefix, "manually", sep = "_"), 
                  label = paste("Choose", item), 
-                 choices = c("Manually" = "manually",
-                             "Based on other column" = "other_col"), 
+                 choices = choices, 
                  inline = TRUE),
     # Here to access the value of the radioButtons we use another JS way to access a value
     # usually we use input.val but here we use input['val'] because of the modules namespace
