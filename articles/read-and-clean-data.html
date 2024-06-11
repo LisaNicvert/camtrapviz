@@ -528,12 +528,13 @@ D:</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span><span class="va">newcam</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_diffcam</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "StationA" "StationB" "StationC"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_diffcam</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "StationA" "StationB" "StationC"</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_diffcam</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "StationB" "StationC" "StationD"</span></span></code></pre></div>
 <p>Cleaning the data will keep only data with cameras that are common
 between the two datasets (B and C);</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat_diffcam_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat_diffcam</span>, </span>
 <span>                                rec_type <span class="op">=</span> <span class="va">rec_type</span>,</span>
 <span>                                cam_type <span class="op">=</span> <span class="va">cam_type</span>,</span>
@@ -542,8 +543,9 @@ between the two datasets (B and C);</p>
 <span>                                only_shared_cam <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_diffcam_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "StationB" "StationC"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_diffcam_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "StationB" "StationC"</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">dat_diffcam_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">$</span><span class="va">Station</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "StationB" "StationC"</span></span></code></pre></div>
 </div>
 </div>
@@ -555,10 +557,10 @@ csv file containing records and cameras information:</p>
 <div class="section level3">
 <h3 id="read-data-1">Read data<a class="anchor" aria-label="anchor" href="#read-data-1"></a>
 </h3>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_data.html">read_data</a></span><span class="op">(</span>path_rec <span class="op">=</span> <span class="va">recordcamfile</span>,</span>
 <span>                 sep_rec <span class="op">=</span> <span class="st">","</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table style="width:100%;" class="table">
@@ -717,7 +719,7 @@ csv file containing records and cameras information:</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Again the imported file is a list with one component
@@ -743,7 +745,7 @@ cameras IDs must be specified in the <code>cam_col_dfrec</code> argument
 <p>Since at the beginning, all columns are in the observations
 dataframe, the casting specifications should be in the
 <code>rec_type</code> argument.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cam_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Station"</span>, <span class="st">"Setup_date"</span>, <span class="st">"Retrieval_date"</span>, </span>
 <span>              <span class="st">"utm_y"</span>, <span class="st">"utm_x"</span>, <span class="st">"Problem1_from"</span>, <span class="st">"Problem1_to"</span><span class="op">)</span></span>
 <span></span>
@@ -761,13 +763,13 @@ dataframe, the casting specifications should be in the
 <span>                                       format <span class="op">=</span> <span class="st">"%d/%m/%Y"</span><span class="op">)</span>,</span>
 <span>                  Problem1_to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as.Date"</span>,</span>
 <span>                                     format <span class="op">=</span> <span class="st">"%d/%m/%Y"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat_clean</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/clean_data.html">clean_data</a></span><span class="op">(</span><span class="va">dat</span>, </span>
 <span>                        rec_type <span class="op">=</span> <span class="va">rec_type2</span>,</span>
 <span>                        cam_col_dfrec <span class="op">=</span> <span class="st">"Station"</span>,</span>
 <span>                        cam_cols <span class="op">=</span> <span class="va">cam_cols</span>,</span>
 <span>                        split <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table style="width:100%;" class="table">
@@ -878,7 +880,7 @@ dataframe, the casting specifications should be in the
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
@@ -943,7 +945,7 @@ format.</p>
 </h3>
 <p>The <code>read_data</code> function can also read json files
 corresponding to the camtrapDP datapackage.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">camtrap_dp_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span></span>
 <span>  <span class="st">"extdata"</span>, <span class="st">"mica"</span>, <span class="st">"datapackage.json"</span>, </span>
 <span>  package <span class="op">=</span> <span class="st">"camtraptor"</span></span>
@@ -957,15 +959,17 @@ use use directly this function).</p>
 <p>The imported object is a <code>list</code> with several slots, and
 the observations and deployments info are in the <code>$data</code>
 slot.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "datapackage" "list"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "datapackage" "list"</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">dat</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "name"          "id"            "profile"       "created"      </span></span>
 <span><span class="co">#&gt;  [5] "sources"       "contributors"  "organizations" "project"      </span></span>
 <span><span class="co">#&gt;  [9] "spatial"       "temporal"      "taxonomic"     "platform"     </span></span>
-<span><span class="co">#&gt; [13] "resources"     "directory"     "data"</span></span>
-<span></span>
+<span><span class="co">#&gt; [13] "resources"     "directory"     "data"</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table style="width:100%;" class="table">
@@ -1180,7 +1184,7 @@ slot.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
@@ -1350,12 +1354,12 @@ slot.</p>
 <p>Here, the data follows the camtrapDP standard and does not need
 cleaning. However, for this demonstration we change the time stamp type
 to character:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "character"</span></span></code></pre></div>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rec_type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>timestamp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"as.POSIXct"</span>,</span>
 <span>                                  tz <span class="op">=</span> <span class="st">"UTC"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -1363,15 +1367,15 @@ to character:</p>
 <span>                        rec_type <span class="op">=</span> <span class="va">rec_type</span><span class="op">)</span></span></code></pre></div>
 <p>In the cleaned data, <code>timestamp</code> is converted back to
 POSIX:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "POSIXct" "POSIXt"</span></span></code></pre></div>
 <p>The timezone is UTC, as we specified in the casting function:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">$</span><span class="va">timestamp</span>, <span class="st">"tzone"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "UTC"</span></span></code></pre></div>
 <p>Else, the data is unchanged.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">observations</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table style="width:100%;" class="table">
@@ -1586,7 +1590,7 @@ POSIX:</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_clean</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">deployments</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
