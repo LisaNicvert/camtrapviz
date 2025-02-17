@@ -1,102 +1,36 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/404.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/articles/diversity.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/articles/filter-data.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/articles/plots.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/articles/read-and-clean-data.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/articles/summarize.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/index.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/camtrapviz-package.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/cast_columns.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/clean_data.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/filter_cameras_in_both_tables.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/filter_data.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/get_all_species.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/get_cameras.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/get_cameras_not_in.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/get_diversity_indices.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/get_nspecies.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/get_unique_species.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/plot_activity.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/plot_diversity.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/plot_map.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/plot_points.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/plot_species_bars.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/read_data.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/remove_rows_with_NA.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/run_camtrapviz.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/summarize_cameras.html</loc>
-  </url>
-  <url>
-    <loc>https://lisanicvert.github.io/camtrapviz/reference/summarize_species.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://lisanicvert.github.io/camtrapviz/404.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/LICENSE.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/articles/activity-patterns.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/articles/diversity.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/articles/filter-data.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/articles/index.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/articles/plots.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/articles/read-and-clean-data.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/articles/summarize.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/authors.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/index.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/camtrapviz-package.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/cast_columns.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/clean_data.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/filter_cameras_in_both_tables.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/filter_data.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/get_all_species.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/get_cameras.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/get_cameras_not_in.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/get_diversity_indices.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/get_nspecies.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/get_unique_species.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/index.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/plot_activity.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/plot_diversity.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/plot_map.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/plot_points.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/plot_species_bars.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/read_data.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/remove_rows_with_NA.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/run_camtrapviz.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/summarize_cameras.html</loc></url>
+<url><loc>https://lisanicvert.github.io/camtrapviz/reference/summarize_species.html</loc></url>
 </urlset>
+
