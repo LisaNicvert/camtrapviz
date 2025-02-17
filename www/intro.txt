@@ -1,1 +1,2 @@
-Visualize tabulated camera trap data. This app allows to filter, summarize and visualize camera trap data interactively and to export the R code to reproduce the analyses.
+Visualize tabulated camera trap data. This app allows to filter, summarize and visualize camera trap data 
+interactively and to export the R code to reproduce the analyses.
